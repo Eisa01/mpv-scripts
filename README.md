@@ -1,5 +1,13 @@
 # Introduction
 This repository contain scripts I have made for [mpv media player](https://github.com/mpv-player/mpv/). To add scripts from this repository, download the desired script in your `mpv/scripts/` directory (click [here](https://mpv.io/manual/master/#lua-scripting) to know more about mpv scripts).
+
+**Table of Contents**
+- [SmartCopyPaste.lua](*#SmartCopyPaste.lua)
+- [SmartCopyPaste Features](*#SmartCopyPaste%20Features)
+- [SmartCopyPaste Usage Guide](*#SmartCopyPaste%20Usage%20Guide)
+- [SmartCopyPaste Compatibility](*#SmartCopyPaste%20Compatibility)
+- [SmartCopyPaste To-Do List](*#SmartCopyPaste%20To-Do%20List)
+- [SmartCopyPaste Changelog](*#SmartCopyPaste%20Changelog)
 # SmartCopyPaste.lua
 SmartCopyPaste is a script for mpv media player, the script adds a very smart copy paste experience to mpv. It gives mpv the ability to load videos simply by pasting them directly into mpv. It also gives you the option to quickly resume video by pasting or opening a copied video. "copying the video you are currently playing creates a bookmark point in clipboard that detects the video and its time, which gives the option to resume watching upon pasting or opening the same video". SmartCopyPaste works whether the video is a URL or it is a video you have locally.  More details about SmartCopyPaste are explained in the sections below. To use it, simply download the *`smartcopypaste.lua`* file into your `mpv/scripts/` directory. 
 ### SmartCopyPaste Features
