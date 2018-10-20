@@ -23,7 +23,7 @@ local function get_extentionpath(path)
     end
 end
 
-local function has_extension (tab, val
+local function has_extension (tab, val)
     for index, value in ipairs(tab) do
         if value == val then
             return true
