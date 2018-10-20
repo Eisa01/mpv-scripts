@@ -43,7 +43,7 @@ SmartCopyPaste is a script for mpv media player, the script adds a very smart co
 ### SmartCopyPaste To-Do List
  - Enhance the bookmark feature of copy video and time by **[ctrl]**+**[c]**
 	 - Keep bookmark point even if it is no longer in the clipboard which gives the ability to paste even if the clipboard is overwritten
-	 - Make the bookmark point remain for multiple videos and give ability to resume to any saved bookmark point by ctrl+c
+	 - Make the bookmark point remain for multiple videos and give ability to resume to any saved bookmark point by **[ctrl]**+**[v]**
  - Support more platforms
 	 - Linux
 ### SmartCopyPaste Changelog
