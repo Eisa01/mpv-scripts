@@ -6,7 +6,7 @@ SmartCopyPaste is a script for mpv media player, the script adds a very smart co
  - **URL Paste Feature: Copy any video URL from anywhere and play it by pressing **[ctrl]+[v]** directly into mpv media player**
 	- *Before accepting paste:*
 		- It checks if the pasted URL contains a supported video extension such as **mp4**
-		- It avoids accidental video change, **it only accepts pasting new video if there is no video already playing***
+		- It avoids accidental video change, **it only accepts pasting new video if there is no video already playing**
 	- *Feature demonstration:*
 	- ![URL pasted into mpv](https://media.giphy.com/media/uWczvTWFVcxwXG9zJI/giphy.gif)
  - **Powerful Paste Feature: Copy any video or its path from anywhere and play it by pressing **[ctrl]+[v]** directly into mpv media player**
