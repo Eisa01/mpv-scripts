@@ -16,7 +16,7 @@ SmartCopyPaste is a script for mpv media player, the script adds a very smart co
 	- *Before accepting paste:*
 		 - It checks if the pasted path ends with a supported video extension such as **.mkv**
 		 - It checks if the pasted path is not an empty extension such as a file-named (**.mkv**) 
-		 - It avoids accidental video change, **it only accepts pasting new video if there is no video already playing****
+		 - It avoids accidental video change, **it only accepts pasting new video if there is no video already playing**
 	 - *Feature demonstration:*
 	 - ![Local videos pasted into mpv](https://media.giphy.com/media/2zcXmABJzxY4XZfSmg/giphy.gif)
  - **Bookmark Feature: Copy the time of the video by [ctrl]+[c] in mpv then resume the video at any time**
