@@ -33,8 +33,8 @@ SmartCopyPaste is a script for mpv media player, the script adds a very smart co
 	 - It enables you to share path with people (such as video url)
 	 - Or to open the video again by pasting path into mpv without resuming the time
 ### SmartCopyPaste Usage Guide
- - **[ctrl]**+**[c]** to copy the video and its time
- - **[ctrl]**+**[C]** to copy video without time
+ - **[ctrl]**+**[c]** to copy the video/path and its time
+ - **[ctrl]**+**[C]** to copy the video/path without time
  - **[ctrl]**+**[v]** to paste the video *and time if available*
  - Open video that has its time copied to resume automatically
 ### SmartCopyPaste Compatibility
