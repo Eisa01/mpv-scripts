@@ -57,7 +57,7 @@ Additionally, there are two versions of SmartCopyPaste, a **basic** version, and
  - **[ctrl]**+**[c]** to copy the video/path and its time
  - **[ctrl]**+**[C]** to copy the video/path without time
  - **[ctrl]**+**[v]** to paste the video *and time if available*
- - Open video that has its time copied to resume automatically
+ - Open video that has its time copied to resume automatically (if video and its time is still in clipboard)
 ### SmartCopyPaste Compatibility
  - **SmartCopyPaste is currently for Windows only**
 	 - To access windows clipboard, the method was inspired by [@wiiaboo](https://github.com/wiiaboo/) urlcopypaste script. Special thanks for his work.
