@@ -170,7 +170,7 @@ mp.add_key_binding('ctrl+v', 'paste', function()
 		
 		if (filePath == nil) and (videoFile:find('https?://') == 1) and contain_extension(extensions, videoFile) then
 			mp.commandv('loadfile', videoFile)
-			copyLogAdd:write(('[%s] %s\n'):format(os.date('%d/%b/%y %X'), videoFile..''))--for 2.1 urls
+			copyLogAdd:write(('[%s] %s\n'):format(os.date('%d/%b/%y %X'), videoFile..''))
 			copyLogAdd:close()
 		end
 		
