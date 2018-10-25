@@ -77,6 +77,6 @@ Additionally, there are two versions of SmartCopyPaste, a **basic** version, and
 	- Some other bug fixes
 ### SmartCopyPaste-Pro Changelog
 - 1.0 - **(Pro)**
-	- Initial release of an all new pro version containing tons of newly added features! [(check pro features section)](https://github.com/Eisa01/mpv-scripts#SmartCopyPaste-Script)
+	- Initial release of an all new pro version containing tons of newly added features! [(check pro features section)](https://github.com/Eisa01/mpv-scripts#SmartCopyPaste-Pro-ONLY-Features)
 - 1.1 - **(Pro)**
 	- Same bug fixes as the basic version
