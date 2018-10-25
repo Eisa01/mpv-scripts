@@ -4,8 +4,8 @@ This repository contain scripts I have made for [mpv media player](https://githu
 Table of Contents
 
  - [SmartCopyPaste Script](https://github.com/Eisa01/mpv-scripts#SmartCopyPaste-Script)
-	 - [SmartCopyPaste (Basic AND Pro) Features](https://github.com/Eisa01/mpv-scripts#SmartCopyPaste-(Basic-AND-Pro)-Features)
-	 - [SmartCopyPaste (Pro ONLY) Features](https://github.com/Eisa01/mpv-scripts#SmartCopyPaste-(Pro-ONLY)-Features)
+	 - [SmartCopyPaste (Basic AND Pro) Features](https://github.com/Eisa01/mpv-scripts#SmartCopyPaste-Basic-AND-Pro-Features)
+	 - [SmartCopyPaste (Pro ONLY) Features](https://github.com/Eisa01/mpv-scripts#SmartCopyPaste-Pro-ONLY-Features)
 	 - [SmartCopyPaste Usage Guide](https://github.com/Eisa01/mpv-scripts#SmartCopyPaste-Usage-Guide)
 	 - [SmartCopyPaste Compatibility](https://github.com/Eisa01/mpv-scripts#SmartCopyPaste-Compatibility)
 	 - [SmartCopyPaste To-Do List](https://github.com/Eisa01/mpv-scripts#SmartCopyPaste-To-Do-List)
@@ -72,7 +72,7 @@ Section contain SmartCopyPaste features that are exclusive to the pro version.
  - While watching a video, add pasted video to playlist so it plays it after finishing current video instead of ignoring paste
  - Support more platforms
 	 - Linux
- - ~~Enhance the bookmark feature of copy video and time by **[ctrl]**+**[c]**~~  (Done in **flavored** SmartCopyPaste)
+ - ~~Enhance the bookmark feature of copy video and time by **[ctrl]**+**[c]**~~  (Done in **pro** SmartCopyPaste)
 	 - ~~Keep bookmark point even if it is no longer in the clipboard which gives the ability to paste even if the clipboard is overwritten~~ (**Done** in **Pro** SmartCopyPaste)
 	 - ~~Make the bookmark point remain for multiple videos and give ability to resume to any saved bookmark point by **[ctrl]**+**[v]**~~ (**Done** in **Pro** SmartCopyPaste)
 ### SmartCopyPaste-Basic Changelog
