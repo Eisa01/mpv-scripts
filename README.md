@@ -1,8 +1,6 @@
 # Introduction
 This repository contain scripts I have made for [mpv media player](https://github.com/mpv-player/mpv/). To add scripts from this repository, download the desired script in your `mpv/scripts/` directory (click [here](https://mpv.io/manual/master/#lua-scripting) to know more about mpv scripts).
-
 Table of Contents
-
  - [SmartCopyPaste Script](https://github.com/Eisa01/mpv-scripts#SmartCopyPaste-Script)
 	 - [SmartCopyPaste (Basic AND Pro) Features](https://github.com/Eisa01/mpv-scripts#SmartCopyPaste-Basic-AND-Pro-Features)
 	 - [SmartCopyPaste (Pro ONLY) Features](https://github.com/Eisa01/mpv-scripts#SmartCopyPaste-Pro-ONLY-Features)
@@ -11,13 +9,10 @@ Table of Contents
 	 - [SmartCopyPaste To-Do List](https://github.com/Eisa01/mpv-scripts#SmartCopyPaste-To-Do-List)
 	 - [SmartCopyPaste-Basic Changelog](https://github.com/Eisa01/mpv-scripts#SmartCopyPaste-Basic-Changelog)
 	 - [SmartCopyPaste-Pro Changelog](https://github.com/Eisa01/mpv-scripts#SmartCopyPaste-Pro-Changelog)
-
 # SmartCopyPaste Script
 SmartCopyPaste is a script for mpv media player, the script adds a very smart copy paste experience to mpv. It gives mpv the ability to load videos simply by pasting them directly into mpv. It also gives you the option to quickly resume video by pasting or opening a copied video. "copying the video you are currently playing creates a bookmark point in clipboard that detects the video and its time, which gives the option to resume watching upon pasting or opening the copied video". SmartCopyPaste works whether the video is a URL or it is a video you have locally.  
 Additionally, there are two versions of SmartCopyPaste, a **basic** version, and a **pro** version. The pro version contain additional features to save your clipboard giving the option to paste at any time even if clipboard was overwritten or cleared. More details about SmartCopyPaste are explained in the sections below. To use it, either download *`smartcopypaste-basic.lua`* **or** *`smartcopypaste-pro.lua`* file into your `mpv/scripts/` directory. 
 ### SmartCopyPaste (Basic AND Pro) Features
-Section contain SmartCopyPaste features that are both in the basic and pro version.
-**Features:**
  - **URL Paste Feature:** Copy any video URL from anywhere and play it by pressing **[ctrl]+[v]** directly into mpv
 	- *Before accepting paste:*
 		- It checks if the pasted URL contains a supported video extension such as **mp4**
@@ -48,8 +43,6 @@ Section contain SmartCopyPaste features that are both in the basic and pro versi
 	 - It enables you to share path with people (such as video url) without resume time
 	 - Or to open the video again by pasting path into mpv without resuming the time
 ### SmartCopyPaste (Pro ONLY) Features
-Section contain SmartCopyPaste features that are exclusive to the pro version.
-**Features:**
  - **Save Clipboard to Log Feature:** The copies from mpv, and the pastes into mpv will be kept in a log for far more powerful copy paste experience, and a history that you can find useful.
 	 - Copying your open video by **[ctrl]** + **[c]** copies the video and its time while saving it to a log file located in `%APPDATA%\mpv\mpvClipboard.log`
 	 - Pasting a video into mpv plays the video and also saves it to a log file located in `%APPDATA%\mpv\mpvClipboard.log`
@@ -82,7 +75,6 @@ Section contain SmartCopyPaste features that are exclusive to the pro version.
 	- Made pasting faster
 	- Fixed a bug that caused any thing pasted to be added automatically to playlist
 	- Some other bug fixes
-	
 ### SmartCopyPaste-Pro Changelog
 - 1.0 - **(Pro)**
 	- Initial release of an all new flavored version containing tons of newly added features! (check flavored features section)
