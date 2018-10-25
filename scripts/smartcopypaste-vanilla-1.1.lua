@@ -6,18 +6,18 @@ local extensions = {
 }
 
 local function get_extension(path)
-    match = string.match(path, "%.([^%.]+)$" )
+    match = string.match(path, '%.([^%.]+)$' )
     if match == nil then
-        return "nomatch"
+        return 'nomatch'
     else
         return match
     end
 end
 
 local function get_extentionpath(path)
-    match = string.match(path,"(.*)%.([^%.]+)$")
+    match = string.match(path,'(.*)%.([^%.]+)$')
     if match == nil then
-        return "nomatch"
+        return 'nomatch'
     else
         return match
     end
@@ -81,59 +81,54 @@ local function set_clipboard(text)
 end
 
 mp.add_key_binding("ctrl+c", "copy", function()
-    local text = mp.get_property_native('path', '')
+    local filePath = mp.get_property_native('path')
     local time = math.floor(mp.get_property_number('time-pos'))
-    set_clipboard(text..'&t='..tostring(time))
+    set_clipboard(filePath..'&t='..tostring(time))
 end)
 
-mp.add_key_binding("ctrl+C", "copy-wo-time", function()
-    local text = mp.get_property_native('path', '')
-    set_clipboard(text)
+mp.add_key_binding("ctrl+C", "copy-path", function()
+    local filePath = mp.get_property_native('path')
+    set_clipboard(filePath)
 end)
 
 mp.add_key_binding("ctrl+v", "paste", function()
-    local text = get_clipboard()
-	local file
-	
-	if string.match(text, "(.*)&t=") then
-		file = string.match(text, "(.*)&t=")
-	elseif string.match(text, "^\"(.*)\"$") then
-		file = string.match(text, "^\"(.*)\"$")
+    local clip = get_clipboard()
+	local filePath = mp.get_property_native('path')
+	local time 
+
+	if string.match(clip, '(.*)&t=') then
+		videoFile = string.match(clip, '(.*)&t=')
+		time = string.match(clip, '&t=(.*)')
+	elseif string.match(clip, '^\"(.*)\"$') then
+		videoFile = string.match(clip, '^\"(.*)\"$')
 	else
-		file = text
+		videoFile = clip
+	end	
+	
+	local currentVideoExtension = string.lower(get_extension(videoFile))
+	local currentVideoExtensionPath = (get_extentionpath(videoFile))
+	
+	if (filePath == nil) and has_extension(extensions, currentVideoExtension) and (currentVideoExtensionPath~= '') then
+		mp.commandv('loadfile', videoFile)
 	end
 	
-	local time = string.match(text, "&t=(.*)")
-	local currrentExtension = string.lower(get_extension(file))
-	local currrentExtentionPath = (get_extentionpath(file))
-	local filepath = mp.get_property_native('path', '')
-	
-	if has_extension(extensions, currrentExtension) and (currrentExtentionPath~= "") then
-		mp.commandv('loadfile', file, 'append-play')
-	end
-	
-	if (file ~= text) and string.match(text, "(.*)&t=") then
-		mp.commandv('loadfile', file, 'append-play')
-	end
-	
-	if (file:find("https?://") == 1) and contain_extension(extensions, file) then
-        mp.commandv('loadfile', file, 'append-play')
+	if (filePath == nil) and (videoFile:find('https?://') == 1) and contain_extension(extensions, videoFile) then
+        mp.commandv('loadfile', videoFile)
     end
 	
-	if (filepath == file) and (time ~= nil) then
+	if (filePath == videoFile) and (time ~= nil) then
 		mp.commandv('seek', time, 'absolute', 'exact')
 	end
-
 end)
 
 mp.register_event('file-loaded', function()
-    local text = get_clipboard()
-	local time = string.match(text, "&t=(.*)")
-	local file = string.match(text, "(.*)&t=")
-	local filepath = mp.get_property_native('path', '')
+    local clip = get_clipboard()
+	local time = string.match(clip, '&t=(.*)')
+	local videoFile = string.match(clip, '(.*)&t=')
+	
+	local filePath = mp.get_property_native('path')
 
-	if (filepath == file) and (time ~= nil) then
+	if (filePath == videoFile) and (time ~= nil) then
 		mp.commandv('seek', time, 'absolute', 'exact')
 	end
-	
 end)
