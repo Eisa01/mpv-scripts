@@ -63,6 +63,7 @@ Additionally, there are two versions of SmartCopyPaste, a **basic** version, and
 	 - To access windows clipboard, the method was inspired by [@wiiaboo](https://github.com/wiiaboo/) urlcopypaste script. Special thanks for his work.
 ### SmartCopyPaste To-Do List
  - While watching a video, add pasted video to playlist so it plays it after finishing current video instead of ignoring paste
+ - Add a shortcut to quickly access clipboard history for the pro version
  - Support more platforms
 	 - Linux
  - ~~Enhance the bookmark feature of copy video and time by **[ctrl]**+**[c]**~~  (Done in **pro** SmartCopyPaste)
