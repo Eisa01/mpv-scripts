@@ -66,7 +66,7 @@ Additionally, there are two versions of SmartCopyPaste, a **basic** version, and
  - **SmartCopyPaste is currently for Windows only**
 	 - To access windows clipboard, the method was inspired by [@wiiaboo](https://github.com/wiiaboo/) urlcopypaste script. Special thanks for his work.
 ### SmartCopyPaste To-Do List
- - While watching a video, add pasted video to playlist so it plays it after finishing current video instead of ignoring paste
+ - While watching a video, add pasted video to playlist so pasted video plays after finishing current video instead of ignoring paste
 
  - Support more platforms
 	 - Linux
@@ -78,9 +78,8 @@ Additionally, there are two versions of SmartCopyPaste, a **basic** version, and
  - 1.0 - **(Basic)**
 	- Initial release
 - 1.1 - **(Basic)**
-	- Made pasting faster
 	- Fixed a bug that caused any thing pasted to be added automatically to playlist
-	- Some other bug fixes
+	- Some other fixes and optimizations
 - 1.2 - **(Basic)**
 	- Added support for youtube-dl extension (by removing checking links if they contain video file format) so pasting youtube links should work immediately if you have youtube-dl extension. Works for all other websites that youtube dl extension supports.
 	- Fixed issue that caused SmartCopyPaste to stop working if you copied in mpv while mpv was idle
@@ -89,7 +88,7 @@ Additionally, there are two versions of SmartCopyPaste, a **basic** version, and
 - 1.0 - **(Pro)**
 	- Initial release of an all new pro version containing tons of newly added features! [(check pro features section)](https://github.com/Eisa01/mpv-scripts#SmartCopyPaste-Pro-ONLY-Features)
 - 1.1 - **(Pro)**
-	- Same fixes as the basic version
+	- Same fixes and optimizations as the basic version
 - 1.2 - **(Pro)**
 	- Added support for youtube-dl extension (by removing checking links if they contain video file format) so pasting youtube links should work immediately if you have youtube-dl extension. Works for all other websites that youtube dl extension supports.
 	- Copying while mpv is idle now opens your clipboard history so you can copy any previous videos watched and paste to play them
