@@ -1,4 +1,5 @@
 
+
 # Introduction
 This repository contain scripts I have made for [mpv media player](https://github.com/mpv-player/mpv/). To add scripts from this repository, download the desired script in your `mpv/scripts/` directory (click [here](https://mpv.io/manual/master/#lua-scripting) to know more about mpv scripts).
 Table of Contents
@@ -16,8 +17,9 @@ Additionally, there are two versions of SmartCopyPaste, a **basic** version, and
 ### SmartCopyPaste (Basic AND Pro) Features
  - **URL Paste Feature:** Copy any video URL from anywhere and play it by pressing **[ctrl]+[v]** directly into mpv
 	- *Before accepting paste:*
-		- It checks if the pasted URL contains a supported video extension such as **mp4**
 		- It avoids accidental video change, **it only accepts pasting new video if there is no video already playing**
+		- ~~It checks if the pasted URL contains a supported video extension such as **mp4**~~
+		- Supports youtube-dl extension, so pasting youtube page link should work immediately (no need to find the exact video link) this is for any supported site in youtube-dl extension. [List of youtube-dl supported sits](https://rg3.github.io/youtube-dl/supportedsites.html)
 	- *Feature demonstration:*
 	- ![URL pasted into mpv](https://media.giphy.com/media/uWczvTWFVcxwXG9zJI/giphy.gif)
  - **Powerful Paste Feature:** Copy any video or its path from anywhere and play it by pressing **[ctrl]+[v]** directly into mpv
