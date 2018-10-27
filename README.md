@@ -82,7 +82,7 @@ Additionally, there are two versions of SmartCopyPaste, a **basic** version, and
 	- Fixed a bug that caused any thing pasted to be added automatically to playlist
 	- Some other fixes and optimizations
 - 1.2 - **(Basic)**
-	- Added support for youtube-dl extension (by removing checking links if they contain video file format) so pasting youtube links should work immediately if you have youtube-dl extension. Works for all other websites that youtube dl extension supports.
+	- Added support for youtube-dl extension (by removing checking links if they contain video file format) so pasting youtube links should work immediately if you have youtube-dl extension. Works for all other websites that youtube-dl extension supports.
 	- Fixed issue that caused SmartCopyPaste to stop working if you copied in mpv while mpv was idle
 	- Some other fixes and optimizations
 ### SmartCopyPaste-Pro Changelog
