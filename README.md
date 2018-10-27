@@ -29,6 +29,12 @@ Additionally, there are two versions of SmartCopyPaste, a **basic** version, and
 		 - It avoids accidental video change, **it only accepts pasting new video if there is no video already playing**
 	 - *Feature demonstration:*
 	 - ![Local videos pasted into mpv](https://media.giphy.com/media/2zcXmABJzxY4XZfSmg/giphy.gif)
+ - **Feature - Copy Video Path WITH Time:** Copy the video path and time reached by **[ctrl]**+**[c]**
+  	 - Enables opening and resuming the video the video by pasting 
+	 - It also enables you to share path with people (such as video url) with your resume time
+ - **Feature - Copy Video Path WITHOUT Time:** Copy the video path by **[ctrl]**+**[C]**
+	 - Enables opening the video but without resuming by pasting
+	 - It also enables you to share path with people (such as video url) without resume time
  - **Feature - Bookmark:** Copy the time of the video by **[ctrl]**+**[c]** in mpv then resume the video at any time
 	 - Supports pasting in the player immediately to open copied video along with its seeking time
 		 - It avoids accidental video change,  it checks if the pasted time was of the same video
@@ -39,9 +45,6 @@ Additionally, there are two versions of SmartCopyPaste, a **basic** version, and
 		 - Or to open the video again and resume it by pasting path into mpv 
 	 - Feature demonstration
 	 - ![Resume copied time by paste](https://thumbs.gfycat.com/LeanPepperyCopperbutterfly-size_restricted.gif)
- - **Feature - Copy Path:** Copy the video path by **[ctrl]**+**[C]**
-	 - It enables you to share path with people (such as video url) without resume time
-	 - Or to open the video again by pasting path into mpv without resuming the time
 ### SmartCopyPaste (Pro ONLY) Features
  - **Feature - Save Clipboard to a Log File:** The copies from mpv, and the pastes into mpv will be kept in a log for far more powerful copy paste experience, and a history that you can find useful.
 	 - Copying your open video by **[ctrl]**+**[c]** copies the video and its time while saving it to a log file located in `%APPDATA%\mpv\mpvClipboard.log`
