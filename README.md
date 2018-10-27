@@ -49,10 +49,10 @@ Additionally, there are two versions of SmartCopyPaste, a **basic** version, and
  - **Powerful Bookmark Feature:** Copy the time of multiple videos by **[ctrl]**+**[c]** in mpv then resume any video even after clipboard is overwritten or it is cleared.
 	 - Using the log, copying videos adds a bookmark point, so you can resume to your copy position in any and all copied videos by **[ctrl]**+**[v]**
 	 - any video you copy its resume time will always be saved and can be overwritten by copying a new time of video so pasting will always take you to the newest copied time of its video
- - **Remember Videos Copied or Videos Pasted Feature:** If clipboard is replaced you can still resume the video by pasting
+ - **Remember Videos Copied or Videos Pasted Feature:** If clipboard is replaced with anything such as 'random text', you can still paste the video ;)
 	 - Open your video and resume anything copied even if clipboard no longer contain the time
- - **Remember Last Video Copied or Last Video Paste Feature:** If clipboard is replaced with anything such as 'random text', you can still paste the video ;)
-	 - If mpv is idle you can always paste your last copied mpv video or last pasted video into mpv to play it then paste again to resume. The last copied video or pasted will remain even after a device restart or clipboard changes.
+ - **Remember Last Video Copied or Last Video Paste Feature:** The last copied video or pasted will remain even after a device restart or clipboard changes.
+	 - If mpv is idle you can always paste your last copied mpv video or last pasted video into mpv to play it then paste again to resume. 
 ### SmartCopyPaste Usage Guide
  - **[ctrl]**+**[c]** to copy the video/path and its time
  - **[ctrl]**+**[C]** to copy the video/path without time
