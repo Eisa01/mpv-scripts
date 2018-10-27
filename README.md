@@ -54,7 +54,7 @@ Additionally, there are two versions of SmartCopyPaste, a **basic** version, and
 	 - Even for multiple videos you copy, their resume time will be saved. You can resume to exact position by pasting in each video
  - **Feature - Remember Videos Copied or Videos Pasted:** If clipboard is replaced with anything such as 'random text', you can still paste the video ;)
 	 - Paste to play and resume anything copied even if clipboard no longer contain the time
- - **Feature - Remember Last Video Copied or Last Video Paste:** The last copied or pasted video will remain even after device restarts or clipboard changes.
+ - **Feature - Remember Last Video Copied or Last Video Pasted:** The last copied or pasted video will remain even after device restarts or clipboard changes.
 	 - If mpv is idle you can always paste your last copied mpv video or last pasted video into mpv to play it then paste again to resume. (this works even if you have different types of files in clipboard)
  - **Feature - Quick access to Videos Clipboard History:** Gain quick access to your videos clipboard history to find your previous clipboard videos and play or share them.
 	 - If mpv is idle (not running any video) simply copy by pressing **[ctrl]**+**[c]** to access your clipboard history
