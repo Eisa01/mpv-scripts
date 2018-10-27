@@ -6,39 +6,31 @@ local extensions = {
 }
 
 local function get_extension(path)
-	match = string.match(path, '%.([^%.]+)$')
-	if match == nil then
-		return 'nomatch'
-	else
-		return match
-	end
+    match = string.match(path, '%.([^%.]+)$' )
+    if match == nil then
+        return 'nomatch'
+    else
+        return match
+    end
 end
 
 local function get_extentionpath(path)
-	match = string.match(path,'(.*)%.([^%.]+)$')
-	if match == nil then
-		return 'nomatch'
-	else
-		return match
-	end
+    match = string.match(path,'(.*)%.([^%.]+)$')
+    if match == nil then
+        return 'nomatch'
+    else
+        return match
+    end
 end
 
 local function has_extension (tab, val)
-	for index, value in ipairs(tab) do
-		if value == val then
-			return true
-		end
-	end
-	return false
-end
+    for index, value in ipairs(tab) do
+        if value == val then
+            return true
+        end
+    end
 
-local function contain_extension (tab, val)
-	for index, value in ipairs(tab) do
-		if value.match(val, value) then
-			return true
-		end
-	end
-	return false
+    return false
 end
 
 local function get_clipboard()
@@ -79,29 +71,56 @@ local function set_clipboard(text)
 end
 
 mp.add_key_binding('ctrl+c', 'copy', function()
-	local filePath = mp.get_property_native('path')
-	local time = math.floor(mp.get_property_number('time-pos'))
-	set_clipboard(filePath..'&t='..tostring(time))
-	local copyLog = os.getenv('APPDATA')..'/mpv/mpvClipboard.log';
-	local copyLogAdd = io.open(copyLog, 'a+')
-	copyLogAdd:write(('[%s] %s\n'):format(os.date('%d/%b/%y %X'), filePath..'&t='..tostring(time)))    
-	copyLogAdd:close()
+    local filePath = mp.get_property_native('path') --1.2
+	if (filePath ~= nil) then
+		local time = math.floor(mp.get_property_number('time-pos'))
+		
+		set_clipboard(filePath..'&t='..tostring(time))
+		
+		local copyLog = os.getenv('APPDATA')..'/mpv/mpvClipboard.log';
+		local copyLogAdd = io.open(copyLog, 'a+')
+		
+		copyLogAdd:write(('[%s] %s\n'):format(os.date('%d/%b/%y %X'), filePath..'&t='..tostring(time)))
+		copyLogAdd:close()
+	else
+		local res = utils.subprocess({ args = {
+        'powershell', '-NoProfile', '-Command', [[& {
+		Trap {
+                Write-Error -ErrorRecord $_
+                Exit 1
+            }
+		Invoke-Item "$env:APPDATA\mpv\mpvClipboard.log"
+        }]]
+    } })
+	
+    if not res.error then
+        return res.stdout
+    end
+    return false
+	end
 end)
 
 mp.add_key_binding('ctrl+C', 'copy-path', function()
 	local filePath = mp.get_property_native('path')
-	set_clipboard(filePath)
-	local copyLog = os.getenv('APPDATA')..'/mpv/mpvClipboard.log';
-	local copyLogAdd = io.open(copyLog, 'a+')
-	copyLogAdd:write(('[%s] %s\n'):format(os.date('%d/%b/%y %X'), filePath..''))    
-	copyLogAdd:close()
+
+	if (filePath ~= nil) then --1.2
+		set_clipboard(filePath)
+		
+		local copyLog = os.getenv('APPDATA')..'/mpv/mpvClipboard.log';
+		local copyLogAdd = io.open(copyLog, 'a+')
+		
+		copyLogAdd:write(('[%s] %s\n'):format(os.date('%d/%b/%y %X'), filePath..''))    
+		copyLogAdd:close()
+	else
+		return false
+	end
 end)
 
 mp.add_key_binding('ctrl+v', 'paste', function()
 	local clip = get_clipboard()
 	local filePath = mp.get_property_native('path')
 	local time
-
+	
 	if string.match(clip, '(.*)&t=') then
 		videoFile = string.match(clip, '(.*)&t=')
 		time = string.match(clip, '&t=(.*)')
@@ -110,30 +129,32 @@ mp.add_key_binding('ctrl+v', 'paste', function()
 	else
 		videoFile = clip
 	end
-	
+
 	local currentVideoExtension = string.lower(get_extension(videoFile))
 	local currentVideoExtensionPath = (get_extentionpath(videoFile))
-
 	local copyLog = os.getenv('APPDATA')..'/mpv/mpvClipboard.log'
-	local copyLogOpen = io.open(copyLog, 'r+')
 	local copyLogAdd = io.open(copyLog, 'a+')
+	local copyLogOpen = io.open(copyLog, 'r+')
 	local linePosition
 	local videoFound = ''
 	local logVideo
 	local logVideoTime
-	
-	for line in copyLogOpen:lines() do
-		linePosition = line:find(']')
-		line = line:sub(linePosition + 2)
-		if line.match(line, '(.*)&t=') == filePath then
-			videoFound = line
-		end
+
+for line in copyLogOpen:lines() do
+   
+	linePosition = line:find(']')
+	line = line:sub(linePosition + 2)
+   
+	if line.match(line, '(.*)&t=') == filePath then
+		videoFound = line
 	end
+   
+end
 
-	copyLogOpen:close()
+copyLogOpen:close()
 
-	logVideo = string.match(videoFound, '(.*)&t=')	
-	logVideoTime = string.match(videoFound, '&t=(.*)')
+logVideo = string.match(videoFound, '(.*)&t=')
+logVideoTime = string.match(videoFound, '&t=(.*)')
 	
 	if (filePath == logVideo) and (logVideoTime ~= nil) then
 		mp.commandv('seek', logVideoTime, 'absolute', 'exact')
@@ -145,38 +166,40 @@ mp.add_key_binding('ctrl+v', 'paste', function()
 		copyLogAdd:close()
 	end
 	
-	if (filePath == nil) and not has_extension(extensions, videoFile) and not contain_extension(extensions, videoFile) then 
-		copyLog = os.getenv('APPDATA')..'/mpv/mpvClipboard.log'
-		copyLogOpen = io.open(copyLog, 'r+')
+	if (filePath == nil) and not has_extension(extensions, videoFile) and not (videoFile:find('https?://') == 1) then 
+	
+	copyLog = os.getenv('APPDATA')..'/mpv/mpvClipboard.log'
+	copyLogOpen = io.open(copyLog, 'r+')
 
-		for line in copyLogOpen:lines() do
-			lastVideoFound = line
-		end
-		
-		copyLogOpen:close()
-		
-		linePosition = lastVideoFound:find(']')
-		lastVideoFound = lastVideoFound:sub(linePosition + 2)
-		
-		if string.match(lastVideoFound, '(.*)&t=') then
-			videoFile = string.match(lastVideoFound, '(.*)&t=')
-		else
-			videoFile = lastVideoFound
-		end
-		
-		mp.commandv('loadfile', videoFile)
-		
-		end
-		
-		if (filePath == nil) and (videoFile:find('https?://') == 1) and contain_extension(extensions, videoFile) then
-			mp.commandv('loadfile', videoFile)
-			copyLogAdd:write(('[%s] %s\n'):format(os.date('%d/%b/%y %X'), videoFile..''))
-			copyLogAdd:close()
-		end
-		
-		if (filePath == videoFile) and (time ~= nil) then
-			mp.commandv('seek', time, 'absolute', 'exact')
-		end
+	for line in copyLogOpen:lines() do
+		lastVideoFound = line
+	end
+	
+	copyLogOpen:close()
+	
+	linePosition = lastVideoFound:find(']')
+	lastVideoFound = lastVideoFound:sub(linePosition + 2)
+	
+	if string.match(lastVideoFound, '(.*)&t=') then
+		videoFile = string.match(lastVideoFound, '(.*)&t=')
+	else
+		videoFile = lastVideoFound
+	end
+	
+	mp.commandv('loadfile', videoFile)
+	
+	end
+	
+	if (filePath == nil) and (videoFile:find('https?://') == 1) then
+        	mp.commandv('loadfile', videoFile)
+			
+		copyLogAdd:write(('[%s] %s\n'):format(os.date('%d/%b/%y %X'), videoFile..''))--for 2.1 urls
+		copyLogAdd:close()
+    end
+	
+	if (filePath == videoFile) and (time ~= nil) then
+		mp.commandv('seek', time, 'absolute', 'exact')
+	end
 
 end)
 
