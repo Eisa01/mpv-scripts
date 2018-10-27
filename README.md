@@ -50,7 +50,7 @@ Additionally, there are two versions of SmartCopyPaste, a **basic** version, and
 	 - Pasting a video into mpv plays the video and also saves it to a log file located in `%APPDATA%\mpv\mpvClipboard.log`
  - **Powerful Bookmark Feature:** Copy the time of multiple videos by **[ctrl]**+**[c]** in mpv then resume any video even after clipboard is overwritten or it is cleared.
 	 - Using the log, copying videos adds a bookmark point, so you can resume to your copy position in any and all copied videos by **[ctrl]**+**[v]**
-	 - For multiple videos you copy their resume time will be saved and you can resume to exact position by pasting in each video
+	 - Even for multiple videos you copy their resume time will be saved and you can resume to exact position by pasting in each video
  - **Remember Videos Copied or Videos Pasted Feature:** If clipboard is replaced with anything such as 'random text', you can still paste the video ;)
 	 - Paste video to play then paste to resume anything copied even if clipboard no longer contain the time
  - **Remember Last Video Copied or Last Video Paste Feature:** The last copied video or pasted will remain even after a device restart or clipboard changes.
