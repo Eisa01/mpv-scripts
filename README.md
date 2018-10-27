@@ -91,6 +91,6 @@ Additionally, there are two versions of SmartCopyPaste, a **basic** version, and
 - 1.1 - **(Pro)**
 	- Same fixes and optimizations as the basic version
 - 1.2 - **(Pro)**
-	- Added support for youtube-dl extension (by removing checking links if they contain video file format) so pasting youtube links should work immediately if you have youtube-dl extension. Works for all other websites that youtube dl extension supports.
+	- Added support for youtube-dl extension (by removing checking links if they contain video file format) so pasting youtube links should work immediately if you have youtube-dl extension. Works for all other websites that youtube-dl extension supports.
 	- Copying while mpv is idle now opens your clipboard history so you can copy any previous videos watched and paste to play them
 	- Same fixes and optimizations as the basic version
