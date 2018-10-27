@@ -30,7 +30,7 @@ Additionally, there are two versions of SmartCopyPaste, a **basic** version, and
 	 - *Feature demonstration:*
 	 - ![Local videos pasted into mpv](https://media.giphy.com/media/2zcXmABJzxY4XZfSmg/giphy.gif)
  - **Feature - Copy Video Path WITH Time:** Copy the video path and time reached by **[ctrl]**+**[c]**
-  	 - Enables opening and resuming the video the video by pasting 
+  	 - Enables opening and resuming the video by pasting 
 	 - It also enables you to share path with people (such as video url) with your resume time
  - **Feature - Copy Video Path WITHOUT Time:** Copy the video path by **[ctrl]**+**[C]**
 	 - Enables opening the video but without resuming by pasting
