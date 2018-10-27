@@ -1,3 +1,4 @@
+
 # Introduction
 This repository contain scripts I have made for [mpv media player](https://github.com/mpv-player/mpv/). To add scripts from this repository, download the desired script in your `mpv/scripts/` directory (click [here](https://mpv.io/manual/master/#lua-scripting) to know more about mpv scripts).
 Table of Contents
@@ -50,25 +51,29 @@ Additionally, there are two versions of SmartCopyPaste, a **basic** version, and
 	 - Using the log, copying videos adds a bookmark point, so you can resume to your copy position in any and all copied videos by **[ctrl]**+**[v]**
 	 - any video you copy its resume time will always be saved and can be overwritten by copying a new time of video so pasting will always take you to the newest copied time of its video
  - **Remember Videos Copied or Videos Pasted Feature:** If clipboard is replaced with anything such as 'random text', you can still paste the video ;)
-	 - Open your video and resume anything copied even if clipboard no longer contain the time
+	 - Paste video to play then paste to resume anything copied even if clipboard no longer contain the time
  - **Remember Last Video Copied or Last Video Paste Feature:** The last copied video or pasted will remain even after a device restart or clipboard changes.
-	 - If mpv is idle you can always paste your last copied mpv video or last pasted video into mpv to play it then paste again to resume. 
+	 - If mpv is idle you can always paste your last copied mpv video or last pasted video into mpv to play it then paste again to resume. (this works even if you have different types of files in clipboard)
+ - **Quick access to Videos Clipboard History:** Gain quick access to your videos clipboard history to find your previous videos and play or share them.
+	 - If mpv is idle (not running any video) simply copy by pressing **[ctrl]**+**[c]** to access your clipboard history
 ### SmartCopyPaste Usage Guide
  - **[ctrl]**+**[c]** to copy the video/path and its time
  - **[ctrl]**+**[C]** to copy the video/path without time
- - **[ctrl]**+**[v]** to paste the video *and time if available*
+ - **[ctrl]**+**[v]** to paste the video *and time if available* (whether link or local video itself or any video path)
+ - **[ctrl]**+**[c]** while mpv is idle (not playing a video) to access your videos clipboard history **(PRO ONLY)**
  - Open video that has its time copied to resume automatically (if video and its time is still in clipboard)
 ### SmartCopyPaste Compatibility
  - **SmartCopyPaste is currently for Windows only**
 	 - To access windows clipboard, the method was inspired by [@wiiaboo](https://github.com/wiiaboo/) urlcopypaste script. Special thanks for his work.
 ### SmartCopyPaste To-Do List
  - While watching a video, add pasted video to playlist so it plays it after finishing current video instead of ignoring paste
- - Add a shortcut to quickly access clipboard history for the pro version
+
  - Support more platforms
 	 - Linux
- - ~~Enhance the bookmark feature of copy video and time by **[ctrl]**+**[c]**~~  (Done in **pro** SmartCopyPaste)
+ - ~~Enhance the bookmark feature of copy video and time by **[ctrl]**+**[c]**~~  (Done in **Pro** SmartCopyPaste)
 	 - ~~Keep bookmark point even if it is no longer in the clipboard which gives the ability to paste even if the clipboard is overwritten~~ (**Done** in **Pro** SmartCopyPaste)
 	 - ~~Make the bookmark point remain for multiple videos and give ability to resume to any saved bookmark point by **[ctrl]**+**[v]**~~ (**Done** in **Pro** SmartCopyPaste)
+- ~~Add a shortcut to quickly access clipboard history for the pro version~~ (**Done** in **Pro 1.2** SmartCopyPaste)
 ### SmartCopyPaste-Basic Changelog
  - 1.0 - **(Basic)**
 	- Initial release
@@ -76,8 +81,16 @@ Additionally, there are two versions of SmartCopyPaste, a **basic** version, and
 	- Made pasting faster
 	- Fixed a bug that caused any thing pasted to be added automatically to playlist
 	- Some other bug fixes
+- 1.2 - **(Basic)**
+	- Added support for youtube-dl extension (by removing checking links if they contain video file format) so pasting youtube links should work immediately if you have youtube-dl extension. Works for all other websites that youtube dl extension supports.
+	- Fixed issue that caused SmartCopyPaste to stop working if you copied in mpv while mpv was idle
+	- Some other fixes and optimizations
 ### SmartCopyPaste-Pro Changelog
 - 1.0 - **(Pro)**
 	- Initial release of an all new pro version containing tons of newly added features! [(check pro features section)](https://github.com/Eisa01/mpv-scripts#SmartCopyPaste-Pro-ONLY-Features)
 - 1.1 - **(Pro)**
-	- Same bug fixes as the basic version
+	- Same fixes as the basic version
+- 1.2 - **(Pro)**
+	- Added support for youtube-dl extension (by removing checking links if they contain video file format) so pasting youtube links should work immediately if you have youtube-dl extension. Works for all other websites that youtube dl extension supports.
+	- Copying while mpv is idle now opens your clipboard history so you can copy any previous videos watched and paste to play them
+	- Same fixes and optimizations as the basic version
