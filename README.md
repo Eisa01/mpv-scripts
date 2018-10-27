@@ -19,7 +19,7 @@ Additionally, there are two versions of SmartCopyPaste, a **basic** version, and
 	- *Before accepting paste:*
 		- It avoids accidental video change, **it only accepts pasting new video if there is no video already playing**
 		- ~~It checks if the pasted URL contains a supported video extension such as **mp4**~~
-		- Supports youtube-dl extension, so pasting youtube page link should work immediately (no need to find the exact video link) this is for any supported site in youtube-dl extension. [List of youtube-dl supported sits](https://rg3.github.io/youtube-dl/supportedsites.html)
+		- Supports youtube-dl extension, so pasting youtube page link should work immediately (no need to find the exact video link) this is for any supported site in youtube-dl extension. [List of youtube-dl supported sites](https://rg3.github.io/youtube-dl/supportedsites.html)
 	- *Feature demonstration:*
 	- ![URL pasted into mpv](https://media.giphy.com/media/uWczvTWFVcxwXG9zJI/giphy.gif)
  - **Powerful Paste Feature:** Copy any video or its path from anywhere and play it by pressing **[ctrl]+[v]** directly into mpv
