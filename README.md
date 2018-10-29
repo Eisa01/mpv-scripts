@@ -25,8 +25,8 @@ Additionally, there are two versions of SmartCopyPaste, a **basic** version, and
 	 - **[ctrl]**+**[v]** to jump to the latest bookmarked position in the bookmarked video **(PRO ONLY)**
  - **While mpv is idle (NOT running a video)**
 	 - **[ctrl]**+**[v]** to play the copied video *and time if available* (whether link or local video or video path)
-	 - **[ctrl]**+**[c]** to access your videos clipboard history **(PRO ONLY)**
 	 - **[ctrl]**+**[v]** when no video is currently copied, [ctrl]+[v] will find and play your last copied or pasted video **(PRO ONLY)**
+	 - **[ctrl]**+**[c]** to access your videos clipboard history **(PRO ONLY)**
  - **Other cases**
 	 - Open video that has its time copied to resume automatically (if video and its time is still in clipboard)
 ### SmartCopyPaste (Basic AND Pro) Features
