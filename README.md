@@ -1,3 +1,4 @@
+
 # Introduction
 This repository contain scripts I have made for [mpv media player](https://github.com/mpv-player/mpv/). To add scripts from this repository, download the desired script in your `mpv/scripts/` directory (click [here](https://mpv.io/manual/master/#lua-scripting) to know more about mpv scripts).
 Table of Contents
@@ -9,17 +10,43 @@ Table of Contents
 	 - [SmartCopyPaste To-Do List](https://github.com/Eisa01/mpv-scripts#smartcopypaste-to-do-list)
 	 - [SmartCopyPaste-Basic Changelog](https://github.com/Eisa01/mpv-scripts#smartcopypaste-basic-changelog)
 	 - [SmartCopyPaste-Pro Changelog](https://github.com/Eisa01/mpv-scripts#smartcopypaste-pro-changelog)
+	 - [SmartCopyPaste Detailed Explanation of Features](https://github.com/Eisa01/mpv-scripts#smartcopypaste-detailed-explanation-of-features)
 # SmartCopyPaste Script
-SmartCopyPaste is a script for mpv media player, the script adds a very smart copy paste experience to mpv. It gives mpv the ability to load videos simply by pasting them into mpv (works whether it is a copied video, a URL, or a video path). It also provides copying within mpv, pressing [ctrl]+[c] on a video copies the video path and its time to clipboard which enables paste in mpv to resume. "copying the video you are currently playing creates a bookmark point in clipboard that detects the video path and its time, which gives the option to resume watching upon pasting". All features of SmartCopyPaste works whether the video is a URL or a video path or a copied video.  
-Additionally, there are two versions of SmartCopyPaste, a **basic** version, and a **pro** version. The pro version contain additional features to save your clipboard into a log file, which gives the option to paste at any time even if clipboard was overwritten or cleared. More details about SmartCopyPaste are explained in the sections below. **For installation**, either download *`smartcopypaste-basic.lua`* **or** *`smartcopypaste-pro.lua`* file into your `mpv/scripts/` directory. 
+SmartCopyPaste is a script for mpv media player, the script adds a very smart copy paste experience to mpv. It gives mpv the ability to load videos simply by pasting them directly into mpv. As for copying,  pressing [ctrl]+[c] on a video, copies the video path and its time to clipboard, which enables paste to resume or to access video with the copied time by pasting.
+
+Additionally, there are two versions of SmartCopyPaste, a **basic** version, and a **pro** version. The pro version contain additional features to save your clipboard into a log file giving the option to paste at any time even if clipboard was overwritten or cleared. More details about SmartCopyPaste are explained in the sections below. To use it, either download *`smartcopypaste-basic.lua`* **or** *`smartcopypaste-pro.lua`* file into your `mpv/scripts/` directory. 
+### SmartCopyPaste Usage Guide
+- **While mpv is active (running a video)**
+	 - **[ctrl]**+**[c]** to copy the video path and its time
+	 - **[ctrl]**+**[C]** to copy the video path without time
+	 - **[ctrl]**+**[v]** to jump to the copied time
+	 - **[ctrl]**+**[c]** to copy video path with time and **bookmark (PRO ONLY)**
+	 - **[ctrl]**+**[C]** to copy video path without time and **bookmark (PRO ONLY)**
+	 - **[ctrl]**+**[v]** to jump to the latest bookmarked position in the bookmarked video **(PRO ONLY)**
+ - **While mpv is idle (NOT running a video)**
+	 - **[ctrl]**+**[v]** to play the copied video *and time if available* (whether link or local video or video path)
+	 - **[ctrl]**+**[c]** to access your videos clipboard history **(PRO ONLY)**
+	 - **[ctrl]**+**[v]** when no video is currently copied, [ctrl]+[v] will find and play your last copied or pasted video **(PRO ONLY)**
+ - **Other cases**
+	 - Open video that has its time copied to resume automatically (if video and its time is still in clipboard)
 ### SmartCopyPaste (Basic AND Pro) Features
- - **Feature - URL Paste:** Copy any video URL from anywhere and play it by pressing **[ctrl]**+**[v]** directly into mpv
+- **Powerful Paste:** Copy video or path or URL from anywhere and play it by pressing **[ctrl]**+**[v]** in idle mpv
+- **Copy Video Path WITH Time:** In active mpv, copy the video path and time reached by **[ctrl]**+**[c]**
+- **Copy Video Path WITHOUT Time:** In active mpv, copy the video path alone by **[ctrl]**+**[C]**
+- **Resume to Copied Time:** If you copied a video path by [ctrl]+[c] within mpv, you will be able to open and resume the video by **[ctrl]**+**[v]**
+### SmartCopyPaste (PRO ONLY) Features
+ - **Save Clipboard to a Log File:** The copies from mpv, and the pastes into mpv will be kept in a log file located in `%APPDATA%\mpv\mpvClipboard.log`
+ - **Powerful Bookmark:** Copy video path and bookmark by **[ctrl]**+**[c]** then resume bookmark by **[ctrl]**+**[v]** in the bookmarked video.
+ - **Remember Last Video Copied or Last Video Pasted:** While mpv is idle, press **[ctrl]**+**[v]** to play the last copied or pasted video even after device restarts or clipboard changes.
+ - **Quick access to Videos Clipboard History:** If mpv is idle, press **[ctrl]**+**[c]** to access your clipboard history.
+### SmartCopyPaste Detailed Explanation of Features
+ - **URL Paste:** Copy any video URL from anywhere and play it by pressing **[ctrl]**+**[v]** directly into mpv
 	- *Before accepting paste:*
 		- It avoids accidental video change, **it only accepts pasting new video if there is no video already playing**
 		- Supports youtube-dl extension, so pasting youtube page link should work immediately (no need to find the exact video link) this is for any supported site in youtube-dl extension. [List of youtube-dl supported sites](https://rg3.github.io/youtube-dl/supportedsites.html)
 	- *Feature demonstration:*
 	- ![URL pasted into mpv](https://media.giphy.com/media/uWczvTWFVcxwXG9zJI/giphy.gif)
- - **Feature - Powerful Paste:** Copy any video or its path from anywhere and play it by pressing **[ctrl]**+**[v]** directly into mpv
+ - **Powerful Paste:** Copy any video or its path from anywhere and play it by pressing **[ctrl]**+**[v]** directly into mpv
 	 - Supports copying the video itself and pasting it inside mpv
 	 - Supports copying the path of video and pasting it inside mpv
 	 - Supports native windows copy as path feature for videos and pasting inside mpv
@@ -29,13 +56,13 @@ Additionally, there are two versions of SmartCopyPaste, a **basic** version, and
 		 - It avoids accidental video change, **it only accepts pasting new video if there is no video already playing**
 	 - *Feature demonstration:*
 	 - ![Local videos pasted into mpv](https://media.giphy.com/media/2zcXmABJzxY4XZfSmg/giphy.gif)
- - **Feature - Copy Video Path WITH Time:** Copy the video path and time reached by **[ctrl]**+**[c]**
-  	 - Enables opening and resuming the video by pasting 
+ - **Copy Video Path WITH Time:** Copy the video path and time reached by **[ctrl]**+**[c]**
+  	 - Enables opening and resuming the video the video by pasting 
 	 - It also enables you to share path with people (such as video url) with your resume time
- - **Feature - Copy Video Path WITHOUT Time:** Copy the video path by **[ctrl]**+**[C]**
+ - **Copy Video Path WITHOUT Time:** Copy the video path alone by **[ctrl]**+**[C]**
 	 - Enables opening the video but without resuming by pasting
 	 - It also enables you to share path with people (such as video url) without resume time
- - **Feature - Bookmark:** Copy the time of the video by **[ctrl]**+**[c]** in mpv then resume the video at any time
+ - **Resume to Copied Time:** Copy the time of the video by **[ctrl]**+**[c]** in mpv then resume the video at any time
 	 - Supports pasting in the player immediately to open copied video along with its seeking time
 		 - It avoids accidental video change,  it checks if the pasted time was of the same video
 	 - Supports automatic seeking to the time you copied when you open the copied video (even without pasting)
@@ -45,31 +72,23 @@ Additionally, there are two versions of SmartCopyPaste, a **basic** version, and
 		 - Or to open the video again and resume it by pasting path into mpv 
 	 - Feature demonstration
 	 - ![Resume copied time by paste](https://thumbs.gfycat.com/LeanPepperyCopperbutterfly-size_restricted.gif)
-### SmartCopyPaste (Pro ONLY) Features
- - **Feature - Save Clipboard to a Log File:** The copies from mpv, and the pastes into mpv will be kept in a log for far more powerful copy paste experience, and a history that you can find useful.
+ - **(PRO) Save Clipboard to a Log File:** The copies from mpv, and the pastes into mpv will be kept in a log for far more powerful copy paste experience, and a history that you can find useful.
 	 - Copying your open video by **[ctrl]**+**[c]** copies the video and its time while saving it to a log file located in `%APPDATA%\mpv\mpvClipboard.log`
 	 - Pasting a video into mpv plays the video and also saves it to a log file located in `%APPDATA%\mpv\mpvClipboard.log`
- - **Feature - Powerful Bookmark:** Copy the time of multiple videos by **[ctrl]**+**[c]** in mpv then resume any video even after clipboard is overwritten or it is cleared.
+ - **(PRO) Powerful Bookmark:** Copy the time of multiple videos by **[ctrl]**+**[c]** in mpv then resume any video even after clipboard is overwritten or it is cleared.
 	 - Using the log, copying videos adds a bookmark point, so you can resume to your copy position in any and all copied videos by **[ctrl]**+**[v]**
 	 - Even for multiple videos you copy, their resume time will be saved. You can resume to exact position by pasting in each video
- - **Feature - Remember Videos Copied or Videos Pasted:** If clipboard is replaced with anything such as 'random text', you can still paste the video ;)
+ - **(PRO) Remember Last Video Copied or Last Video Pasted:** The last copied or pasted video will remain even after device restarts or clipboard changes.
+	 - If clipboard is replaced with anything such as 'random text', you can still paste the video ;)
 	 - Paste to play and resume anything copied even if clipboard no longer contain the time
- - **Feature - Remember Last Video Copied or Last Video Pasted:** The last copied or pasted video will remain even after device restarts or clipboard changes.
 	 - If mpv is idle you can always paste your last copied mpv video or last pasted video into mpv to play it then paste again to resume. (this works even if you have different types of files in clipboard)
- - **Feature - Quick access to Videos Clipboard History:** Gain quick access to your videos clipboard history to find your previous clipboard videos and play or share them.
-	 - If mpv is idle (not running any video) simply copy by pressing **[ctrl]**+**[c]** to access your clipboard history
-### SmartCopyPaste Usage Guide
- - **[ctrl]**+**[c]** to copy the video/path and its time
- - **[ctrl]**+**[C]** to copy the video/path without time
- - **[ctrl]**+**[v]** to paste the video *and time if available* (whether link or local video itself or any video path)
- - **[ctrl]**+**[c]** while mpv is idle (not playing a video) to access your videos clipboard history **(PRO ONLY)**
- - Open video that has its time copied to resume automatically (if video and its time is still in clipboard)
+ - **(PRO) Quick access to Videos Clipboard History:** If mpv is idle, press **[ctrl]**+**[c]** to access your clipboard history
+	 - This feature provides quick access to your videos clipboard history to find your previous copied or pasted videos and play or share them.
 ### SmartCopyPaste Compatibility
  - **SmartCopyPaste is currently for Windows only**
 	 - To access windows clipboard, the method was inspired by [@wiiaboo](https://github.com/wiiaboo/) urlcopypaste script. Special thanks for his work.
 ### SmartCopyPaste To-Do List
  - While watching a video, add pasted video to playlist so pasted video plays after finishing current video instead of ignoring paste
-
  - Support more platforms
 	 - Linux
  - ~~Enhance the bookmark feature of copy video and time by **[ctrl]**+**[c]**~~  (Done in **Pro** SmartCopyPaste)
