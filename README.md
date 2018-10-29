@@ -41,9 +41,7 @@ Additionally, there are two versions of SmartCopyPaste, a **basic** version, and
  - **Remember Last Video Copied or Last Video Pasted:** While mpv is idle, press **[ctrl]**+**[v]** to play the last copied or pasted video even after device restarts or clipboard changes.
  - **Quick access to Videos Clipboard History:** If mpv is idle, press **[ctrl]**+**[c]** to access your clipboard history.***
 
-**Additional reading and detailed explanation on  features:**
-
-[SmartCopyPaste Detailed Explanation of Features](https://github.com/Eisa01/mpv-scripts/blob/master/documents/SmartCopyPaste-Feature-Details.md#smartcopypaste-detailed-explanation-of-features)
+[**Additional reading and detailed explanation on  features:**](https://github.com/Eisa01/mpv-scripts/blob/master/documents/SmartCopyPaste-Feature-Details.md#smartcopypaste-detailed-explanation-of-features)
 ### SmartCopyPaste Compatibility
  - **SmartCopyPaste is currently for Windows only**
 	 - To access windows clipboard, the method was inspired by [@wiiaboo](https://github.com/wiiaboo/) urlcopypaste script. Special thanks for his work.
