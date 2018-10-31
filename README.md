@@ -38,6 +38,7 @@ Additionally, there are two versions of SmartCopyPaste, a **basic** version, and
 - **Resume to Copied Time:** If you copied a video path by [ctrl]+[c] within mpv, you will be able to open and resume the video by **[ctrl]**+**[v]**
 - **Add Video to Playlist:** Adds copied video into playlist to play it next by **[ctrl]**+**[V]**
 - **OSD** (On Screen Display): Displays any SmartCopyPaste action within mpv
+- **youtube-dl Extension Support** Immediately paste links without finding exact video address for youtube and any other youtube-dl extension supported sites
 ### SmartCopyPaste (Basic ONLY) Feature
 - **Auto Add Video to Playlist** If mpv is running a video and you have copied another video **[ctrl]**+**[v]** will add the copied video into playlist to play it next (this is only for basic since pro will resume to bookmarked time in the running video)
 ### SmartCopyPaste (PRO ONLY) Features
@@ -71,7 +72,7 @@ Additionally, there are two versions of SmartCopyPaste, a **basic** version, and
 - 1.3 - **(Basic)**
 	- Added Auto Add Video to Playlist when pasting a different video by  **[ctrl]**+**[v]**
 	- Added Add to Playlist by **[ctrl]**+**[V]**
-	- Added OSD within mpv for all SmartCopyPaste action
+	- Added OSD within mpv for all SmartCopyPaste actions
 	- Some other fixes and optimizations
 ### SmartCopyPaste-Pro Changelog
 - 1.0 - **(Pro)**
@@ -85,5 +86,5 @@ Additionally, there are two versions of SmartCopyPaste, a **basic** version, and
 - 1.3 - **(Pro)**
 	- Fixed rare bug that caused SmartCopyPaste script to stop working
 	- Added Add to Playlist by **[ctrl]**+**[V]**
-	- Added OSD within mpv for all SmartCopyPaste action
+	- Added OSD within mpv for all SmartCopyPaste actions
 	- Some other fixes and optimizations
