@@ -108,12 +108,11 @@ mp.add_key_binding("ctrl+v", "paste", function()
 	local currentVideoExtension = string.lower(get_extension(videoFile))
 	local currentVideoExtensionPath = (get_extentionpath(videoFile))
 	
-	
 	if (filePath == nil) and has_extension(extensions, currentVideoExtension) and (currentVideoExtensionPath~= '') then
 		mp.commandv('loadfile', videoFile)
 		mp.osd_message("Pasted Video:\n"..videoFile)
 	elseif (filePath == nil) and (videoFile:find('https?://') == 1) then
-        mp.commandv('loadfile', videoFile)
+		mp.commandv('loadfile', videoFile)
 		mp.osd_message("Pasted Video:\n"..videoFile)
 	elseif (filePath ~= nil) and (filePath ~= videoFile) and has_extension(extensions, currentVideoExtension) and (currentVideoExtensionPath~= '') or (videoFile:find('https?://') == 1) then
 		mp.commandv('loadfile', videoFile, 'append-play')
@@ -159,5 +158,4 @@ mp.register_event('file-loaded', function()
 	if (filePath == videoFile) and (time ~= nil) then
 		mp.commandv('seek', time, 'absolute', 'exact')
 	end
-
 end)
