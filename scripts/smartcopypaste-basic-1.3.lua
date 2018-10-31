@@ -71,10 +71,11 @@ local function set_clipboard(text)
 end
 
 mp.add_key_binding("ctrl+c", "copy", function()
-    local filePath = mp.get_property_native('path') --1.2
+    local filePath = mp.get_property_native('path')
 	if (filePath ~= nil) then
 		local time = math.floor(mp.get_property_number('time-pos'))
 		set_clipboard(filePath..'&t='..tostring(time))
+		mp.osd_message("Copied: Video&Time:\n"..filePath..'&t='..tostring(time))
 	else
 		return false
 	end
@@ -82,8 +83,9 @@ end)
 
 mp.add_key_binding("ctrl+C", "copy-path", function()
     local filePath = mp.get_property_native('path')
-	if (filePath ~= nil) then --1.2
+	if (filePath ~= nil) then
 		set_clipboard(filePath)
+		mp.osd_message("Copied Video Only:\n"..filePath)
 	else
 		return false
 	end
@@ -109,16 +111,43 @@ mp.add_key_binding("ctrl+v", "paste", function()
 	
 	if (filePath == nil) and has_extension(extensions, currentVideoExtension) and (currentVideoExtensionPath~= '') then
 		mp.commandv('loadfile', videoFile)
-	end
-	
-	if (filePath == nil) and (videoFile:find('https?://') == 1) then
+		mp.osd_message("Pasted Video:\n"..videoFile)
+	elseif (filePath == nil) and (videoFile:find('https?://') == 1) then
         mp.commandv('loadfile', videoFile)
-    end
+		mp.osd_message("Pasted Video:\n"..videoFile)
+	elseif (filePath ~= nil) and (filePath ~= videoFile) and has_extension(extensions, currentVideoExtension) and (currentVideoExtensionPath~= '') or (videoFile:find('https?://') == 1) then
+		mp.commandv('loadfile', videoFile, 'append-play')
+		mp.osd_message("Pasted Video Into Playlist:\n"..videoFile)
+	else
+		mp.osd_message("Failed To Add Into Playlist:\n\"No Copied Video Found\"\nClipboard Contains:\n"..clip)
+	end
 
 	if (filePath == videoFile) and (time ~= nil) then
 		mp.commandv('seek', time, 'absolute', 'exact')
+		mp.osd_message("Jumped To:\nLast Copied Time In This Video")
 	end
+end)
 
+mp.add_key_binding('ctrl+V', 'paste-playlist', function()
+	local clip = get_clipboard()
+	local filePath = mp.get_property_native('path')
+
+	if string.match(clip, '(.*)&t=') then
+		videoFile = string.match(clip, '(.*)&t=')
+	elseif string.match(clip, '^\"(.*)\"$') then
+		videoFile = string.match(clip, '^\"(.*)\"$')
+	else
+		videoFile = clip
+	end	
+	local currentVideoExtension = string.lower(get_extension(videoFile))
+	local currentVideoExtensionPath = (get_extentionpath(videoFile))
+	
+	if has_extension(extensions, currentVideoExtension) and (currentVideoExtensionPath~= '') or (videoFile:find('https?://') == 1) then
+		mp.commandv('loadfile', videoFile, 'append-play')
+		mp.osd_message("Pasted Into Playlist:\n"..videoFile)
+	else
+		mp.osd_message("Failed To Add Into Playlist:\n\"No Copied Video Found\"\nClipboard Contains:\n"..clip)
+	end
 end)
 
 mp.register_event('file-loaded', function()
