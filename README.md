@@ -2,7 +2,7 @@
 This repository contain scripts I have made for [mpv media player](https://github.com/mpv-player/mpv/). To add scripts from this repository, download the desired script in your `mpv/scripts/` directory (click [here](https://mpv.io/manual/master/#lua-scripting) to know more about mpv scripts).
 
 **Table of Contents**
-- [SmartCopyPaste Script](https://github.com/Eisa01/mpv-scripts#smartcopypaste-script)
+- [**SmartCopyPaste Script**](https://github.com/Eisa01/mpv-scripts#smartcopypaste-script)
  	- [SmartCopyPaste Usage Guide](https://github.com/Eisa01/mpv-scripts#smartcopypaste-usage-guide)
 	- [SmartCopyPaste (Basic AND Pro) Features](https://github.com/Eisa01/mpv-scripts#smartcopypaste-basic-and-pro-features)
 	- [SmartCopyPaste (Pro ONLY) Features](https://github.com/Eisa01/mpv-scripts#smartcopypaste-pro-only-features)
@@ -12,7 +12,7 @@ This repository contain scripts I have made for [mpv media player](https://githu
 	- [SmartCopyPaste-Pro Changelog](https://github.com/Eisa01/mpv-scripts#smartcopypaste-pro-changelog)
 
 
-- [SmartHistory Script](https://github.com/Eisa01/mpv-scripts#smarthistory-script)
+- [**SmartHistory Script**](https://github.com/Eisa01/mpv-scripts#smarthistory-script)
 	-	[SmartHistory Features and Usage Guide](https://github.com/Eisa01/mpv-scripts#smarthistory-features-and-usage-guide)
 	-	[SmartHistory Compatibility](https://github.com/Eisa01/mpv-scripts#smarthistory-compatibility)
 	-	[SmartHistory To-Do List](https://github.com/Eisa01/mpv-scripts#smarthistory-to-do-list)
