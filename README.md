@@ -1,16 +1,21 @@
-
 # Introduction
 This repository contain scripts I have made for [mpv media player](https://github.com/mpv-player/mpv/). To add scripts from this repository, download the desired script in your `mpv/scripts/` directory (click [here](https://mpv.io/manual/master/#lua-scripting) to know more about mpv scripts).
 
 **Table of Contents**
- - [SmartCopyPaste Script](https://github.com/Eisa01/mpv-scripts#smartcopypaste-script)
- 	 - [SmartCopyPaste Usage Guide](https://github.com/Eisa01/mpv-scripts#smartcopypaste-usage-guide)
-	 - [SmartCopyPaste (Basic AND Pro) Features](https://github.com/Eisa01/mpv-scripts#smartcopypaste-basic-and-pro-features)
-	 - [SmartCopyPaste (Pro ONLY) Features](https://github.com/Eisa01/mpv-scripts#smartcopypaste-pro-only-features)
-	 - [SmartCopyPaste Compatibility](https://github.com/Eisa01/mpv-scripts#smartcopypaste-compatibility)
-	 - [SmartCopyPaste To-Do List](https://github.com/Eisa01/mpv-scripts#smartcopypaste-to-do-list)
-	 - [SmartCopyPaste-Basic Changelog](https://github.com/Eisa01/mpv-scripts#smartcopypaste-basic-changelog)
-	 - [SmartCopyPaste-Pro Changelog](https://github.com/Eisa01/mpv-scripts#smartcopypaste-pro-changelog)
+- [SmartCopyPaste Script](https://github.com/Eisa01/mpv-scripts#smartcopypaste-script)
+ 	- [SmartCopyPaste Usage Guide](https://github.com/Eisa01/mpv-scripts#smartcopypaste-usage-guide)
+	- [SmartCopyPaste (Basic AND Pro) Features](https://github.com/Eisa01/mpv-scripts#smartcopypaste-basic-and-pro-features)
+	- [SmartCopyPaste (Pro ONLY) Features](https://github.com/Eisa01/mpv-scripts#smartcopypaste-pro-only-features)
+	- [SmartCopyPaste Compatibility](https://github.com/Eisa01/mpv-scripts#smartcopypaste-compatibility)
+	- [SmartCopyPaste To-Do List](https://github.com/Eisa01/mpv-scripts#smartcopypaste-to-do-list)
+	- [SmartCopyPaste-Basic Changelog](https://github.com/Eisa01/mpv-scripts#smartcopypaste-basic-changelog)
+	- [SmartCopyPaste-Pro Changelog](https://github.com/Eisa01/mpv-scripts#smartcopypaste-pro-changelog)
+
+- [SmartHistory Script](https://github.com/Eisa01/mpv-scripts#smarthistory-script)
+	-	[SmartHistory Features and Usage Guide](https://github.com/Eisa01/mpv-scripts#smarthistory-features-and-usage-guide)
+	-	[SmartHistory Compatibility](https://github.com/Eisa01/mpv-scripts#smarthistory-compatibility)
+	-	[SmartHistory To-Do List](https://github.com/Eisa01/mpv-scripts#smarthistory-to-do-list)
+	-	[SmartHistory Changelog](https://github.com/Eisa01/mpv-scripts#smarthistory-changelog)
 # SmartCopyPaste Script
 SmartCopyPaste is a script for mpv media player, the script adds a very smart copy paste experience to mpv. It gives mpv the ability to load videos simply by pasting them into mpv. As for copying,  pressing [ctrl]+[c] on a video, copies the video path and its time to clipboard, which enables paste to resume or to access video with the copied time by pasting.
 
@@ -47,44 +52,45 @@ Additionally, there are two versions of SmartCopyPaste, a **basic** version, and
  - **Remember Last Video Copied or Last Video Pasted:** While mpv is idle, press **[ctrl]**+**[v]** to play the last copied or pasted video even after device restarts or clipboard changes.
  - **Quick access to Videos Clipboard History:** If mpv is idle, press **[ctrl]**+**[c]** to access your clipboard history.
 
-[**Additional reading and detailed explanation on  features**](https://github.com/Eisa01/mpv-scripts/blob/master/documents/SmartCopyPaste-Feature-Details.md#smartcopypaste-detailed-explanation-of-features)
+[**Additional reading and full overview on  features**](https://github.com/Eisa01/mpv-scripts/blob/master/documents/SmartCopyPaste%20Features%20Full%20Overview.md)
 ### SmartCopyPaste Compatibility
  - **SmartCopyPaste is currently for Windows only**
 	 - To access windows clipboard, the method was inspired by [@wiiaboo](https://github.com/wiiaboo/) urlcopypaste script. Special thanks for his work.
 ### SmartCopyPaste To-Do List
  - Support more platforms
 	 - Linux
- - ~~Enhance the bookmark feature of copy video and time by **[ctrl]**+**[c]**~~  (Done in **Pro** SmartCopyPaste)
-	 - ~~Keep bookmark point even if it is no longer in the clipboard which gives the ability to paste even if the clipboard is overwritten~~ (**Done** in **Pro** SmartCopyPaste)
-	 - ~~Make the bookmark point remain for multiple videos and give ability to resume to any saved bookmark point by **[ctrl]**+**[v]**~~ (**Done** in **Pro** SmartCopyPaste)
-- ~~Add a shortcut to quickly access clipboard history for the pro version~~ (**Done** in **Pro 1.2** SmartCopyPaste)
--  ~~While watching a video, add pasted video to playlist so pasted video plays after finishing current video instead of ignoring paste~~ (**Done** in SmartCopyPaste **1.3**)
-### SmartCopyPaste-Basic Changelog
- - 1.0 - **(Basic)**
-	- Initial release
-- 1.1 - **(Basic)**
-	- Fixed a bug that caused any thing pasted to be added automatically to playlist
-	- Some other fixes and optimizations
-- 1.2 - **(Basic)**
-	- Added support for youtube-dl extension (by removing checking links if they contain video file format) so pasting youtube links should work immediately if you have youtube-dl extension. Works for all other websites that youtube-dl extension supports.
-	- Fixed issue that caused SmartCopyPaste to stop working if you copied in mpv while mpv was idle
-	- Some other fixes and optimizations
-- 1.3 - **(Basic)**
+
+[**To-Do List (Completed Items)**](https://github.com/Eisa01/mpv-scripts/blob/master/documents/SmartCopyPaste%20To-Do%20List%20(Completed%20Items).md)
+### SmartCopyPaste Changelog
+- Latest Changes **(1.3-Basic)**
 	- Added Auto Add Video to Playlist when pasting a different video by  **[ctrl]**+**[v]**
 	- Added Add to Playlist by **[ctrl]**+**[V]**
 	- Added OSD within mpv for all SmartCopyPaste actions
 	- Some other fixes and optimizations
-### SmartCopyPaste-Pro Changelog
-- 1.0 - **(Pro)**
-	- Initial release of an all new pro version containing tons of newly added features! [(check pro features section)](https://github.com/Eisa01/mpv-scripts#SmartCopyPaste-Pro-ONLY-Features)
-- 1.1 - **(Pro)**
-	- Same fixes and optimizations as the basic version
-- 1.2 - **(Pro)**
-	- Added support for youtube-dl extension (by removing checking links if they contain video file format) so pasting youtube links should work immediately if you have youtube-dl extension. Works for all other websites that youtube-dl extension supports.
-	- Copying while mpv is idle now opens your clipboard history so you can copy any previous videos watched and paste to play them
-	- Same fixes and optimizations as the basic version
-- 1.3 - **(Pro)**
+	
+- Latest Changes **(1.3-Pro)**
 	- Fixed rare bug that caused SmartCopyPaste script to stop working
 	- Added Add to Playlist by **[ctrl]**+**[V]**
 	- Added OSD within mpv for all SmartCopyPaste actions
 	- Some other fixes and optimizations
+
+[**SmartCopyPaste Full Changelog**](https://github.com/Eisa01/mpv-scripts/blob/master/documents/SmartCopyPaste%20Full%20Changelog.md)
+# SmartHistory Script
+SmartHistory is a script for mpv media player, the script adds a smart history functionality to mpv. It logs videos that you opened into `%APPDATA%\mpv\mpvHistory.log` along with the time you have reached on each video. The script uses the log to provide you with various features. More details about SmartHistory are explained in the sections below. To use it, download *`smartHistory.lua`* file into your `mpv/scripts/` directory. 
+### SmartHistory Features and Usage Guide
+- **While mpv is active (running a video)**
+	- Optional resume for previously closed videos by  **[ctrl]**+**[r]**
+	- Add previously closed video into playlist to play it next by  **[ctrl]**+**[l]**
+- **While mpv is idle (NOT running a video)**
+	- Load last closed video by **[ctrl]**+**[l]**
+	- Open history log for list of played videos with time by **[ctrl]**+**[r]**
+		- (use this along with smartcopypaste script to copy and paste video from history log into mpv)
+### SmartHistory Compatibility
+ - **SmartHistory is currently for Windows only**
+	 - To create the log file, the method was inspired by a deleted author from a reddit post. Special thanks for his work.
+### SmartHistory To-Do List
+ - Have an idea, let me know. I cannot think of anything else ;)
+### SmartHistory Changelog
+ - 1.0
+	- Initial release of SmartHistory Script
+	- Contains simple history log file with many smart features mentioned above.
