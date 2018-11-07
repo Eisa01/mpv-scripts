@@ -10,8 +10,6 @@ This repository contain scripts I have made for [mpv media player](https://githu
 	- [SmartCopyPaste To-Do List](https://github.com/Eisa01/mpv-scripts#smartcopypaste-to-do-list)
 	- [SmartCopyPaste-Basic Changelog](https://github.com/Eisa01/mpv-scripts#smartcopypaste-basic-changelog)
 	- [SmartCopyPaste-Pro Changelog](https://github.com/Eisa01/mpv-scripts#smartcopypaste-pro-changelog)
-
-
 - [**SmartHistory Script**](https://github.com/Eisa01/mpv-scripts#smarthistory-script)
 	-	[SmartHistory Features and Usage Guide](https://github.com/Eisa01/mpv-scripts#smarthistory-features-and-usage-guide)
 	-	[SmartHistory Compatibility](https://github.com/Eisa01/mpv-scripts#smarthistory-compatibility)
@@ -59,7 +57,7 @@ Additionally, there are two versions of SmartCopyPaste, a **basic** version, and
 	 - To access windows clipboard, the method was inspired by [@wiiaboo](https://github.com/wiiaboo/) urlcopypaste script. Special thanks for his work.
 ### SmartCopyPaste To-Do List
  - Support more platforms
-	 - Linux
+ - Can't think of anything else, have an idea... let me know ;)
 
 [**To-Do List (Completed Items)**](https://github.com/Eisa01/mpv-scripts/blob/master/documents/SmartCopyPaste%20To-Do%20List%20(Completed%20Items).md)
 ### SmartCopyPaste Changelog
@@ -79,19 +77,24 @@ Additionally, there are two versions of SmartCopyPaste, a **basic** version, and
 # SmartHistory Script
 SmartHistory is a script for mpv media player, the script adds a smart history functionality to mpv. It logs videos that you opened into `%APPDATA%\mpv\mpvHistory.log` along with the time you have reached on each video. The script uses the log to provide you with various features. More details about SmartHistory are explained in the sections below. To use it, download *`smartHistory.lua`* file into your `mpv/scripts/` directory. 
 ### SmartHistory Features and Usage Guide
+- **Features**
+	-  **Logs Opened Videos to a Log File:** All videos opened in mpv will be logged to create a history in `%APPDATA%\mpv\mpvHistory.log`. The format is: [date and time] of accessing video, video file path and reached video time.
+	- **OSD**: Displays most of smartHistory actions within mpv
+- **While mpv is idle (NOT running a video)**
+	- Load last closed video by **[ctrl]**+**[l]**
+	- Immediately open history log for list of played videos by **[ctrl]**+**[r]**
+		- Use this along with smartcopypaste script to copy and paste video from history log into mpv
 - **While mpv is active (running a video)**
 	- Optional resume for previously closed videos by  **[ctrl]**+**[r]**
 	- Add previously closed video into playlist to play it next by  **[ctrl]**+**[l]**
-- **While mpv is idle (NOT running a video)**
-	- Load last closed video by **[ctrl]**+**[l]**
-	- Open history log for list of played videos with time by **[ctrl]**+**[r]**
-		- (use this along with smartcopypaste script to copy and paste video from history log into mpv)
+		- Useful for cases when you opened another video by accident and you want to get back to the last video
 ### SmartHistory Compatibility
  - **SmartHistory is currently for Windows only**
 	 - To create the log file, the method was inspired by a deleted author from a reddit post. Special thanks for his work.
 ### SmartHistory To-Do List
- - Have an idea, let me know. I cannot think of anything else ;)
+ - Support more platforms
+ - Can't think of anything else, have an idea... let me know ;)
 ### SmartHistory Changelog
- - 1.0
+ - Latest Changes - **(1.0)**
 	- Initial release of SmartHistory Script
 	- Contains simple history log file with many smart features mentioned above.
