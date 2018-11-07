@@ -79,7 +79,7 @@ SmartHistory is a script for mpv media player, the script adds a smart history f
 ### SmartHistory Features and Usage Guide
 - **Features**
 	-  **Logs Opened Videos to a Log File:** All videos opened in mpv will be logged to create a history in `%APPDATA%\mpv\mpvHistory.log`. The format is: [date and time] of accessing video, video file path and reached video time.
-	- **OSD**: Displays most of smartHistory actions within mpv
+	- **OSD**: Displays any SmartHistory action within mpv
 - **While mpv is idle (NOT running a video)**
 	- Load last closed video by **[ctrl]**+**[l]**
 	- Immediately open history log for list of played videos by **[ctrl]**+**[r]**
@@ -95,6 +95,10 @@ SmartHistory is a script for mpv media player, the script adds a smart history f
  - Support more platforms
  - Can't think of anything else, have an idea... let me know ;)
 ### SmartHistory Changelog
- - Latest Changes - **(1.0)**
+ - (1.0)
 	- Initial release of SmartHistory Script
 	- Contains simple history log file with many smart features mentioned above.
+ - Latest Changes - **(1.1)**
+ 	- Tons of bug fixes and optimizations
+	- Fixed issues that could cause script to crash
+	- Added OSD everywhere possible
