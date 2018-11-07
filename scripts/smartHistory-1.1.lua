@@ -1,8 +1,8 @@
 local utils = require 'mp.utils'
+local seconds = 0
+local time = 0
 
 mp.register_event('file-loaded', function()
-	local seconds = 0
-	local time = 0
 	filePath = mp.get_property('path')
 
 	timer = mp.add_periodic_timer(1, function()
