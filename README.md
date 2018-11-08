@@ -67,12 +67,14 @@ Additionally, there are two versions of SmartCopyPaste, a **basic** version, and
 	- Added OSD within mpv for all SmartCopyPaste actions
 	- Some other fixes and optimizations
 	
-- Latest Changes **(1.3-Pro)**
+- **(1.3-Pro)**
 	- Fixed rare bug that caused SmartCopyPaste script to stop working
 	- Added Add to Playlist by **[ctrl]**+**[V]**
 	- Added OSD within mpv for all SmartCopyPaste actions
 	- Some other fixes and optimizations
-
+- Latest Changes **(1.4-Pro)**
+	- Fixed issue that could cause script to stop working
+	- Other important fixes and optimizations
 [**SmartCopyPaste Full Changelog**](https://github.com/Eisa01/mpv-scripts/blob/master/documents/SmartCopyPaste%20Full%20Changelog.md)
 # SmartHistory Script
 SmartHistory is a script for mpv media player, the script adds a smart history functionality to mpv. It logs videos that you opened into `%APPDATA%\mpv\mpvHistory.log` along with the time you have reached on each video. The script uses the log to provide you with various features. More details about SmartHistory are explained in the sections below. To use it, download *`smartHistory.lua`* file into your `mpv/scripts/` directory. 
