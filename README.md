@@ -66,7 +66,6 @@ Additionally, there are two versions of SmartCopyPaste, a **basic** version, and
 	- Added Add to Playlist by **[ctrl]**+**[V]**
 	- Added OSD within mpv for all SmartCopyPaste actions
 	- Some other fixes and optimizations
-	
 - **(1.3-Pro)**
 	- Fixed rare bug that caused SmartCopyPaste script to stop working
 	- Added Add to Playlist by **[ctrl]**+**[V]**
