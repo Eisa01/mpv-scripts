@@ -71,6 +71,10 @@ local function set_clipboard(text)
     } })
 end
 
+mp.register_event('end-file', function()
+	pasted = false
+end)
+
 mp.add_key_binding('ctrl+c', 'copy', function()
     local filePath = mp.get_property_native('path')
 	if (filePath ~= nil) then
@@ -247,18 +251,21 @@ mp.add_key_binding('ctrl+V', 'paste-playlist', function()
 		mp.osd_message('Failed To Add Into Playlist:\n\"No Copied Video Found\"\n\nClipboard Contains:\n'..clip)
 	end
 	
+	pasted = true
 	copyLogAdd:close()
 	copyLogOpen:close()
 end)
 
 mp.register_event('file-loaded', function()
-	local clip = get_clipboard()
-	local time = string.match(clip, '&t=(.*)')
-	local videoFile = string.match(clip, '(.*)&t=')
-	local filePath = mp.get_property_native('path')
+	if (pasted == true) then
+		local clip = get_clipboard()
+		local time = string.match(clip, '&t=(.*)')
+		local videoFile = string.match(clip, '(.*)&t=')
+		local filePath = mp.get_property_native('path')
 
-	if (pasted == true) and (filePath == videoFile) and (time ~= nil) then
-		mp.commandv('seek', time, 'absolute', 'exact')
+		if (filePath == videoFile) and (time ~= nil) then
+			mp.commandv('seek', time, 'absolute', 'exact')
+		end	
 	else
 		return false
 	end
