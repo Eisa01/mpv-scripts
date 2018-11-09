@@ -14,6 +14,10 @@
 	- Added Add to Playlist by **[ctrl]**+**[V]**
 	- Added OSD within mpv for all SmartCopyPaste actions
 	- Some other fixes and optimizations
+- 1.4 - **(Basic)**
+	- Version bump to match with pro
+- Latest Changes **(1.5-Basic)**
+	- Fixed automatic resume of copied time issue
 ### SmartCopyPaste-Pro Changelog
 - 1.0 - **(Pro)**
 	- Initial release of an all new pro version containing tons of newly added features! [(check pro features section)](https://github.com/Eisa01/mpv-scripts#SmartCopyPaste-Pro-ONLY-Features)
@@ -27,4 +31,10 @@
 	- Fixed rare bug that caused SmartCopyPaste script to stop working
 	- Added Add to Playlist by **[ctrl]**+**[V]**
 	- Added OSD within mpv for all SmartCopyPaste actions
+	- Some other fixes and optimizations
+- 1.4 - **(Pro)**
+	- Fixed issue that could cause script to stop working
+	- Other important fixes and optimizations
+- Latest Changes **(1.5-Pro)**
+	- Fixed automatic resume of copied time issue
 	- Some other fixes and optimizations
