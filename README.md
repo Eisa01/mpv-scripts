@@ -8,13 +8,12 @@ This repository contain scripts I have made for [mpv media player](https://githu
 	- [SmartCopyPaste (Pro ONLY) Features](https://github.com/Eisa01/mpv-scripts#smartcopypaste-pro-only-features)
 	- [SmartCopyPaste Compatibility](https://github.com/Eisa01/mpv-scripts#smartcopypaste-compatibility)
 	- [SmartCopyPaste To-Do List](https://github.com/Eisa01/mpv-scripts#smartcopypaste-to-do-list)
-	- [SmartCopyPaste-Basic Changelog](https://github.com/Eisa01/mpv-scripts#smartcopypaste-basic-changelog)
-	- [SmartCopyPaste-Pro Changelog](https://github.com/Eisa01/mpv-scripts#smartcopypaste-pro-changelog)
+	- [SmartCopyPaste Changelog](https://github.com/Eisa01/mpv-scripts#smartcopypaste-changelog)
 - [**SmartHistory Script**](https://github.com/Eisa01/mpv-scripts#smarthistory-script)
-	-	[SmartHistory Features and Usage Guide](https://github.com/Eisa01/mpv-scripts#smarthistory-features-and-usage-guide)
-	-	[SmartHistory Compatibility](https://github.com/Eisa01/mpv-scripts#smarthistory-compatibility)
-	-	[SmartHistory To-Do List](https://github.com/Eisa01/mpv-scripts#smarthistory-to-do-list)
-	-	[SmartHistory Changelog](https://github.com/Eisa01/mpv-scripts#smarthistory-changelog)
+	- [SmartHistory Features and Usage Guide](https://github.com/Eisa01/mpv-scripts#smarthistory-features-and-usage-guide)
+	- [SmartHistory Compatibility](https://github.com/Eisa01/mpv-scripts#smarthistory-compatibility)
+	- [SmartHistory To-Do List](https://github.com/Eisa01/mpv-scripts#smarthistory-to-do-list)
+	- [SmartHistory Changelog](https://github.com/Eisa01/mpv-scripts#smarthistory-changelog)
 # SmartCopyPaste Script
 SmartCopyPaste is a script for mpv media player, the script adds a very smart copy paste experience to mpv. It gives mpv the ability to load videos simply by pasting them into mpv. As for copying,  pressing [ctrl]+[c] on a video, copies the video path and its time to clipboard, which enables paste to resume or to access video with the copied time by pasting.
 
