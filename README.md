@@ -61,19 +61,11 @@ Additionally, there are two versions of SmartCopyPaste, a **basic** version, and
 
 [**To-Do List (Completed Items)**](https://github.com/Eisa01/mpv-scripts/blob/master/documents/SmartCopyPaste%20To-Do%20List%20(Completed%20Items).md)
 ### SmartCopyPaste Changelog
-- Latest Changes **(1.3-Basic)**
-	- Added Auto Add Video to Playlist when pasting a different video by  **[ctrl]**+**[v]**
-	- Added Add to Playlist by **[ctrl]**+**[V]**
-	- Added OSD within mpv for all SmartCopyPaste actions
+- Latest Changes **(1.5-Basic)**
+	- Fixed automatic resume of copied time issue
+- Latest Changes **(1.5-Pro)**
+	- Fixed automatic resume of copied time issue
 	- Some other fixes and optimizations
-- **(1.3-Pro)**
-	- Fixed rare bug that caused SmartCopyPaste script to stop working
-	- Added Add to Playlist by **[ctrl]**+**[V]**
-	- Added OSD within mpv for all SmartCopyPaste actions
-	- Some other fixes and optimizations
-- Latest Changes **(1.4-Pro)**
-	- Fixed issue that could cause script to stop working
-	- Other important fixes and optimizations
 	
 [**SmartCopyPaste Full Changelog**](https://github.com/Eisa01/mpv-scripts/blob/master/documents/SmartCopyPaste%20Full%20Changelog.md)
 # SmartHistory Script
