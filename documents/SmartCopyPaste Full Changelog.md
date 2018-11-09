@@ -15,7 +15,7 @@
 	- Added OSD within mpv for all SmartCopyPaste actions
 	- Some other fixes and optimizations
 - 1.4 - **(Basic)**
-	- Version bump to match with pro
+	- No Changes, only a version bump to match with pro
 - Latest Changes **(1.5-Basic)**
 	- Fixed automatic resume of copied time issue
 ### SmartCopyPaste-Pro Changelog
