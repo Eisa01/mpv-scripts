@@ -4,6 +4,7 @@ local extensions = {
     'mkv', 'avi', 'mp4', 'ogv', 'webm', 'rmvb', 'flv', 'wmv', 'mpeg', 'mpg', 'm4v', '3gp',
     'mp3', 'wav', 'ogm', 'flac', 'm4a', 'wma', 'ogg', 'opus',
 }
+local pasted = false
 
 local function get_extension(path)
     match = string.match(path, '%.([^%.]+)$' )
@@ -167,12 +168,20 @@ mp.add_key_binding('ctrl+v', 'paste', function()
 		mp.commandv('loadfile', videoFile)
 		mp.osd_message('Pasted Video:\n'..videoFile)
 		
-		copyLogAdd:write(('[%s] %s\n'):format(os.date('%d/%b/%y %X'), videoFile))
+		if (time ~= nil) then
+			copyLogAdd:write(('[%s] %s\n'):format(os.date('%d/%b/%y %X'), videoFile..'&t='..tostring(time)))
+		else
+			copyLogAdd:write(('[%s] %s\n'):format(os.date('%d/%b/%y %X'), videoFile))
+		end
 	elseif (filePath == nil) and (videoFile:find('https?://') == 1) then
 		mp.commandv('loadfile', videoFile)
 		mp.osd_message('Pasted Video:\n'..videoFile)
 		
-		copyLogAdd:write(('[%s] %s\n'):format(os.date('%d/%b/%y %X'), videoFile))
+		if (time ~= nil) then
+			copyLogAdd:write(('[%s] %s\n'):format(os.date('%d/%b/%y %X'), videoFile..'&t='..tostring(time)))
+		else
+			copyLogAdd:write(('[%s] %s\n'):format(os.date('%d/%b/%y %X'), videoFile))
+		end
     elseif (filePath == nil) and not has_extension(extensions, currentVideoExtension) and not (videoFile:find('https?://') == 1) then
 		copyLog = os.getenv('APPDATA')..'/mpv/mpvClipboard.log'
 		copyLogOpen = io.open(copyLog, 'r+')
@@ -200,6 +209,7 @@ mp.add_key_binding('ctrl+v', 'paste', function()
 		mp.osd_message('Resumed to Copied Time of This Video')
 	end
 	
+	pasted = true
 	copyLogAdd:close()
 	copyLogOpen:close()
 end)
@@ -207,14 +217,16 @@ end)
 mp.add_key_binding('ctrl+V', 'paste-playlist', function()
 	local clip = get_clipboard()
 	local filePath = mp.get_property_native('path')
-
+	local time
+	
 	if string.match(clip, '(.*)&t=') then
 		videoFile = string.match(clip, '(.*)&t=')
+		time = string.match(clip, '&t=(.*)')
 	elseif string.match(clip, '^\"(.*)\"$') then
 		videoFile = string.match(clip, '^\"(.*)\"$')
 	else
 		videoFile = clip
-	end	
+	end
 	
 	local copyLog = os.getenv('APPDATA')..'/mpv/mpvClipboard.log'
 	local copyLogAdd = io.open(copyLog, 'a+')
@@ -226,11 +238,17 @@ mp.add_key_binding('ctrl+V', 'paste-playlist', function()
 		mp.commandv('loadfile', videoFile, 'append-play')
 		mp.osd_message('Pasted Into Playlist:\n'..videoFile)
 		
-		copyLogAdd:write(('[%s] %s\n'):format(os.date('%d/%b/%y %X'), videoFile))
-		copyLogAdd:close()
+		if (time ~= nil) then
+			copyLogAdd:write(('[%s] %s\n'):format(os.date('%d/%b/%y %X'), videoFile..'&t='..tostring(time)))
+		else
+			copyLogAdd:write(('[%s] %s\n'):format(os.date('%d/%b/%y %X'), videoFile))
+		end
 	else
 		mp.osd_message('Failed To Add Into Playlist:\n\"No Copied Video Found\"\n\nClipboard Contains:\n'..clip)
 	end
+	
+	copyLogAdd:close()
+	copyLogOpen:close()
 end)
 
 mp.register_event('file-loaded', function()
@@ -239,7 +257,9 @@ mp.register_event('file-loaded', function()
 	local videoFile = string.match(clip, '(.*)&t=')
 	local filePath = mp.get_property_native('path')
 
-	if (filePath == videoFile) and (time ~= nil) then
+	if (pasted == true) and (filePath == videoFile) and (time ~= nil) then
 		mp.commandv('seek', time, 'absolute', 'exact')
+	else
+		return false
 	end
 end)
