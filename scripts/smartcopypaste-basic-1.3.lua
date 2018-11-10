@@ -4,6 +4,7 @@ local extensions = {
     'mkv', 'avi', 'mp4', 'ogv', 'webm', 'rmvb', 'flv', 'wmv', 'mpeg', 'mpg', 'm4v', '3gp',
     'mp3', 'wav', 'ogm', 'flac', 'm4a', 'wma', 'ogg', 'opus',
 }
+local pasted = false
 
 local function get_extension(path)
     match = string.match(path, '%.([^%.]+)$' )
@@ -70,6 +71,10 @@ local function set_clipboard(text)
     } })
 end
 
+mp.register_event('end-file', function()
+	pasted = false
+end)
+
 mp.add_key_binding("ctrl+c", "copy", function()
     local filePath = mp.get_property_native('path')
 	if (filePath ~= nil) then
@@ -123,8 +128,10 @@ mp.add_key_binding("ctrl+v", "paste", function()
 
 	if (filePath == videoFile) and (time ~= nil) then
 		mp.commandv('seek', time, 'absolute', 'exact')
-		mp.osd_message("Jumped To:\nLast Copied Time In This Video")
+		mp.osd_message('Resumed to Copied Time of This Video')
 	end
+	
+	pasted = true
 end)
 
 mp.add_key_binding('ctrl+V', 'paste-playlist', function()
@@ -147,15 +154,21 @@ mp.add_key_binding('ctrl+V', 'paste-playlist', function()
 	else
 		mp.osd_message("Failed To Add Into Playlist:\n\"No Copied Video Found\"\nClipboard Contains:\n"..clip)
 	end
+	
+	pasted = true
 end)
 
 mp.register_event('file-loaded', function()
-	local clip = get_clipboard()
-	local time = string.match(clip, '&t=(.*)')
-	local videoFile = string.match(clip, '(.*)&t=')
-	local filePath = mp.get_property_native('path')
+	if (pasted == true) then
+		local clip = get_clipboard()
+		local time = string.match(clip, '&t=(.*)')
+		local videoFile = string.match(clip, '(.*)&t=')
+		local filePath = mp.get_property_native('path')
 
-	if (filePath == videoFile) and (time ~= nil) then
-		mp.commandv('seek', time, 'absolute', 'exact')
+		if (filePath == videoFile) and (time ~= nil) then
+			mp.commandv('seek', time, 'absolute', 'exact')
+		end
+	else
+		return false
 	end
 end)
