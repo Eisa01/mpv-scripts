@@ -99,7 +99,7 @@ end)
 mp.add_key_binding("ctrl+v", "paste", function()
 	local clip = get_clipboard()
 	local filePath = mp.get_property_native('path')
-	local time 
+	local time
 
 	if string.match(clip, '(.*)&t=') then
 		videoFile = string.match(clip, '(.*)&t=')
@@ -108,7 +108,7 @@ mp.add_key_binding("ctrl+v", "paste", function()
 		videoFile = string.match(clip, '^\"(.*)\"$')
 	else
 		videoFile = clip
-	end	
+	end
 	
 	local currentVideoExtension = string.lower(get_extension(videoFile))
 	local currentVideoExtensionPath = (get_extentionpath(videoFile))
@@ -144,7 +144,7 @@ mp.add_key_binding('ctrl+V', 'paste-playlist', function()
 		videoFile = string.match(clip, '^\"(.*)\"$')
 	else
 		videoFile = clip
-	end	
+	end
 	local currentVideoExtension = string.lower(get_extension(videoFile))
 	local currentVideoExtensionPath = (get_extentionpath(videoFile))
 	
