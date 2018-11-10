@@ -187,16 +187,16 @@ mp.add_key_binding('ctrl+v', 'paste', function()
 			copyLogAdd:write(('[%s] %s\n'):format(os.date('%d/%b/%y %X'), videoFile))
 		end
     elseif (filePath == nil) and not has_extension(extensions, currentVideoExtension) and not (videoFile:find('https?://') == 1) then
-		copyLog = os.getenv('APPDATA')..'/mpv/mpvClipboard.log'
-		copyLogOpen = io.open(copyLog, 'r+')
+		copyLogLastOpen = io.open(copyLog, 'r+')
 
-		for line in copyLogOpen:lines() do
+		for line in copyLogLastOpen:lines() do
 			lastVideoFound = line
 		end
 	
 		if (lastVideoFound ~= nil) then
 			linePosition = lastVideoFound:find(']')
 			lastVideoFound = lastVideoFound:sub(linePosition + 2)
+			
 			if string.match(lastVideoFound, '(.*)&t=') then
 				videoFile = string.match(lastVideoFound, '(.*)&t=')
 			else
@@ -206,6 +206,7 @@ mp.add_key_binding('ctrl+v', 'paste', function()
 			mp.commandv('loadfile', videoFile)
 			mp.osd_message('Pasted Last Video In Clipboard Log:\n'..videoFile)
 		end
+		copyLogLastOpen:close()
 	end
 	
 	if (filePath == videoFile) and (time ~= nil) then
