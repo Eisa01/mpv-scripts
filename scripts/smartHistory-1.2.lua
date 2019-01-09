@@ -62,7 +62,7 @@ mp.add_key_binding("ctrl+r", "resume", function()
 			if line.match(line, '(.*)&t=') == filePath then
 				videoFound = line
 			end
-		   
+				
 		end
 		
 	if (videoFound ~= nil) then
@@ -77,6 +77,9 @@ mp.add_key_binding("ctrl+r", "resume", function()
 		mp.osd_message('No Resume Position in This Video')
 	end
 	else
+		historyLogAdd:close()
+		historyLogOpen:close()
+
 		local res = utils.subprocess({ args = {
         'powershell', '-NoProfile', '-Command', [[& {
 		Trap {
@@ -99,7 +102,7 @@ mp.add_key_binding("ctrl+l", "lastplay", function()
 	local historyLog = os.getenv('APPDATA')..'/mpv/mpvHistory.log'
 	local historyLogAdd = io.open(historyLog, 'a+')
 	local historyLogOpen = io.open(historyLog, 'r+')
-    local linePosition
+	local linePosition
 	local videoFile
 
 	for line in historyLogOpen:lines() do
