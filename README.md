@@ -84,7 +84,9 @@ SmartHistory is a script for mpv media player, the script adds a smart history f
  - Support more platforms
  - Can't think of anything else, have an idea... let me know ;)
 ### SmartHistory Changelog
- - Latest Changes - **(1.1)**
+ - Latest Changes - **(1.2)**
+ 	- One small bug squashed
+ - (1.0)
  	- Tons of bug fixes and optimizations
 	- Fixed issues that could cause script to crash
 	- Added OSD everywhere possible
