@@ -5,8 +5,8 @@ This repository contain scripts I have made for [mpv media player](https://githu
 **Table of Contents**
 - [**SmartCopyPaste Script**](https://github.com/Eisa01/mpv-scripts#smartcopypaste-script)
  	- [SmartCopyPaste Usage Guide](https://github.com/Eisa01/mpv-scripts#smartcopypaste-usage-guide)
-	- [SmartCopyPaste AND SmartCopyPaste-II) Features](https://github.com/Eisa01/mpv-scripts#smartcopypaste-and-smartcopypaste-II-features)
-	- [SmartCopyPaste-II ONLY Features](https://github.com/Eisa01/mpv-scripts#smartcopypaste--ii-only-features)
+	- [SmartCopyPaste AND SmartCopyPaste-II Features](https://github.com/Eisa01/mpv-scripts#smartcopypaste-and-smartcopypaste-II-features)
+	- [SmartCopyPaste-II ONLY Features](https://github.com/Eisa01/mpv-scripts#smartcopypaste-ii-only-features)
 	- [SmartCopyPaste Compatibility](https://github.com/Eisa01/mpv-scripts#smartcopypaste-compatibility)
 	- [SmartCopyPaste To-Do List](https://github.com/Eisa01/mpv-scripts#smartcopypaste-to-do-list)
 	- [SmartCopyPaste Changelog](https://github.com/Eisa01/mpv-scripts#smartcopypaste-changelog)
