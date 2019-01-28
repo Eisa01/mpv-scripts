@@ -18,7 +18,7 @@ This repository contain scripts I have made for [mpv media player](https://githu
 # SmartCopyPaste Script
 SmartCopyPaste is a script for mpv media player, the script adds a very smart copy paste experience to mpv. It gives mpv the ability to load videos simply by pasting them into mpv. As for copying,  pressing [ctrl]+[c] on a video, copies the video path and its time to clipboard, which enables paste to resume or to access video with the copied time by pasting.
 
-Additionally, there are two versions of SmartCopyPaste, and SmartCopyPaste-**II**. The **II** version contain additional features to save your clipboard into a log file giving the option to paste at any time even if clipboard was overwritten or cleared. More details about SmartCopyPaste are explained in the sections below. To use it, either download *`smartcopypaste.lua`* **OR** *`smartcopypaste-ii.lua`* file into your `mpv/scripts/` directory. 
+Additionally, there are two versions of SmartCopyPaste, and SmartCopyPaste-**II**. The **II** version contain additional features to save your clipboard into a log file giving the option to paste at any time even if clipboard was overwritten or cleared. More details about SmartCopyPaste are explained in the sections below. To use it, either download *`SmartCopyPaste.lua`* **OR** *`SmartCopyPaste-II.lua`* file into your `mpv/scripts/` directory. 
 ### SmartCopyPaste Usage Guide
 - **While mpv is active (running a video)**
 	 - **[ctrl]**+**[c]** to copy video path with time
@@ -66,7 +66,7 @@ Additionally, there are two versions of SmartCopyPaste, and SmartCopyPaste-**II*
 	
 [**SmartCopyPaste Full Changelog**](https://github.com/Eisa01/mpv-scripts/blob/master/documents/SmartCopyPaste%20Full%20Changelog.md)
 # SmartHistory Script
-SmartHistory is a script for mpv media player, the script adds a smart history functionality to mpv. It logs videos that you opened into `%APPDATA%\mpv\mpvHistory.log` along with the time you have reached on each video. The script uses the log to provide you with various features. More details about SmartHistory are explained in the sections below. To use it, download *`smartHistory.lua`* file into your `mpv/scripts/` directory. 
+SmartHistory is a script for mpv media player, the script adds a smart history functionality to mpv. It logs videos that you opened into `%APPDATA%\mpv\mpvHistory.log` along with the time you have reached on each video. The script uses the log to provide you with various features. More details about SmartHistory are explained in the sections below. To use it, download *`SmartHistory.lua`* file into your `mpv/scripts/` directory. 
 ### SmartHistory Features and Usage Guide
 - **Features**
 	-  **Logs Opened Videos to a Log File:** All videos opened in mpv will be logged to create a history in `%APPDATA%\mpv\mpvHistory.log`. The format is: [date and time] of accessing video, the path & reached video time.
