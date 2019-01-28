@@ -37,4 +37,4 @@
 - 1.1
 	- Same fixes and optimizations as the basic version
 - 1.0
-	- Initial release of an all new SmartCopyPaste-II version containing tons of newly added features! [(check II features section)](https://github.com/Eisa01/mpv-scripts#SmartCopyPaste-II-ONLY-Features)
+	- Initial release of an all new SmartCopyPaste-II version containing tons of newly added features! [(check SmartCopyPaste-II features section)](https://github.com/Eisa01/mpv-scripts#SmartCopyPaste-II-ONLY-Features)
