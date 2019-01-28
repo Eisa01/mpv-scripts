@@ -22,9 +22,9 @@ Additionally, there are two versions of SmartCopyPaste, and SmartCopyPaste-**II*
 ### SmartCopyPaste Usage Guide
 - **While mpv is active (running a video)**
 	 - **[ctrl]**+**[c]** to copy video path with time
-	 - **[ctrl]**+**[c]** to copy video path with time and **bookmark (II ONLY)**
+	 - **[ctrl]**+**[c]** to copy video path with time \and **bookmark (II ONLY)**
 	 - **[ctrl]**+**[C]** to copy video path without time
-	 - **[ctrl]**+**[C]** to copy video path without time and **bookmark (II ONLY)**
+	 - **[ctrl]**+**[C]** to copy video path without time \and **bookmark (II ONLY)**
 	 - **[ctrl]**+**[v]** to jump to the copied time
 	 - **[ctrl]**+**[v]** when different video is copied, [ctrl]+[v] will add video into playlist to play it next **(SmartCopyPaste ONLY)**
 	 - **[ctrl]**+**[v]** to jump to the latest bookmarked position in the bookmarked video **(II ONLY)**
@@ -42,7 +42,7 @@ Additionally, there are two versions of SmartCopyPaste, and SmartCopyPaste-**II*
 - **OSD** (On Screen Display): Displays any SmartCopyPaste action within mpv
 - **youtube-dl Extension Support** Immediately paste links without finding exact video address for youtube and any other youtube-dl extension supported sites
 ### SmartCopyPaste ONLY Feature
-- **Auto Add Video to Playlist** If mpv is running a video and you have copied another video **[ctrl]**+**[v]** will add the copied video into playlist to play it next (this is NOT SmartCopyPaste-II since II will resume to bookmarked time in the running video)
+- **Auto Add Video to Playlist** If mpv is running a video and you have copied another video **[ctrl]**+**[v]** will add the copied video into playlist to play it next (this is NOT for SmartCopyPaste-II, since II will resume to bookmarked time in the running video)
 ### SmartCopyPaste-II ONLY Features
  - **Save Clipboard to a Log File:** The copies from mpv, and the pastes into mpv will be kept in a log file located in `%APPDATA%\mpv\mpvClipboard.log`
  - **Powerful Bookmark:** Copy video path and bookmark by **[ctrl]**+**[c]** then resume bookmark by **[ctrl]**+**[v]** in the bookmarked video.
