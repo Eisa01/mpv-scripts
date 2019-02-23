@@ -4,12 +4,12 @@ This repository contain scripts I have made for [mpv media player](https://githu
 
 **Table of Contents**
 - [**SmartCopyPaste Script**](https://github.com/Eisa01/mpv-scripts#smartcopypaste-script)
- 	- [SmartCopyPaste Features and Usage Guide](https://github.com/Eisa01/mpv-scripts#smartcopypaste-usage-guide)
+ 	- [SmartCopyPaste Features and Usage Guide](https://github.com/Eisa01/mpv-scripts#smartcopypaste-features-and-usage-guide)
 	- [SmartCopyPaste Compatibility](https://github.com/Eisa01/mpv-scripts#smartcopypaste-compatibility)
 	- [SmartCopyPaste To-Do List](https://github.com/Eisa01/mpv-scripts#smartcopypaste-to-do-list)
 	- [SmartCopyPaste Changelog](https://github.com/Eisa01/mpv-scripts#smartcopypaste-changelog)
-- [**SmartCopyPaste-II Script**](https://github.com/Eisa01/mpv-scripts#smartcopypaste-script)
- 	- [SmartCopyPaste-II Features and Usage Guide](https://github.com/Eisa01/mpv-scripts#smartcopypaste-ii-usage-guide)
+- [**SmartCopyPaste-II Script**](https://github.com/Eisa01/mpv-scripts#smartcopypaste-ii-script)
+ 	- [SmartCopyPaste-II Features and Usage Guide](https://github.com/Eisa01/mpv-scripts#smartcopypaste-ii-features-and-usage-guide)
 	- [SmartCopyPaste-II Compatibility](https://github.com/Eisa01/mpv-scripts#smartcopypaste-ii-compatibility)
 	- [SmartCopyPaste-II To-Do List](https://github.com/Eisa01/mpv-scripts#smartcopypaste-ii-to-do-list)
 	- [SmartCopyPaste-II Changelog](https://github.com/Eisa01/mpv-scripts#smartcopypaste-ii-changelog)
