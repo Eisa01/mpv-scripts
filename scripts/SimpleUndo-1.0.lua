@@ -38,6 +38,7 @@ end)
 
 mp.register_event('end-file', function()
 	timer:kill()
+	seekNumber = 0
 end)
 
 mp.add_key_binding("ctrl+z", "undo", function()
