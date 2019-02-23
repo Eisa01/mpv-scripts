@@ -26,13 +26,13 @@ This repository contain scripts I have made for [mpv media player](https://githu
 SmartCopyPaste is a script for mpv media player, the script adds a very smart copy paste experience to mpv. It gives mpv the ability to load videos simply by pasting them into mpv. As for copying,  pressing [ctrl]+[c] on a video, copies the video path and its time to clipboard, which enables paste to resume or to access video with the copied time by pasting. To use it, download *`SmartCopyPaste.lua`* file into your `mpv/scripts/` directory. 
 ### SmartCopyPaste Features and Usage Guide
  - **Features**
-	- **OSD** (On Screen Display): Displays any SmartCopyPaste action within mpv
-	- **youtube-dl Extension Support** Immediately paste links without finding exact video address for youtube and any other youtube-dl extension supported sites
+	- **OSD** (On Screen Display): Displays any SmartCopyPaste action within mpv.
+	- **youtube-dl Extension Support** Immediately paste links without finding exact video address for youtube and any other youtube-dl extension supported sites.
 - **While mpv is active (running a video)**
 	 - **[ctrl]**+**[c]** to copy video path with time
 	 - **[ctrl]**+**[C]** to copy video path without time
 	 - **[ctrl]**+**[v]** to jump to the copied time
-	 - **[ctrl]**+**[v]** when different video is copied, [ctrl]+[v] will add video into playlist to play it next
+	 - **[ctrl]**+**[v]** when different video is copied, [ctrl]+[v] will add video into playlist
 	 - **[ctrl]**+**[V]** to add video into playlist to play it next
  - **While mpv is idle (NOT running a video)**
 	 - **[ctrl]**+**[v]** to play the copied video *and time if available* (whether link or local video or video path)
@@ -52,9 +52,9 @@ The **II** version contain additional features which saves your clipboard into a
 Basically, copying a video will bookmark the video and time, while pasting will access the bookmark. To use it, download *`SmartCopyPaste-II.lua`* file into your `mpv/scripts/` directory. 
 ### SmartCopyPaste-II Features and Usage Guide
 - **Features**
-	- **Save Clipboard to a Log File:** The copies from mpv, and the pastes into mpv will be kept in a log file located in `%APPDATA%\mpv\mpvClipboard.log`
-	- **OSD** (On Screen Display): Displays any SmartCopyPaste action within mpv
-	- **youtube-dl Extension Support** Immediately paste links without finding exact video address for youtube and any other youtube-dl extension supported sites
+	- **Save Clipboard to a Log File:** The copies from mpv, and the pastes into mpv will be kept in a log file located in `%APPDATA%\mpv\mpvClipboard.log`.
+	- **OSD**: Displays any SmartCopyPaste action within mpv.
+	- **youtube-dl Extension Support** Immediately paste links without finding exact video address for youtube and any other youtube-dl extension supported sites.
 - **While mpv is active (running a video)**
 	 - **[ctrl]**+**[c]** to copy video path with time and bookmark
 	 - **[ctrl]**+**[C]** to copy video path without time and bookmark
@@ -80,7 +80,7 @@ SmartHistory is a script for mpv media player, the script adds a smart history f
 ### SmartHistory Features and Usage Guide
 - **Features**
 	-  **Logs Opened Videos to a Log File:** All videos opened in mpv will be logged to create a history in `%APPDATA%\mpv\mpvHistory.log`. The format is: [date and time] of accessing video, the path & reached video time.
-	- **OSD**: Displays any SmartHistory action within mpv
+	- **OSD**: Displays any SmartHistory action within mpv.
 - **While mpv is idle (NOT running a video)**
 	- **[ctrl]**+**[l]** to immediately load last closed video 
 	- **[ctrl]**+**[r]** to open history log for list of played videos
@@ -109,7 +109,7 @@ SmartHistory is a script for mpv media player, the script adds a smart history f
 SimpleUndo is a script for mpv media player, the script adds a simple undo functionality into mpv. If you accidentally seek/jump to a different time in the video, press undo [ctrl]+[z] to return to your previous time and vice-versa. To use it, download *`SimpleUndo.lua`* file into your `mpv/scripts/` directory. 
 ### SimpleUndo Features and Usage Guide
 - **Features**
-	- **OSD**: Displays any SimpleUndo action within mpv
+	- **OSD**: Displays any SimpleUndo action within mpv.
 - **While mpv is active (running a video)**
 	- **[ctrl]**+**[z]** to undo accidental seek by returning to previous time and vise-versa.
 ### SimpleUndo Compatibility
