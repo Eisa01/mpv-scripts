@@ -108,7 +108,7 @@ SmartHistory is a script for mpv media player, the script adds a smart history f
 	- Contains simple history log file with many smart features mentioned above.
 # SimpleUndo Script
 SimpleUndo is a script for mpv media player, the script adds a simple undo functionality into mpv. If you accidentally seek/jump to a different time in the video, press undo [ctrl]+[z] to return to your original time and vice-versa. To use it, download *`SimpleUndo.lua`* file into your `mpv/scripts/` directory. 
-### SmartHistory Features and Usage Guide
+### SimpleUndo Features and Usage Guide
 - **Features**
 	- **OSD**: Displays any SimpleUndo action within mpv
 - **While mpv is active (running a video)**
