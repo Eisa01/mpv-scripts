@@ -71,6 +71,7 @@ end)
 mp.add_key_binding("ctrl+z", "undo", function()
 	if (filePath ~= nil) and (seekNumber >= 1) then--if seeknumber is more than 1 or equal it means there is undo position
 		mp.commandv('seek', seekTable[seekNumber], 'absolute', 'exact') --use the seektable for undo using the rules defined above
+		mp.osd_message('Undo Last Seek')
 	else
 		mp.osd_message('No Undo Found')
 	end
