@@ -4,3 +4,4 @@
 	 - Make the bookmark point remain for multiple videos and give ability to resume to any saved bookmark point by [ctrl]+[v] **(Done in SmartCopyPaste-II)**
 - Add a shortcut to quickly access clipboard history **(Done in SmartCopyPaste-II-1.2)**
 - While watching a video, add pasted video to playlist so pasted video plays after finishing current video instead of ignoring paste **(Done in SmartCopyPaste-1.3)**
+ Find a way to make it work even if seeking was continuous. (Done in SimpleUndo-2.0)
