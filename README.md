@@ -117,7 +117,6 @@ SimpleUndo is a script for mpv media player, the script adds a simple undo funct
 	 - Should be able to work on all platforms that mpv supports.
 ### SimpleUndo To-Do List
  - Trying to keep it simple, [ctrl]+[z] does all the work.. Have a simple idea? Let me know.. ;)
- - Find a way to make it work even if seeking was continuous.
 ### SimpleUndo Changelog
  - Latest Changes - **(2.0)** [2/27/2019] 
 	 - An all new 2.0 version taking SimpleUndo to a whole new level.
