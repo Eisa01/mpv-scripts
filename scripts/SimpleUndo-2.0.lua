@@ -48,7 +48,7 @@ mp.register_event('file-loaded', function()
 end)
 
 
-mp.register_event('seek', function()
+mp.register_event('seek', function()--for now use seek even if it detects chapter
 	timer2:resume()--make timer 
 	countTimer = 0 --reset counter to make it take the undotime again when it becomes above THIS does all the magic #2 to make it detect seek-end event keep reseting counter and detect when it does not
 	 --if the seeking happened twice in less than a second dont count it as seek or. THIS if almost second passed after seeking then take time
