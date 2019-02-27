@@ -1,4 +1,4 @@
- # To-Do List (Completed Items)
+ # Scripts To-Do List (Completed Items)
  - Enhance the bookmark feature of copy video and time by [ctrl]+[c] **(Done in SmartCopyPaste-II)**
 	 - Keep bookmark point even if it is no longer in the clipboard which gives the ability to paste even if the clipboard is overwritten **(Done in SmartCopyPaste-II)**
 	 - Make the bookmark point remain for multiple videos and give ability to resume to any saved bookmark point by [ctrl]+[v] **(Done in SmartCopyPaste-II)**
