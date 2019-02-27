@@ -1,10 +1,10 @@
 local utils = require 'mp.utils'
 local seconds = 0
 local countTimer = 0
+local previousUndoTime = 0
 local undoTime = 0
 local seekNumber = 0
 local seekTable = {}
-local previousUndoTime = 0
 
 mp.register_event('file-loaded', function()
 	filePath = mp.get_property('path')
@@ -48,7 +48,7 @@ mp.register_event('file-loaded', function()
 end)
 
 
-mp.register_event('seek', function()--for now use seek even if it detects chapter
+mp.register_event('seek', function()--for now use seek even if it detects chapter(update it does not detect chapters! ^ ^)
 	timer2:resume()--make timer 
 	countTimer = 0 --reset counter to make it take the undotime again when it becomes above THIS does all the magic #2 to make it detect seek-end event keep reseting counter and detect when it does not
 	 --if the seeking happened twice in less than a second dont count it as seek or. THIS if almost second passed after seeking then take time
@@ -69,10 +69,12 @@ mp.register_event('end-file', function()
 end)
 
 mp.add_key_binding("ctrl+z", "undo", function()
-	if (filePath ~= nil) and (seekNumber >= 1) then--if seeknumber is more than 1 or equal it means there is undo position
+	if (filePath ~= nil) and (seekNumber >= 1) and (countTimer > 0.5) then--if seeknumber is more than 1 or equal it means there is undo position (added countTimer more than 5 so ctrl z only works when counter is after NEW seek is saved
 		mp.commandv('seek', seekTable[seekNumber], 'absolute', 'exact') --use the seektable for undo using the rules defined above
 		mp.osd_message('Undo Last Seek')
-	else
+	elseif (filePath ~= nil) and (seekNumber >= 1) and (countTimer <= 0.5) then--it is seeking if the time is less than 5 or it is 5 just notify users as undo wont be available unless seeking is done
+		mp.osd_message('Seeking Still Running')
+	elseif (filePath ~= nil) and (seekNumber == 0) then
 		mp.osd_message('No Undo Found')
 	end
 end)
