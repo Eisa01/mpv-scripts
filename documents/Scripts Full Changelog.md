@@ -38,5 +38,13 @@
 	- Same fixes and optimizations as the basic version
 - 1.0
 	- Initial release of an all new SmartCopyPaste-II version containing tons of newly added features! [(check SmartCopyPaste-II features section)](https://github.com/Eisa01/mpv-scripts#SmartCopyPaste-II-ONLY-Features)
-
-### 
+### SimpleUndo Changelog
+ - Latest Changes - **(2.1)** [2/27/2019] 
+ 	- Handled trying to undo while seeking is not done
+ - **(2.0)** [2/27/2019] 
+	 - An all new 2.0 version taking SimpleUndo to a whole new level.
+	 - Now it should work even in all different kinds of jumping in video. Such as, dragging the mouse, using multiple key-presses, or holding the seeking button, and even if you use an external script to seek.
+ - **(1.1)** [2/24/2019] 
+	- Lighter smaller code, no more variable tables since one value is enough for [ctrl]+[z] action.
+ - **(1.0)** [2/23/2019] 
+	- Initial release of SimpleUndo Script
