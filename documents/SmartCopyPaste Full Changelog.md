@@ -1,4 +1,4 @@
-# SmartCopyPaste Full Changelog
+# Scripts Full Changelog
 ### SmartCopyPaste Changelog
 - Latest Changes **(1.5)**
 	- Fixed automatic resume of copied time issue
@@ -38,3 +38,5 @@
 	- Same fixes and optimizations as the basic version
 - 1.0
 	- Initial release of an all new SmartCopyPaste-II version containing tons of newly added features! [(check SmartCopyPaste-II features section)](https://github.com/Eisa01/mpv-scripts#SmartCopyPaste-II-ONLY-Features)
+
+### 
