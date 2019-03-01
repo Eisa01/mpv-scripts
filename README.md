@@ -143,5 +143,5 @@ Below are list of contributors/ honorable mentions.
 To access windows clipboard, the method was inspired by [@wiiaboo](https://github.com/wiiaboo/) urlcopypaste script. Special thanks for his work.
 - **SmartHistory Script**
 To create the log file, the method was inspired by a deleted author from a reddit post. Special thanks for his work.
-- **SimpleUndoRedo Script**
+- **UndoRedo Script**
 Credits to [@Banz99](https://github.com/Banz99) for forking SimpleUndo script and enhance it by a table to store undo and redo values, as well as iterate between them. Also special thanks for his full explanation on how it works. This script would not have been possible without his help.
