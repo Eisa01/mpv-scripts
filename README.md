@@ -137,7 +137,7 @@ UndoRedo is a script for mpv media player, the script adds undo, and redo functi
 ### UndoRedo Changelog
  - Latest Changes - **(1.0)** [3/1/2019]
  	- Initial release of UndoRedo
-# Special Thanks
+## Special Thanks
 Below are list of contributors/ honorable mentions.
 - **SmartCopyPaste Script** 
 To access windows clipboard, the method was inspired by [@wiiaboo](https://github.com/wiiaboo/) urlcopypaste script. Special thanks for his work.
