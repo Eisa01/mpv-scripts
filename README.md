@@ -1,3 +1,4 @@
+
 # Introduction
 This repository contain scripts I have made for [mpv media player](https://github.com/mpv-player/mpv/). To add scripts from this repository, download the desired script in your `mpv/scripts/` directory (click [here](https://mpv.io/manual/master/#lua-scripting) to know more about mpv scripts).
 
@@ -7,6 +8,11 @@ This repository contain scripts I have made for [mpv media player](https://githu
 - [**SmartHistory Script**](https://github.com/Eisa01/mpv-scripts#smarthistory-script)
 - [**SimpleUndo Script**](https://github.com/Eisa01/mpv-scripts#simpleundo-script)
 - [**UndoRedo Script**](https://github.com/Eisa01/mpv-scripts#undoredo-script)
+
+**Other sections involving all my mpv scripts:**
+- [**Special thanks to contributors**](https://github.com/Eisa01/mpv-scripts#special-thanks)
+- [**Full Changelog for all Scripts**](https://github.com/Eisa01/mpv-scripts#smartcopypaste-script)
+- [**Full To-Do List for all Scripts**](https://github.com/Eisa01/mpv-scripts#smartcopypaste-script)
 
 **The following scripts can conflict with each other:**
 - Either install SmartCopyPaste or SmartCopyPaste-II.
@@ -27,7 +33,6 @@ SmartCopyPaste is a script for mpv media player, the script adds a very smart co
 	 - **[ctrl]**+**[v]** to play the copied video *and time if available* (whether link or local video or video path)
 ### SmartCopyPaste Compatibility
  - **SmartCopyPaste is currently for Windows only**
-	 - To access windows clipboard, the method was inspired by [@wiiaboo](https://github.com/wiiaboo/) urlcopypaste script. Special thanks for his work.
 ### SmartCopyPaste To-Do List
  - Support more platforms
  - Can't think of anything else, have an idea... let me know ;)
@@ -80,7 +85,6 @@ SmartHistory is a script for mpv media player, the script adds a smart history f
 		- Useful for cases when you opened another video by accident and you want to get back to the last video
 ### SmartHistory Compatibility
  - **SmartHistory is currently for Windows only**
-	 - To create the log file, the method was inspired by a deleted author from a reddit post. Special thanks for his work.
 ### SmartHistory To-Do List
  - Support more platforms
  - Can't think of anything else, have an idea... let me know ;)
@@ -133,7 +137,11 @@ UndoRedo is a script for mpv media player, the script adds undo, and redo functi
 ### UndoRedo Changelog
  - Latest Changes - **(1.0)** [3/1/2019]
  	- Initial release of UndoRedo
-
-**UndoRedo Credit**
-
+# Special Thanks
+Below are list of contributors/ honorable mentions.
+- **SmartCopyPaste Script** 
+To access windows clipboard, the method was inspired by [@wiiaboo](https://github.com/wiiaboo/) urlcopypaste script. Special thanks for his work.
+- **SmartHistory Script**
+To create the log file, the method was inspired by a deleted author from a reddit post. Special thanks for his work.
+- **SimpleUndoRedo Script**
 Credits to [@Banz99](https://github.com/Banz99) for forking SimpleUndo script and enhance it by a table to store undo and redo values, as well as iterate between them. Also special thanks for his full explanation on how it works. This script would not have been possible without his help.
