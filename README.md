@@ -1,4 +1,3 @@
-
 # Introduction
 This repository contain scripts I have made for [mpv media player](https://github.com/mpv-player/mpv/). To add scripts from this repository, download the desired script in your `mpv/scripts/` directory (click [here](https://mpv.io/manual/master/#lua-scripting) to know more about mpv scripts).
 
@@ -8,11 +7,6 @@ This repository contain scripts I have made for [mpv media player](https://githu
 - [**SmartHistory Script**](https://github.com/Eisa01/mpv-scripts#smarthistory-script)
 - [**SimpleUndo Script**](https://github.com/Eisa01/mpv-scripts#simpleundo-script)
 - [**UndoRedo Script**](https://github.com/Eisa01/mpv-scripts#undoredo-script)
-
-**Other sections involving all my mpv scripts:**
-- [**Special thanks to contributors**](https://github.com/Eisa01/mpv-scripts#special-thanks)
-- [**Full Changelog for all Scripts**](https://github.com/Eisa01/mpv-scripts#smartcopypaste-script)
-- [**Full To-Do List for all Scripts**](https://github.com/Eisa01/mpv-scripts#smartcopypaste-script)
 
 **The following scripts can conflict with each other:**
 - Either install SmartCopyPaste or SmartCopyPaste-II.
@@ -43,17 +37,18 @@ SmartCopyPaste is a script for mpv media player, the script adds a very smart co
 SmartCopyPaste is a script for mpv media player, the script adds a very smart copy paste experience to mpv. It gives mpv the ability to load videos simply by pasting them into mpv. As for copying,  pressing [ctrl]+[c] on a video, copies the video path and its time to clipboard, which enables paste to resume or to access video with the copied time by pasting. 
 The **II** version contain additional features which saves your clipboard into a log file. The log adds the option to paste at any time even if clipboard was overwritten or cleared. 
 
-Basically, copying a video will bookmark the video and time, while pasting will access the bookmark. For installation, download *`SmartCopyPaste-II.lua`* file into your `mpv/scripts/` directory. 
+Basically,  the **II**  version is enhanced with a bookmark feature, copying a video will bookmark the video and time, while pasting will access the bookmark (even if clipboard is cleared). For installation, download *`SmartCopyPaste-II.lua`* file into your `mpv/scripts/` directory. 
 ### SmartCopyPaste-II Features and Usage Guide
 - **Features**
-	- **Save Clipboard to a Log File:** The copies from mpv, and the pastes into mpv will be kept in a log file located in `%APPDATA%\mpv\mpvClipboard.log`.
+	- **Bookmark**: Any copy in a video is also a bookmark point, to access the bookmark simply paste.
+	- **Save Clipboard to a Log File:** The copies from mpv, and the pastes into mpv will be kept in a log file located in `%APPDATA%\mpv\mpvClipboard.log`. This is necessary for the bookmark feature.
 	- **OSD**: Displays any SmartCopyPaste action within mpv.
 	- **youtube-dl Extension Support** Immediately paste links without finding exact video address for youtube and any other youtube-dl extension supported sites.
 - **While mpv is active (running a video)**
-	 - **[ctrl]**+**[c]** to copy video path with time and bookmark
-	 - **[ctrl]**+**[C]** to copy video path without time and bookmark
+	 - **[ctrl]**+**[c]** to copy video path with time and **bookmark**
+	 - **[ctrl]**+**[C]** to copy video path without time and **bookmark**
 	 - **[ctrl]**+**[v]** to jump to the copied time
-	 - **[ctrl]**+**[v]** to jump to the latest bookmarked position in the bookmarked video
+	 - **[ctrl]**+**[v]** to jump to the bookmarked position in the bookmarked video
 	 - **[ctrl]**+**[V]** to add video into playlist to play it next
  - **While mpv is idle (NOT running a video)**
 	 - **[ctrl]**+**[v]** to play the copied video *and time if available* (whether link or local video or video path)
@@ -73,8 +68,9 @@ Basically, copying a video will bookmark the video and time, while pasting will 
 SmartHistory is a script for mpv media player, the script adds a smart history functionality to mpv. It logs videos that you opened into `%APPDATA%\mpv\mpvHistory.log` along with the time you have reached on each video. The script uses the log to provide you with various features. More details about SmartHistory are explained in the sections below. For installation, download *`SmartHistory.lua`* file into your `mpv/scripts/` directory. 
 ### SmartHistory Features and Usage Guide
 - **Features**
+	- **Auto Bookmark**: When you exit video, it will always remember position and [ctrl]+[r] will resume. 
 	-  **Logs Opened Videos to a Log File:** All videos opened in mpv will be logged to create a history in `%APPDATA%\mpv\mpvHistory.log`. The format is: [date and time] of accessing video, the path & reached video time.
-	- **OSD**: Displays any SmartHistory action within mpv.
+	- **OSD**: Displays any SmartHistory action within mpv. This is necessary for Auto Bookmark.
 - **While mpv is idle (NOT running a video)**
 	- **[ctrl]**+**[l]** to immediately load last closed video 
 	- **[ctrl]**+**[r]** to open history log for list of played videos
