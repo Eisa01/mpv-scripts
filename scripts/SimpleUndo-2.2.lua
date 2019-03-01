@@ -15,7 +15,7 @@ mp.register_event('file-loaded', function()
 	timer2 = mp.add_periodic_timer(0.1, function()
 		countTimer = countTimer + 0.1
 		
-		if countTimer > 0.5 and countTimer < 0.7 then
+		if countTimer == 0.6 then
 	
 			previousUndoTime = undoTime
 			undoTime = math.floor(mp.get_property_number('time-pos'))
@@ -23,7 +23,7 @@ mp.register_event('file-loaded', function()
 			seekNumber = 1
 		
 			if (undoTime ~= previousUndoTime) and (seekNumber > 0) then
-				seconds = seconds - 0.4
+				seconds = seconds - 0.5 --almost decrease as the countTimer makes better for accuracy
 				previousUndoTime = previousUndoTime + seconds
 				seconds = 0
 			end
