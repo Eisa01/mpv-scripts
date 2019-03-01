@@ -133,6 +133,7 @@ UndoRedo is a script for mpv media player, the script adds undo, and redo functi
 ### UndoRedo Changelog
  - Latest Changes - **(1.0)** [3/1/2019]
  	- Initial release of UndoRedo
+
 **UndoRedo Credit**
 
 Credits to [@Banz99](https://github.com/Banz99) for forking SimpleUndo script and enhance it by a table to store undo and redo values, as well as iterate between them. Also special thanks for his full explanation on how it works. This script would not have been possible without his help.
