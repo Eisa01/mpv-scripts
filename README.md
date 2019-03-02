@@ -107,10 +107,12 @@ SimpleUndo is a script for mpv media player, the script adds a simple undo funct
 ### SimpleUndo To-Do List
  - Trying to keep it simple, [ctrl]+[z] does all the work.. Have a simple idea? Let me know.. ;)
 ### SimpleUndo Changelog
- - Latest Changes - **(2.2)** [2/28/2019]
- 	- Less if statements, no more variable tables, and some other bug fixes
+ - Latest Changes **(2.3)** [3/2/2019]
+  	- Fixed OSD not showing the first time seek is in progress. Better code, less if statements and variables.
+ - **(2.2)** [2/28/2019]
+ 	- Less if statements, no more variable tables, and some other bug fixes.
  - **(2.1)** [2/27/2019] 
- 	- Handled trying to undo while seeking is not done
+ 	- Handled trying to undo while seeking is not done.
  - **(2.0)** [2/27/2019] 
 	 - An all new 2.0 version taking SimpleUndo to a whole new level.
 	 - Now it should work even in all different kinds of jumping in video. Such as, dragging the mouse, using multiple key-presses, or holding the seeking button, and even if you use an external script to seek.
