@@ -85,7 +85,7 @@ SmartHistory is a script for mpv media player, the script adds a smart history f
  - Support more platforms
  - Can't think of anything else, have an idea... let me know ;)
 ### SmartHistory Changelog
- - Latest Changes - **(1.2)**
+ - Latest Changes **(1.2)**
  	- One small bug squashed
  - (1.1)
  	- Tons of bug fixes and optimizations
@@ -131,7 +131,10 @@ UndoRedo is a script for mpv media player, the script adds undo, and redo functi
  - Integrate SimpleUndo feature within UndoRedo, where ctrl+shift+z will return to your previous time and vice-versa.
  - It is UndoRedo. No clue if there should be a to-do list, but if you hava extra an UndoRedo idea.. let me know ;)
 ### UndoRedo Changelog
- - Latest Changes - **(1.0)** [3/1/2019]
+ - Latest Changes **(1.1)** [3/2/2019]
+ 	- Now shows OSD in all cases when unable to undo, such as you are already in last undo or did not seek yet, and more.
+	- Fixed bug that broke a functionality in redo.
+ - **(1.0)** [3/1/2019]
  	- Initial release of UndoRedo
 ## Special Thanks
 Below are list of contributors/ honorable mentions.
