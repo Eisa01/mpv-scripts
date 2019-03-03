@@ -10,14 +10,22 @@ local seeking = 0
 
 local undoRedo = 0
 
+local pause = false
+
 table.insert(seekTable,0,0)
 
 mp.register_event('file-loaded', function()
 	filePath = mp.get_property('path')
-
+	
 	timer = mp.add_periodic_timer(0.1, function()
 		seconds = seconds + 0.1
 	end)
+	
+	if (pause == true) then
+		timer:stop()
+	else
+		timer:resume()
+	end
 	
 	timer2 = mp.add_periodic_timer(0.1, function()
 		countTimer = countTimer + 0.1
@@ -25,8 +33,13 @@ mp.register_event('file-loaded', function()
 		if (countTimer == 0.6) then
 		
 			if (seeking == 0) then
-			
+				
+				if (pause == true) then
+					seconds = seconds
+				else
 					seconds = seconds - 0.7
+				end
+				
 					seekTable[currentIndex] = seekTable[currentIndex] + seconds 	
 					seconds = 0	
 					
@@ -48,17 +61,20 @@ mp.register_event('file-loaded', function()
 	timer2:stop()
 end)
 
+
 mp.register_event('seek', function()
 	timer2:resume()
 	countTimer = 0
 end)
 
-mp.register_event('pause', function()
+mp.register_event('pause', function() 
 	timer:stop()
+	pause = true
 end)
 
 mp.register_event('unpause', function()
 	timer:resume()
+	pause = false
 end)
 
 mp.register_event('end-file', function()
@@ -67,11 +83,19 @@ mp.register_event('end-file', function()
 	seekNumber = 0
 	currentIndex = 0
 	undoRedo = 0
+	seconds = 0
+	table.insert(seekTable,0,0)
 end)
 
 mp.add_key_binding("ctrl+z", "undo", function()
 	if (filePath ~= nil) and (currentIndex > 0) and (seeking == 0) then
-		seconds = seconds - 0.7
+		
+		if (pause == true) then
+			seconds = seconds
+		else
+			seconds = seconds - 0.7
+		end
+		
 		seekTable[currentIndex] = seekTable[currentIndex] + seconds
 		seconds=0
 		
@@ -91,7 +115,13 @@ end)
 
 mp.add_key_binding("ctrl+y", "redo", function()
 	if (filePath ~= nil) and (currentIndex < seekNumber) and (seeking == 0) then
-		seconds = seconds - 0.7
+		
+		if (pause == true) then
+			seconds = seconds
+		else
+			seconds = seconds - 0.7
+		end
+		
 		seekTable[currentIndex] = seekTable[currentIndex] + seconds
 		seconds = 0
 		
@@ -111,7 +141,13 @@ end)
 
 mp.add_key_binding("ctrl+shift+z", "undoredo", function()
 	if (filePath ~= nil) and (countTimer > 0.5) and (undoRedo == 0) then
-		seconds = seconds - 0.7
+		
+		if (pause == true) then
+			seconds = seconds
+		else
+			seconds = seconds - 0.7
+		end
+		
 		seekTable[currentIndex] = seekTable[currentIndex] + seconds
 		seconds = 0
 		
@@ -122,7 +158,13 @@ mp.add_key_binding("ctrl+shift+z", "undoredo", function()
 		seeking = 1
 		undoRedo = 1
 	elseif (filePath ~= nil) and (countTimer > 0.5) and (undoRedo == 1) then
-		seconds = seconds - 0.7
+		
+		if (pause == true) then
+			seconds = seconds
+		else
+			seconds = seconds - 0.7
+		end
+		
 		seekTable[currentIndex] = seekTable[currentIndex] + seconds
 		seconds = 0
 		
