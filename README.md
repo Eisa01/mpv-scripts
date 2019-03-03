@@ -133,9 +133,12 @@ UndoRedo is a script for mpv media player, the script adds undo, and redo functi
 	 - Should be able to work on all platforms that mpv supports.
 ### UndoRedo To-Do List
  - Integrate SimpleUndo feature within UndoRedo, where ctrl+shift+z will return to your previous time and vice-versa.
- - It is UndoRedo. No clue if there should be a to-do list, but if you hava extra an UndoRedo idea.. let me know ;)
+ - It is Undo&Redo. No clue if there should be a to-do list, but if you hava extra an UndoRedo idea.. let me know ;)
 ### UndoRedo Changelog
- - Latest Changes **(1.2)** [3/3/2019]
+ - Latest Changes **(1.3)** [3/4/2019]
+ 	- Tons of bug fixes to fix undo and redo while video pausing.
+	- Bug fixed to allow for seamless undo & redo while using playlists.
+ - **(1.2)** [3/3/2019]
  	- Added new feature [ctrl]+[shift]+[z], for quick undo & redo (just like SimpleUndo script) loops between last undo & redo.  
  - **(1.1)** [3/2/2019]
  	- Now shows OSD in all cases when unable to undo, such as you are already in last undo or did not seek yet, and more.
@@ -149,4 +152,4 @@ To access windows clipboard, the method was inspired by [@wiiaboo](https://githu
 - **SmartHistory Script**
 To create the log file, the method was inspired by a deleted author from a reddit post. Special thanks for his work.
 - **UndoRedo Script**
-Credits to [@Banz99](https://github.com/Banz99) for forking SimpleUndo script and enhance it by a table to store undo and redo values, as well as iterate between them. Also special thanks for his full explanation on how it works. This script would not have been possible without his help.
+Credits and special thanks to [@Banz99](https://github.com/Banz99) for forking SimpleUndo script and enhance it by a table to store undo and redo values, as well as iterate between them. Also special thanks for his full explanation on how it works.
