@@ -62,8 +62,8 @@ SmartHistory is a script for mpv media player, the script adds a smart history f
 - **Features**
 	- **Remember Last Video:** It will always remember your last played video, and [ctrl]+[l] will play it again.
 	- **Auto Bookmark:** When you exit video, it will always remember position and [ctrl]+[r] will resume.
-	-  **Logs Opened Videos to a Log File:** All videos opened in mpv will be logged to create a history in `%APPDATA%\mpv\mpvHistory.log`. The format is: [date and time] of accessing video, the path & reached video time.
-	- **OSD**: Displays any SmartHistory action within mpv. This is necessary for Remember Last Video and Auto Bookmark.
+	-  **Logs Opened Videos to a Log File:** All videos opened in mpv will be logged to create a history in `%APPDATA%\mpv\mpvHistory.log`. The format is: [date and time] of accessing video, the path & reached video time. This is necessary for Remember Last Video and Auto Bookmark.
+	- **OSD**: Displays any SmartHistory action within mpv.
 - **While running a video**
 	- **[ctrl]**+**[l]** to immediately load last closed video 
 	- **[ctrl]**+**[r]** to open history log for list of played videos
