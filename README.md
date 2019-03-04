@@ -20,8 +20,9 @@ SmartCopyPaste is a script for mpv media player, the script adds a very smart co
 - **While running a video**
 	 - **[ctrl]**+**[c]** to copy video path with resume time
 	 - **[ctrl]**+**[v]** does the following:
-		 -  To jump to the copied time (resume)
+		 - To jump to the copied time (resume)
 		 - Or when different video is copied, [ctrl]+[v] will add it into playlist
+	- **Extra Feature:** Less important features:
 	 - **[ctrl]**+**[C]** to copy video path without resyne time
 	 - **[ctrl]**+**[V]** to add video into playlist to play it next
  - **While `NOT` running a video**
