@@ -4,12 +4,20 @@ local countTimer = 0
 local previousUndoTime = 0
 local undoTime = 0
 
+local pause = false
+
 mp.register_event('file-loaded', function()
 	filePath = mp.get_property('path')
 
-	timer = mp.add_periodic_timer(1, function()
-		seconds = seconds + 1
+	timer = mp.add_periodic_timer(0.1, function()
+		seconds = seconds + 0.1
 	end)
+	
+	if (pause == true) then
+		timer:stop()
+	else
+		timer:resume()
+	end
 	
 	timer2 = mp.add_periodic_timer(0.1, function()
 	
@@ -19,15 +27,20 @@ mp.register_event('file-loaded', function()
 			previousUndoTime = undoTime
 			undoTime = math.floor(mp.get_property_number('time-pos'))
 		
-			seconds = seconds - 0.5
+			if (pause == true) then
+				seconds = seconds
+			else
+				seconds = seconds - 0.7
+			end
+			
 			previousUndoTime = previousUndoTime + seconds
 			seconds = 0
+			
 		end
 		
 	end)
 	timer2:stop()
 end)
-
 
 mp.register_event('seek', function()
 	timer2:resume()
@@ -36,10 +49,12 @@ end)
 
 mp.register_event('pause', function()
 	timer:stop()
+	pause = true
 end)
 
 mp.register_event('unpause', function()
 	timer:resume()
+	pause = false
 end)
 
 mp.register_event('end-file', function()
@@ -47,11 +62,18 @@ mp.register_event('end-file', function()
 	timer2:kill()
 	previousUndoTime = 0
 	undoTime = 0
+	seconds = 0
 end)
 
 mp.add_key_binding("ctrl+z", "undo", function()
 	if (filePath ~= nil) and (countTimer > 0.5) then
+	
+		if (previousUndoTime < 0) then
+			previousUndoTime = 0
+		end
+		
 		mp.commandv('seek', previousUndoTime, 'absolute', 'exact')
+		
 		mp.osd_message('Undo Last Seek')
 	elseif (filePath ~= nil) and (countTimer > 0) and (countTimer < 0.6) then
 		mp.osd_message('Seeking Still Running')
