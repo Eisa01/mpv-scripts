@@ -15,7 +15,7 @@ This repository contain scripts I have made for [mpv media player](https://githu
 SmartCopyPaste is a script for mpv media player, the script adds a very smart copy paste experience to mpv. It gives mpv the ability to load videos simply by pasting them into mpv. As for copying,  pressing [ctrl]+[c] on a video, copies the video path and its time to clipboard, which enables paste to resume or to access video with the copied time by pasting. For installation, download *`SmartCopyPaste.lua`* file into your `mpv/scripts/` directory. 
 ### SmartCopyPaste Features and Usage Guide
  - **Features**
- 	- **Copy and Paste**: Adds ability to copy and paste any type of video to mpv, like (urls, video pathes, or local videos)
+ 	- **Copy and Paste**: Adds ability to copy and paste any type of video to mpv, like (urls, video paths, or local videos)
 	- **youtube-dl Extension Support** Immediately paste links without finding exact video address for youtube and any other youtube-dl extension supported sites.
 	- **OSD** (On Screen Display): Displays any SmartCopyPaste action within mpv.
 - **While running a video**
