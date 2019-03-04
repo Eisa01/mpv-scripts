@@ -16,8 +16,8 @@ SmartCopyPaste is a script for mpv media player, the script adds a very smart co
 ### SmartCopyPaste Features and Usage Guide
  - **Features**
  	- **Copy and Paste**: Adds ability to copy and paste any type of video to mpv, like (urls, video pathes, or local videos)
-	- **OSD** (On Screen Display): Displays any SmartCopyPaste action within mpv.
 	- **youtube-dl Extension Support** Immediately paste links without finding exact video address for youtube and any other youtube-dl extension supported sites.
+	- **OSD** (On Screen Display): Displays any SmartCopyPaste action within mpv.
 - **While running a video**
 	- **[ctrl]**+**[c]** to copy video path with resume time
 	- **[ctrl]**+**[v]** does the following:
@@ -40,8 +40,8 @@ Basically,  the **II**  version is enhanced with a bookmark feature, copying a v
 	- **Copy and Paste**: Adds ability to copy and paste any type of video to mpv, like (urls, video pathes, or local videos)
 	- **Bookmark**: Any copy in a video is also a bookmark point, to access the bookmark simply paste.
 	- **Save Clipboard to a Log File:** The copies from mpv, and the pastes into mpv will be kept in a log file located in `%APPDATA%\mpv\mpvClipboard.log`. This is necessary for the bookmark feature.
-	- **OSD**: Displays any SmartCopyPaste action within mpv.
 	- **youtube-dl Extension Support** Immediately paste links without finding exact video address for youtube and any other youtube-dl extension supported sites.
+	- **OSD**: Displays any SmartCopyPaste action within mpv.
 - **While running a video**
 	- **[ctrl]**+**[c]** to copy video path with resume time and bookmark it
 	- **[ctrl]**+**[v]** does the following:
