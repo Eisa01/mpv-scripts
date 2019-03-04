@@ -19,15 +19,15 @@ SmartCopyPaste is a script for mpv media player, the script adds a very smart co
 	- **youtube-dl Extension Support** Immediately paste links without finding exact video address for youtube and any other youtube-dl extension supported sites.
 	- **OSD** (On Screen Display): Displays any SmartCopyPaste action within mpv.
 - **While running a video**
-	- **[ctrl]**+**[c]** to copy video path with resume time
-	- **[ctrl]**+**[v]** does the following:
+	- <kbd>ctrl</kbd>+<kbd>c</kbd> to copy video path with resume time
+	- <kbd>ctrl</kbd>+<kbd>v</kbd> does the following:
 		 - To jump to the copied time
 		 - Or when different video is copied, [ctrl]+[v] will add it into playlist
 	- **Extra Feature:** Less important features:
-	 	- **[ctrl]**+**[C]** to copy video path without resume time
-	 	- **[ctrl]**+**[V]** to add video into playlist to play it next
+	 	- <kbd>ctrl</kbd>+<kbd>C</kbd> to copy video path without resume time
+	 	- <kbd>ctrl</kbd>+<kbd>V</kbd> to add video into playlist to play it next
  - **While `NOT` running a video**
-	 - **[ctrl]**+**[v]** to play the copied video with resume time _if available_
+	 - <kbd>ctrl</kbd>+<kbd>v</kbd> to play the copied video with resume time _if available_
 ### SmartCopyPaste Compatibility
  - Currently for Windows OS only.
 # SmartCopyPaste-II Script
@@ -43,17 +43,18 @@ Basically,  the **II**  version is enhanced with a bookmark feature, copying a v
 	- **youtube-dl Extension Support** Immediately paste links without finding exact video address for youtube and any other youtube-dl extension supported sites.
 	- **OSD**: Displays any SmartCopyPaste action within mpv.
 - **While running a video**
-	- **[ctrl]**+**[c]** to copy video path with resume time and bookmark it
-	- **[ctrl]**+**[v]** does the following:
+	- <kbd>ctrl</kbd>+<kbd>c</kbd> to copy video path with resume time and bookmark it
+	- <kbd>ctrl</kbd>+<kbd>v</kbd> does the following:
 		 - To jump to the copied time
 		 - Or to jump to the bookmarked position in the bookmarked video (resume)
 	- **Extra Feature:** Less important features:
-		- **[ctrl]**+**[C]** to copy video path without resume time and bookmark
-		- **[ctrl]**+**[V]** to add video into playlist to play it next
+		- <kbd>ctrl</kbd>+<kbd>C</kbd> to copy video path without resume time and bookmark
+		- <kbd>ctrl</kbd>+<kbd>V</kbd> to add video into playlist to play it next
  - **While `NOT` running a video**
-	 - **[ctrl]**+**[v]** to play the copied video with resume time _if available_
-	 - **[ctrl]**+**[v]** when no video is currently copied, [ctrl]+[v] will find and play your last copied or pasted video
-	 - **[ctrl]**+**[c]** to access your videos clipboard history
+	 - <kbd>ctrl</kbd>+<kbd>v</kbd> does the following:
+	 	- To play the copied video with resume time _if available_
+	 	- Or when no video is currently copied, [ctrl]+[v] will find and play your last copied or pasted video
+	 - <kbd>ctrl</kbd>+<kbd>c</kbd> to access your videos clipboard history
 ### SmartCopyPaste-II Compatibility
  - Currently for Windows OS only.
 # SmartHistory Script
@@ -65,12 +66,12 @@ SmartHistory is a script for mpv media player, the script adds a smart history f
 	-  **Logs Opened Videos to a Log File:** All videos opened in mpv will be logged to create a history in `%APPDATA%\mpv\mpvHistory.log`. The format is: [date and time] of accessing video, the path & reached video time. This is necessary for Remember Last Video and Auto Bookmark.
 	- **OSD**: Displays any SmartHistory action within mpv.
 - **While running a video**
-	- **[ctrl]**+**[l]** to immediately load last closed video 
-	- **[ctrl]**+**[r]** to open history log for list of played videos
+	- <kbd>ctrl</kbd>+<kbd>l</kbd> to immediately load last closed video 
+	- <kbd>ctrl</kbd>+<kbd>r</kbd> to open history log for list of played videos
 		- Use this along with smartcopypaste script to copy and paste video from history log into mpv
  - **While `NOT` running a video**
-	- **[ctrl]**+**[r]** to resume in any previously closed videos
-	- **[ctrl]**+**[l]** to add previously closed video into playlist  
+	- <kbd>ctrl</kbd>+<kbd>r</kbd> to resume in any previously closed videos
+	- <kbd>ctrl</kbd>+<kbd>l</kbd> to add previously closed video into playlist  
 		- Useful for cases when you opened another video by accident and you want to get back to the last video
 ### SmartHistory Compatibility
  - Currently for Windows OS only.
@@ -81,7 +82,7 @@ SimpleUndo is a script for mpv media player, the script adds a simple undo funct
 	- **Simple Undo**: Undo accidental time jumps in videos by pressing [ctrl]+[z] and press undo again to return to jumped position.
 	- **OSD**: Displays any SimpleUndo action within mpv.
 - **While running a video**
-	- **[ctrl]**+**[z]** to undo accidental seek by returning to previous time and vise-versa.
+	- <kbd>ctrl</kbd>+<kbd>z</kbd> to undo accidental seek by returning to previous time and vise-versa.
 ### SimpleUndo Compatibility
  - Should work on all of mpv supported platforms.
 # UndoRedo Script
@@ -92,11 +93,11 @@ UndoRedo is a script for mpv media player, the script adds undo, and redo functi
 	- **Simple Undo**: Undo accidental time jumps in videos by pressing [ctrl]+[shift]+[z] and press undo again to return to jumped position.
 	- **OSD**: Displays any SimpleUndo action within mpv.
 - **While running a video**
-	- **[ctrl]**+**[z]** to undo by returning to previous times. 
+	- <kbd>ctrl</kbd>+<kbd>z</kbd> to undo by returning to previous times. 
 		- Example: from second 30 jumped to minute 5, then 10, then 15. Undo will return to 10, undo again to return to 5, undo again to return to second 30.
-	- **[ctrl]**+**[y]** to redo by restoring undo times. 
+	- <kbd>ctrl</kbd>+<kbd>y</kbd> to redo by restoring undo times. 
 		- Example: from second 30 jumped to minute 5, then 10. Undo twice for second 30. Redo will restore to 5, redo again to restore to 10.
-	- **[ctrl]**+**[shift]**+**[z]** loop between last undo and redo.
+	- <kbd>ctrl</kbd>+<kbd>shift</kbd>+<kbd>z</kbd> loop between last undo and redo.
 		- This is for quick undo & redo (Just like **SimpleUndo**) it loops between the last undo & redo.
 ### UndoRedo Compatibility
  - Should work on all of mpv supported platforms.
