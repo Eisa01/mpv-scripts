@@ -1,4 +1,4 @@
-# Changelog
+# Scripts Changelog
 Changelog for all of the this repository scripts.
 ### SmartCopyPaste Changelog
 - Latest Changes **(1.5)**
