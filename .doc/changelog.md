@@ -1,5 +1,5 @@
 # Scripts Changelog
-**The changelog are for the following scripts:**
+**The changelog is for the following scripts:**
 - [**SmartCopyPaste Changelog**](https://github.com/Eisa01/mpv-scripts/blob/master/.doc/changelog.md#smartcopypaste-changelog)
 - [**SmartCopyPaste-II Changelog**](https://github.com/Eisa01/mpv-scripts/blob/master/.doc/changelog.md#smartcopypaste-ii-changelog)
 - [**SmartHistory Changelog**](https://github.com/Eisa01/mpv-scripts/blob/master/.doc/changelog.md#smarthistory-changelog)
