@@ -90,7 +90,7 @@ UndoRedo is a script for mpv media player, the script adds undo, and redo functi
 	- **[ctrl]**+**[y]** to redo by restoring undo times. 
 		- Example: from second 30 jumped to minute 5, then 10. Undo twice for second 30. Redo will restore to 5, redo again to restore to 10.
 	- **[ctrl]**+**[shift]**+**[z]** loop between last undo and redo.
-		- for quick undo & redo (Just like **SimpleUndo** script) it loops between the last undo & redo.
+		- This is for quick undo & redo (Just like **SimpleUndo**) it loops between the last undo & redo.
 ### UndoRedo Compatibility
  - Should work on all of mpv supported platforms.
 # Misc
