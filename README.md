@@ -78,7 +78,7 @@ SmartHistory is a script for mpv media player, the script adds a smart history f
 SimpleUndo is a script for mpv media player, the script adds a simple undo functionality into mpv. If you accidentally seek/jump to a different time in the video, press undo [ctrl]+[z] to return to your previous time and vice-versa. For installation, download *`SimpleUndo.lua`* file into your `mpv/scripts/` directory. 
 ### SimpleUndo Features and Usage Guide
 - **Features**
-	- **Simple Undo**:: Undo accidental time jumps in videos by pressing [ctrl]+[z] and press undo again to return to jumped position.
+	- **Simple Undo**: Undo accidental time jumps in videos by pressing [ctrl]+[z] and press undo again to return to jumped position.
 	- **OSD**: Displays any SimpleUndo action within mpv.
 - **While running a video**
 	- **[ctrl]**+**[z]** to undo accidental seek by returning to previous time and vise-versa.
@@ -88,8 +88,8 @@ SimpleUndo is a script for mpv media player, the script adds a simple undo funct
 UndoRedo is a script for mpv media player, the script adds undo, and redo functionality into mpv. If you seek/jump to a different time in the video, press undo [ctrl]+[z] to linearly undo the seeks/jumps in the video, and press redo [ctrl]+[y] to linearly return to previous undo positions. For installation, download *`UndoRedo.lua`* file into your `mpv/scripts/` directory. 
 ### UndoRedo Features and Usage Guide
 - **Features**
-	- **Undo and Redo**:: Undo any accident time jumps in the video by pressing [ctrl]+[z] and redo the jumps by [ctrl]+[y].
-	- **Simple Undo**:: Undo accidental time jumps in videos by pressing [ctrl]+[shift]+[z] and press undo again to return to jumped position.
+	- **Undo and Redo**: Undo any accident time jumps in the video by pressing [ctrl]+[z] and redo the jumps by [ctrl]+[y].
+	- **Simple Undo**: Undo accidental time jumps in videos by pressing [ctrl]+[shift]+[z] and press undo again to return to jumped position.
 	- **OSD**: Displays any SimpleUndo action within mpv.
 - **While running a video**
 	- **[ctrl]**+**[z]** to undo by returning to previous times. 
