@@ -18,13 +18,13 @@ SmartCopyPaste is a script for mpv media player, the script adds a very smart co
 	- **OSD** (On Screen Display): Displays any SmartCopyPaste action within mpv.
 	- **youtube-dl Extension Support** Immediately paste links without finding exact video address for youtube and any other youtube-dl extension supported sites.
 - **While running a video**
-	 - **[ctrl]**+**[c]** to copy video path with resume time
-	 - **[ctrl]**+**[v]** does the following:
+	- **[ctrl]**+**[c]** to copy video path with resume time
+	- **[ctrl]**+**[v]** does the following:
 		 - To jump to the copied time (resume)
 		 - Or when different video is copied, [ctrl]+[v] will add it into playlist
 	- **Extra Feature:** Less important features:
-	 - **[ctrl]**+**[C]** to copy video path without resyne time
-	 - **[ctrl]**+**[V]** to add video into playlist to play it next
+	 	- **[ctrl]**+**[C]** to copy video path without resyne time
+	 	- **[ctrl]**+**[V]** to add video into playlist to play it next
  - **While `NOT` running a video**
 	 - **[ctrl]**+**[v]** to play the copied video with reached time _if available_
 ### SmartCopyPaste Compatibility
@@ -41,8 +41,8 @@ Basically,  the **II**  version is enhanced with a bookmark feature, copying a v
 	- **OSD**: Displays any SmartCopyPaste action within mpv.
 	- **youtube-dl Extension Support** Immediately paste links without finding exact video address for youtube and any other youtube-dl extension supported sites.
 - **While running a video**
-	 - **[ctrl]**+**[c]** to copy video path with resume time and bookmark it
-	 - **[ctrl]**+**[v]** does the following:
+	- **[ctrl]**+**[c]** to copy video path with resume time and bookmark it
+	- **[ctrl]**+**[v]** does the following:
 		 - To jump to the copied time
 		 - Or to jump to the bookmarked position in the bookmarked video (resume)
 	- **Extra Feature:** Less important features:
