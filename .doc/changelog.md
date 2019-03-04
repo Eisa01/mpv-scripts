@@ -1,23 +1,31 @@
 # Scripts Changelog
 Changelog for all of the this repository scripts.
+
+**The changelog are for the following:**
+- [**SmartCopyPaste Changelog**](https://github.com/Eisa01/mpv-scripts/blob/master/.doc/changelog.md#smartcopypaste-changelog)
+- [**SmartCopyPaste-II Changelog**](https://github.com/Eisa01/mpv-scripts/blob/master/.doc/changelog.md#smartcopypaste-ii-changelog)
+- [**SmartHistory Changelog**](https://github.com/Eisa01/mpv-scripts/blob/master/.doc/changelog.md#smarthistory-changelog)
+- [**SimpleUndo Changelog**](https://github.com/Eisa01/mpv-scripts/blob/master/.doc/changelog.md#simpleundo-changelog)
+- [**UndoRedo Changelog**](https://github.com/Eisa01/mpv-scripts/blob/master/.doc/changelog.md#undoredo-changelog)
+
 ## SmartCopyPaste Changelog
 - Latest Changes **(1.5)**
 	- Fixed automatic resume of copied time issue
-- **1.4**
+- **(1.4)**
 	- No Changes, only a version bump to match with pro
-- **1.3**
+- **(1.3)**
 	- Added Auto Add Video to Playlist when pasting a different video by  **[ctrl]**+**[v]**
 	- Added Add to Playlist by **[ctrl]**+**[V]**
 	- Added OSD within mpv for all SmartCopyPaste actions
 	- Some other fixes and optimizations
-- **1.2**
+- **(1.2)**
 	- Added support for youtube-dl extension (by removing checking links if they contain video file format) so pasting youtube links should work immediately if you have youtube-dl extension. Works for all other websites that youtube-dl extension supports.
 	- Fixed issue that caused SmartCopyPaste to stop working if you copied in mpv while mpv was idle
 	- Some other fixes and optimizations
-- **1.1**
+- **(1.1)**
 	- Fixed a bug that caused any thing pasted to be added automatically to playlist
 	- Some other fixes and optimizations
-- **1.0**
+- **(1.0)**
 	- Initial release
 ## SmartCopyPaste-II Changelog
 - Latest Changes **(1.5)**
