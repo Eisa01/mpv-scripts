@@ -1,6 +1,6 @@
 # Scripts Changelog
 Changelog for all of the this repository scripts.
-### SmartCopyPaste Changelog
+## SmartCopyPaste Changelog
 - Latest Changes **(1.5)**
 	- Fixed automatic resume of copied time issue
 - **1.4**
@@ -19,7 +19,7 @@ Changelog for all of the this repository scripts.
 	- Some other fixes and optimizations
 - **1.0**
 	- Initial release
-### SmartCopyPaste-II Changelog
+## SmartCopyPaste-II Changelog
 - Latest Changes **(1.5)**
 	- Fixed automatic resume of copied time issue
 	- Some other fixes and optimizations
@@ -39,7 +39,7 @@ Changelog for all of the this repository scripts.
 	- Same fixes and optimizations as the basic version
 - **(1.0)**
 	- Initial release of an all new SmartCopyPaste-II containing bookmark features for seamless paste experience!
-### SmartHistory Changelog
+## SmartHistory Changelog
  - Latest Changes **(1.2)**
  	- One small bug squashed
  - **(1.1)**
@@ -49,7 +49,7 @@ Changelog for all of the this repository scripts.
  - **(1.0)**
 	- Initial release of SmartHistory Script
 	- Contains simple history log file with many smart features mentioned above.
-### SimpleUndo Changelog
+## SimpleUndo Changelog
  - Latest Changes **(2.4)** [3/4/2019]
  	- Fixed possible crash when undoing results in video time less than 0 seconds.
  	- Tons of bug fixes to fix undo and redo while video pausing.
@@ -67,7 +67,7 @@ Changelog for all of the this repository scripts.
 	- Lighter smaller code, no more variable tables since one value is enough for [ctrl]+[z] action.
  - **(1.0)** [2/23/2019] 
 	- Initial release of SimpleUndo Script
-### UndoRedo Changelog
+## UndoRedo Changelog
  - Latest Changes **(1.4)** [3/4/2019]
  	- Fixed possible crash when undoing results in video time less than 0 seconds.
  - **(1.3)** [3/4/2019]
