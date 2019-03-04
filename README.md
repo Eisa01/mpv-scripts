@@ -91,7 +91,7 @@ UndoRedo is a script for mpv media player, the script adds undo, and redo functi
 	- **Undo and Redo**:: Undo any accident time jumps in the video by pressing [ctrl]+[z] and redo the jumps by [ctrl]+[y].
 	- **Simple Undo**:: Undo accidental time jumps in videos by pressing [ctrl]+[shift]+[z] and press undo again to return to jumped position.
 	- **OSD**: Displays any SimpleUndo action within mpv.
-- **While mpv is active (running a video)**
+- **While running a video**
 	- **[ctrl]**+**[z]** to undo by returning to previous times. 
 		- Example: from second 30 jumped to minute 5, then 10, then 15. Undo will return to 10, undo again to return to 5, undo again to return to second 30.
 	- **[ctrl]**+**[y]** to redo by restoring undo times. 
