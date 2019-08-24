@@ -53,8 +53,8 @@ Basically,  the **II**  version is enhanced with a bookmark feature, copying a v
 	
 **While `NOT` running a video:**
 - *<kbd>ctrl</kbd>+<kbd>v</kbd> does the following:*
-	 	- To play the copied video with resume time _if available_
-	 	- Or when no video is currently copied, <kbd>ctrl</kbd>+<kbd>v</kbd> will find and play your last copied or pasted video
+	- To play the copied video with resume time _if available_
+	- Or when no video is currently copied, <kbd>ctrl</kbd>+<kbd>v</kbd> will find and play your last copied or pasted video
 - <kbd>ctrl</kbd>+<kbd>c</kbd> to access your videos clipboard history
 ### SmartCopyPaste-II Compatibility
 - Currently for Windows OS only.
