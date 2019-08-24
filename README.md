@@ -37,7 +37,7 @@ The **II** version contain additional features which saves your clipboard into a
 
 Basically,  the **II**  version is enhanced with a bookmark feature, copying a video will bookmark the video and time, while pasting will access the bookmark (even if clipboard is cleared). For installation, download *`SmartCopyPaste-II.lua`* file into your `mpv/scripts/` directory. 
 ### SmartCopyPaste-II Main Features
-- **Copy and Paste**: Adds ability to copy and paste any type of video to mpv, like (urls, video pathes, or local videos)
+- **Copy and Paste**: Adds ability to copy and paste any type of video to mpv, like (urls, video paths, or local videos)
 - **Bookmark**: Any copy in a video is also a bookmark point, to access the bookmark simply paste.
 - **Save Clipboard to a Log File:** The copies from mpv, and the pastes into mpv will be kept in a log file located in `%APPDATA%\mpv\mpvClipboard.log`. This is necessary for the bookmark feature.
 - **youtube-dl Extension Support** Immediately paste links without finding exact video address for youtube and any other youtube-dl extension supported sites.
