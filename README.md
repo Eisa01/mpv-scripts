@@ -105,6 +105,9 @@ UndoRedo is a script for mpv media player, the script adds undo, and redo functi
 ### To-Do List
 - Support more platforms for scripts that are currently Windows OS only
 - I am open to suggestions! Have an idea... let me know.. ;)
+- SmartCopyPaste (Make it find out the time in link e.g.: for youtube links 13s)
+- SmartCopyPaste (Add OSD for clipboard contents when loading log file)
+- SmartCopyPaste (Make copy and pasting do not matter when caps or small)
 ### Changelog
 - [Here](https://github.com/Eisa01/mpv-scripts/blob/master/.doc/changelog.md) you can find the full changelog for all the scripts in this repository.
 ### Special Thanks
