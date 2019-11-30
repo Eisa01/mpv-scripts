@@ -1,5 +1,36 @@
+local platform = nil
+
+if not platform then
+  local o = {}
+  if mp.get_property_native('options/vo-mmcss-profile', o) ~= o then
+    platform = 'windows'
+  elseif mp.get_property_native('options/input-app-events', o) ~= o then
+    platform = 'macos'
+  else
+    platform = 'linux'
+  end
+end
+
 local utils = require 'mp.utils'
 local msg = require 'mp.msg'
+
+function handleres(res, args, primary)
+  if not res.error and res.status == 0 then
+      return res.stdout
+  else
+    if platform=='linux' and not primary then
+      append(true)
+      return nil
+    end
+    msg.error("There was an error getting "..platform.." clipboard: ")
+    msg.error("  Status: "..(res.status or ""))
+    msg.error("  Error: "..(res.error or ""))
+    msg.error("  stdout: "..(res.stdout or ""))
+    msg.error("args: "..utils.to_string(args))
+    return nil
+  end
+end
+
 local extensions = {
     'mkv', 'avi', 'mp4', 'ogv', 'webm', 'rmvb', 'flv', 'wmv', 'mpeg', 'mpg', 'm4v', '3gp',
     'mp3', 'wav', 'ogm', 'flac', 'm4a', 'wma', 'ogg', 'opus',
@@ -34,9 +65,13 @@ local function has_extension (tab, val)
     return false
 end
 
-local function get_clipboard()
-    local res = utils.subprocess({ args = {
-        'powershell', '-NoProfile', '-Command', [[& {
+local function get_clipboard(primary) 
+  if platform == 'linux' then
+    local args = { 'xclip', '-selection', primary and 'primary' or 'clipboard', '-out' }
+    return handleres(utils.subprocess({ args = args, cancellable = false }), args, primary)
+  elseif platform == 'windows' then
+    local args = {
+      'powershell', '-NoProfile', '-Command', [[& {
             Trap {
                 Write-Error -ErrorRecord $_
                 Exit 1
@@ -51,11 +86,13 @@ local function get_clipboard()
             $u8clip = [System.Text.Encoding]::UTF8.GetBytes($clip)
             [Console]::OpenStandardOutput().Write($u8clip, 0, $u8clip.Length)
         }]]
-    } })
-    if not res.error then
-        return res.stdout
-    end
-    return ''
+    }
+    return handleres(utils.subprocess({ args =  args, cancellable = false }), args)
+  elseif platform == 'macos' then
+    local args = { 'pbpaste' }
+    return handleres(utils.subprocess({ args = args, cancellable = false }), args)
+  end
+  return nil
 end
 
 local function set_clipboard(text)
