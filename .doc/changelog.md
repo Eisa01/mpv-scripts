@@ -7,7 +7,7 @@
 - [**UndoRedo Changelog**](https://github.com/Eisa01/mpv-scripts/blob/master/.doc/changelog.md#undoredo-changelog)
 
 ## SmartCopyPaste Changelog
-- Latest Changes **(1.6)**
+- Latest Changes **(1.6)** [11/30/2019]
 	- Urgent fix to support mpv 0.30 and initial support for Mac OS and Linux?
 - **(1.5)**
 	- Fixed automatic resume of copied time issue
@@ -28,7 +28,7 @@
 - **(1.0)**
 	- Initial release
 ## SmartCopyPaste-II Changelog
-- Latest Changes **(1.6)**
+- Latest Changes **(1.6)** [11/30/2019]
 	- Urgent fix to support mpv 0.30 and initial support for Mac OS and Linux?
 - **(1.5)**
 	- Fixed automatic resume of copied time issue
