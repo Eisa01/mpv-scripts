@@ -38,12 +38,12 @@ mp.register_event('end-file', function()
 		seconds = seconds
 	end
 	
-	historyLogAdd:write(('[%s] %s\n'):format(os.date('%d/%b/%y %X'), filePath..'&t='..tostring(seconds)))
+	historyLogAdd:write(('[%s] %s\n'):format(os.date('%d/%b/%y %X'), filePath..' |time='..tostring(seconds)))
 	timer:kill()
 	historyLogAdd:close()
 end)
 
-mp.add_key_binding("ctrl+r", "resume", function()
+local function resume()
 	local historyLog = os.getenv('APPDATA')..'/mpv/mpvHistory.log'
 	local historyLogOpen = io.open(historyLog, 'r')
 	local historyLogAdd = io.open(historyLog, 'a+')
@@ -59,27 +59,26 @@ mp.add_key_binding("ctrl+r", "resume", function()
 		   linePosition = line:find(']')
 		   line = line:sub(linePosition + 2)
 		   
-			if line.match(line, '(.*)&t=') == filePath then
+			if line.match(line, '(.*) |time=') == filePath then
 				videoFound = line
 			end
-				
+		   
 		end
 		
 	if (videoFound ~= nil) then
-		currentVideo = string.match(videoFound, '(.*)&t=')	
-		currentVideoTime = string.match(videoFound, '&t=(.*)')
+		currentVideo = string.match(videoFound, '(.*) |time=')
+		currentVideoTime = string.match(videoFound, ' |time=(.*)')
 
 		if (filePath == currentVideo) and (currentVideoTime ~= nil) then
 			mp.commandv('seek', currentVideoTime, 'absolute', 'exact')
 			mp.osd_message('Resumed To Last Position')
 		end
 	else
-		mp.osd_message('No Resume Position in This Video')
+		mp.osd_message('No Resume Position')
 	end
 	else
 		historyLogAdd:close()
 		historyLogOpen:close()
-
 		local res = utils.subprocess({ args = {
         'powershell', '-NoProfile', '-Command', [[& {
 		Trap {
@@ -96,13 +95,13 @@ mp.add_key_binding("ctrl+r", "resume", function()
 	end
 	historyLogAdd:close()
 	historyLogOpen:close()
-end)
+end
 
-mp.add_key_binding("ctrl+l", "lastplay", function()
+local function lastPlay()--1.3
 	local historyLog = os.getenv('APPDATA')..'/mpv/mpvHistory.log'
 	local historyLogAdd = io.open(historyLog, 'a+')
 	local historyLogOpen = io.open(historyLog, 'r+')
-	local linePosition
+    local linePosition
 	local videoFile
 
 	for line in historyLogOpen:lines() do
@@ -115,20 +114,27 @@ mp.add_key_binding("ctrl+l", "lastplay", function()
 		linePosition = lastVideoFound:find(']')
 		lastVideoFound = lastVideoFound:sub(linePosition + 2)
 		
-		if string.match(lastVideoFound, '(.*)&t=') then
-			videoFile = string.match(lastVideoFound, '(.*)&t=')
+		if string.match(lastVideoFound, '(.*) |time=') then
+			videoFile = string.match(lastVideoFound, '(.*) |time=')
 		else
 			videoFile = lastVideoFound
 		end
 		
 		if (filePath ~= nil) then
 			mp.commandv('loadfile', videoFile, 'append-play')
-			mp.osd_message('Added Last Video Into Playlist:\n'..videoFile)
+			mp.osd_message('Added Last Item Into Playlist:\n'..videoFile)
 		else
 			mp.commandv('loadfile', videoFile)
-			mp.osd_message('Opened Last Video From History:\n'..videoFile)
+			mp.osd_message('Loaded Last Item:\n'..videoFile)
 		end
 	else
-		mp.osd_message('No Video Found in History')
+		mp.osd_message('History is Empty')
 	end
-end)
+end
+
+
+mp.add_key_binding("ctrl+r", "resume", resume)
+mp.add_key_binding("ctrl+R", "resumeCaps", resume)
+
+mp.add_key_binding("ctrl+l", "lastPlay", lastPlay)
+mp.add_key_binding("ctrl+L", "lastPlayCaps", lastPlay)
