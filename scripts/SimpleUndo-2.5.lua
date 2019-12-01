@@ -63,9 +63,10 @@ mp.register_event('end-file', function()
 	previousUndoTime = 0
 	undoTime = 0
 	seconds = 0
+	countTimer = 0
 end)
 
-mp.add_key_binding("ctrl+z", "undo", function()
+local function undo()
 	if (filePath ~= nil) and (countTimer > 0.5) then
 	
 		if (previousUndoTime < 0) then
@@ -74,10 +75,14 @@ mp.add_key_binding("ctrl+z", "undo", function()
 		
 		mp.commandv('seek', previousUndoTime, 'absolute', 'exact')
 		
-		mp.osd_message('Undo Last Seek')
+		mp.osd_message('Undo')
 	elseif (filePath ~= nil) and (countTimer > 0) and (countTimer < 0.6) then
 		mp.osd_message('Seeking Still Running')
 	elseif (filePath ~= nil) and (countTimer == 0) then
 		mp.osd_message('No Undo Found')
 	end
-end)
+end
+
+
+mp.add_key_binding("ctrl+z", "undo", undo)
+mp.add_key_binding("ctrl+Z", "undoCaps", undo)
