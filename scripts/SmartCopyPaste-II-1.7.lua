@@ -1,4 +1,4 @@
-local platform = nil
+local platform = nil --set to 'linux', 'windows' or 'macos' to override automatic assign
 
 if not platform then
   local o = {}
@@ -32,9 +32,12 @@ function handleres(res, args, primary)
 end
 
 local extensions = {
-    'mkv', 'avi', 'mp4', 'ogv', 'webm', 'rmvb', 'flv', 'wmv', 'mpeg', 'mpg', 'm4v', '3gp',
-    'mp3', 'wav', 'ogm', 'flac', 'm4a', 'wma', 'ogg', 'opus',
+	--video & audio
+    'ac3', 'a52', 'eac3', 'mlp', 'dts', 'dts-hd', 'dtshd', 'true-hd', 'thd', 'truehd', 'thd+ac3', 'tta', 'pcm', 'wav', 'aiff', 'aif',  'aifc', 'amr', 'awb', 'au', 'snd', 'lpcm', 'yuv', 'y4m', 'ape', 'wv', 'shn', 'm2ts', 'm2t', 'mts', 'mtv', 'ts', 'tsv', 'tsa', 'tts', 'trp', 'adts', 'adt', 'mpa', 'm1a', 'm2a', 'mp1', 'mp2', 'mp3', 'mpeg', 'mpg', 'mpe', 'mpeg2', 'm1v', 'm2v', 'mp2v', 'mpv', 'mpv2', 'mod', 'tod', 'vob', 'vro', 'evob', 'evo', 'mpeg4', 'm4v', 'mp4', 'mp4v', 'mpg4', 'm4a', 'aac', 'h264', 'avc', 'x264', '264', 'hevc', 'h265', 'x265', '265', 'flac', 'oga', 'ogg', 'opus', 'spx', 'ogv', 'ogm', 'ogx', 'mkv', 'mk3d', 'mka', 'webm', 'weba', 'avi', 'vfw', 'divx', '3iv', 'xvid', 'nut', 'flic', 'fli', 'flc', 'nsv', 'gxf', 'mxf', 'wma', 'wm', 'wmv', 'asf', 'dvr-ms', 'dvr', 'wtv', 'dv', 'hdv', 'flv','f4v', 'f4a', 'qt', 'mov', 'hdmov', 'rm', 'rmvb', 'ra', 'ram', '3ga', '3ga2', '3gpp', '3gp', '3gp2', '3g2', 'ay', 'gbs', 'gym', 'hes', 'kss', 'nsf', 'nsfe', 'sap', 'spc', 'vgm', 'vgz', 'm3u', 'm3u8', 'pls', 'cue',
+	--images
+	"ase", "art", "bmp", "blp", "cd5", "cit", "cpt", "cr2", "cut", "dds", "dib", "djvu", "egt", "exif", "gif", "gpl", "grf", "icns", "ico", "iff", "jng", "jpeg", "jpg", "jfif", "jp2", "jps", "lbm", "max", "miff", "mng", "msp", "nitf", "ota", "pbm", "pc1", "pc2", "pc3", "pcf", "pcx", "pdn", "pgm", "PI1", "PI2", "PI3", "pict", "pct", "pnm", "pns", "ppm", "psb", "psd", "pdd", "psp", "px", "pxm", "pxr", "qfx", "raw", "rle", "sct", "sgi", "rgb", "int", "bw", "tga", "tiff", "tif", "vtf", "xbm", "xcf", "xpm", "3dv", "amf", "ai", "awg", "cgm", "cdr", "cmx", "dxf", "e2d", "egt", "eps", "fs", "gbr", "odg", "svg", "stl", "vrml", "x3d", "sxd", "v2d", "vnd", "wmf", "emf", "art", "xar", "png", "webp", "jxr", "hdp", "wdp", "cur", "ecw", "iff", "lbm", "liff", "nrrd", "pam", "pcx", "pgf", "sgi", "rgb", "rgba", "bw", "int", "inta", "sid", "ras", "sun", "tga"
 }
+
 local pasted = false
 
 local function get_extension(path)
@@ -64,6 +67,7 @@ local function has_extension (tab, val)
 
     return false
 end
+
 
 local function get_clipboard(primary) 
   if platform == 'linux' then
@@ -109,21 +113,19 @@ local function set_clipboard(text)
     } })
 end
 
-mp.register_event('end-file', function()
-	pasted = false
-end)
 
-mp.add_key_binding('ctrl+c', 'copy', function()
+local function copy()
     local filePath = mp.get_property_native('path')
+	
 	if (filePath ~= nil) then
 		local time = math.floor(mp.get_property_number('time-pos'))	
-		set_clipboard(filePath..'&t='..tostring(time))
-		mp.osd_message('Copied+Bookmarked: Video&Time:\n'..filePath..'&t='..tostring(time))
+		set_clipboard(filePath..' |time='..tostring(time))
+		mp.osd_message('Copied & Bookmarked:\n'..filePath..' |time='..tostring(time))
 		
 		local copyLog = os.getenv('APPDATA')..'/mpv/mpvClipboard.log';
 		local copyLogAdd = io.open(copyLog, 'a+')
 		
-		copyLogAdd:write(('[%s] %s\n'):format(os.date('%d/%b/%y %X'), filePath..'&t='..tostring(time)))
+		copyLogAdd:write(('[%s] %s\n'):format(os.date('%d/%b/%y %X'), filePath..' |time='..tostring(time)))
 		copyLogAdd:close()
 	else
 		local res = utils.subprocess({ args = {
@@ -141,14 +143,15 @@ mp.add_key_binding('ctrl+c', 'copy', function()
     end
     return false
 	end
-end)
+end
 
-mp.add_key_binding('ctrl+C', 'copy-path', function()
+
+local function copy_path()
 	local filePath = mp.get_property_native('path')
 
 	if (filePath ~= nil) then
 		set_clipboard(filePath)
-		mp.osd_message('Copied+Bookmarked Video Only:\n'..filePath)
+		mp.osd_message('Copied & Bookmarked Video Only:\n'..filePath)
 		
 		local copyLog = os.getenv('APPDATA')..'/mpv/mpvClipboard.log';
 		local copyLogAdd = io.open(copyLog, 'a+')
@@ -158,18 +161,17 @@ mp.add_key_binding('ctrl+C', 'copy-path', function()
 	else
 		return false
 	end
-end)
-
-mp.add_key_binding('ctrl+v', 'paste', function()
+end
 
 
+local function paste()
 	local clip = get_clipboard()
 	local filePath = mp.get_property_native('path')
 	local time
 
-	if string.match(clip, '(.*)&t=') then
-		videoFile = string.match(clip, '(.*)&t=')
-		time = string.match(clip, '&t=(.*)')
+	if string.match(clip, '(.*) |time=') then
+		videoFile = string.match(clip, '(.*) |time=')
+		time = string.match(clip, ' |time=(.*)')
 	elseif string.match(clip, '^\"(.*)\"$') then
 		videoFile = string.match(clip, '^\"(.*)\"$')
 	else
@@ -191,38 +193,38 @@ mp.add_key_binding('ctrl+v', 'paste', function()
 		linePosition = line:find(']')
 		line = line:sub(linePosition + 2)
 	   
-		if line.match(line, '(.*)&t=') == filePath then
+		if line.match(line, '(.*) |time=') == filePath then
 			videoFound = line
 		end
 	end
 
-	logVideo = string.match(videoFound, '(.*)&t=')
-	logVideoTime = string.match(videoFound, '&t=(.*)')
+	logVideo = string.match(videoFound, '(.*) |time=')
+	logVideoTime = string.match(videoFound, ' |time=(.*)')
 	
 	if (filePath == logVideo) and (logVideoTime ~= nil) then
 		mp.commandv('seek', logVideoTime, 'absolute', 'exact')
-		mp.osd_message('Resumed To:\nLast Copied Time of This Video')
+		mp.osd_message('Resumed to Copied Time')
 	end
 	
 	if (filePath ~= nil) and (logVideoTime == nil) then
-		mp.osd_message('No Copied Time in This Video')
+		mp.osd_message('No Copied Time Found')
 	end
 	
 	if (filePath == nil) and has_extension(extensions, currentVideoExtension) and (currentVideoExtensionPath~= '') then
 		mp.commandv('loadfile', videoFile)
-		mp.osd_message('Pasted Video:\n'..videoFile)
+		mp.osd_message('Pasted:\n'..videoFile)
 		
 		if (time ~= nil) then
-			copyLogAdd:write(('[%s] %s\n'):format(os.date('%d/%b/%y %X'), videoFile..'&t='..tostring(time)))
+			copyLogAdd:write(('[%s] %s\n'):format(os.date('%d/%b/%y %X'), videoFile..' |time='..tostring(time)))
 		else
 			copyLogAdd:write(('[%s] %s\n'):format(os.date('%d/%b/%y %X'), videoFile))
 		end
 	elseif (filePath == nil) and (videoFile:find('https?://') == 1) then
 		mp.commandv('loadfile', videoFile)
-		mp.osd_message('Pasted Video:\n'..videoFile)
+		mp.osd_message('Pasted URL:\n'..videoFile)
 		
 		if (time ~= nil) then
-			copyLogAdd:write(('[%s] %s\n'):format(os.date('%d/%b/%y %X'), videoFile..'&t='..tostring(time)))
+			copyLogAdd:write(('[%s] %s\n'):format(os.date('%d/%b/%y %X'), videoFile..' |time='..tostring(time)))
 		else
 			copyLogAdd:write(('[%s] %s\n'):format(os.date('%d/%b/%y %X'), videoFile))
 		end
@@ -237,36 +239,38 @@ mp.add_key_binding('ctrl+v', 'paste', function()
 			linePosition = lastVideoFound:find(']')
 			lastVideoFound = lastVideoFound:sub(linePosition + 2)
 			
-			if string.match(lastVideoFound, '(.*)&t=') then
-				videoFile = string.match(lastVideoFound, '(.*)&t=')
+			if string.match(lastVideoFound, '(.*) |time=') then
+				videoFile = string.match(lastVideoFound, '(.*) |time=')
 			else
 				videoFile = lastVideoFound
 			end
 			
 			mp.commandv('loadfile', videoFile)
-			mp.osd_message('Pasted Last Video In Clipboard Log:\n'..videoFile)
+			mp.osd_message('Pasted Last Logged Item:\n'..videoFile)
+		else 
+			mp.osd_message('Pasted Unsupported Item:\n'..clip)
 		end
 		copyLogLastOpen:close()
 	end
 	
 	if (filePath == videoFile) and (time ~= nil) then
 		mp.commandv('seek', time, 'absolute', 'exact')
-		mp.osd_message('Resumed to Copied Time of This Video')
+		mp.osd_message('Resumed to Copied Time')
 	end
 	
 	pasted = true
 	copyLogAdd:close()
 	copyLogOpen:close()
-end)
+end
 
-mp.add_key_binding('ctrl+V', 'paste-playlist', function()
+local function paste_playlist()
 	local clip = get_clipboard()
 	local filePath = mp.get_property_native('path')
 	local time
 	
-	if string.match(clip, '(.*)&t=') then
-		videoFile = string.match(clip, '(.*)&t=')
-		time = string.match(clip, '&t=(.*)')
+	if string.match(clip, '(.*) |time=') then
+		videoFile = string.match(clip, '(.*) |time=')
+		time = string.match(clip, ' |time=(.*)')
 	elseif string.match(clip, '^\"(.*)\"$') then
 		videoFile = string.match(clip, '^\"(.*)\"$')
 	else
@@ -284,24 +288,28 @@ mp.add_key_binding('ctrl+V', 'paste-playlist', function()
 		mp.osd_message('Pasted Into Playlist:\n'..videoFile)
 		
 		if (time ~= nil) then
-			copyLogAdd:write(('[%s] %s\n'):format(os.date('%d/%b/%y %X'), videoFile..'&t='..tostring(time)))
+			copyLogAdd:write(('[%s] %s\n'):format(os.date('%d/%b/%y %X'), videoFile..' |time='..tostring(time)))
 		else
 			copyLogAdd:write(('[%s] %s\n'):format(os.date('%d/%b/%y %X'), videoFile))
 		end
 	else
-		mp.osd_message('Failed To Add Into Playlist:\n\"No Copied Video Found\"\n\nClipboard Contains:\n'..clip)
+		mp.osd_message('Failed to Add Into Playlist\nPasted Unsupported Item:\n'..clip)
 	end
 	
 	pasted = true
 	copyLogAdd:close()
 	copyLogOpen:close()
+end
+
+mp.register_event('end-file', function()
+	pasted = false
 end)
 
 mp.register_event('file-loaded', function()
 	if (pasted == true) then
 		local clip = get_clipboard()
-		local time = string.match(clip, '&t=(.*)')
-		local videoFile = string.match(clip, '(.*)&t=')
+		local time = string.match(clip, ' |time=(.*)')
+		local videoFile = string.match(clip, '(.*) |time=')
 		local filePath = mp.get_property_native('path')
 
 		if (filePath == videoFile) and (time ~= nil) then
@@ -311,3 +319,14 @@ mp.register_event('file-loaded', function()
 		return false
 	end
 end)
+
+
+mp.add_key_binding('ctrl+c', 'copy', copy)
+mp.add_key_binding('ctrl+C', 'copyCaps', copy)
+mp.add_key_binding('ctrl+v', 'paste', paste)
+mp.add_key_binding('ctrl+V', 'pasteCaps', paste)
+
+mp.add_key_binding('ctrl+alt+c', 'copy-path', copy_path)
+mp.add_key_binding('ctrl+alt+C', 'copy-pathCaps', copy_path)
+mp.add_key_binding('ctrl+alt+v', 'paste-playlist', paste_playlist)
+mp.add_key_binding('ctrl+alt+V', 'paste-playlistCaps', paste_playlist)
