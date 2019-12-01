@@ -84,10 +84,11 @@ mp.register_event('end-file', function()
 	currentIndex = 0
 	undoRedo = 0
 	seconds = 0
+	countTimer = 0
 	table.insert(seekTable,0,0)
 end)
 
-mp.add_key_binding("ctrl+z", "undo", function()
+local function undo()
 	if (filePath ~= nil) and (currentIndex > 0) and (seeking == 0) then
 		
 		if (pause == true) then
@@ -110,17 +111,17 @@ mp.add_key_binding("ctrl+z", "undo", function()
 		seeking = 1
 		undoRedo = 1
 		
-		mp.osd_message('Undo Last Seek')
+		mp.osd_message('Undo')
 	elseif (filePath ~= nil) and (countTimer > 0) and (countTimer < 0.6) then 
 		mp.osd_message('Seeking Still Running')
 	elseif (filePath ~= nil) and (currentIndex == 0) then
 		mp.osd_message('No Undo Found')
 	end
-end)
+end
 
-mp.add_key_binding("ctrl+y", "redo", function()
+local function redo()
 	if (filePath ~= nil) and (currentIndex < seekNumber) and (seeking == 0) then
-		
+	
 		if (pause == true) then
 			seconds = seconds
 		else
@@ -141,15 +142,15 @@ mp.add_key_binding("ctrl+y", "redo", function()
 		seeking = 1
 		undoRedo = 0
 		
-		mp.osd_message('Redo Next Seek')
+		mp.osd_message('Redo')
 	elseif (filePath ~= nil) and (countTimer > 0) and (countTimer < 0.6) then
 		mp.osd_message('Seeking Still Running')
 	elseif (filePath ~= nil) and (currentIndex == seekNumber) then
 		mp.osd_message('No Redo Found')
 	end
-end)
+end
 
-mp.add_key_binding("ctrl+shift+z", "undoredo", function()
+local function undoRedo()
 	if (filePath ~= nil) and (countTimer > 0.5) and (undoRedo == 0) then
 		
 		if (pause == true) then
@@ -168,7 +169,7 @@ mp.add_key_binding("ctrl+shift+z", "undoredo", function()
 		end
 		
 		mp.commandv('seek', seekTable[currentIndex], 'absolute', 'exact')
-		mp.osd_message('Undo Last Seek')
+		mp.osd_message('Undo')
 		seeking = 1
 		undoRedo = 1
 	elseif (filePath ~= nil) and (countTimer > 0.5) and (undoRedo == 1) then
@@ -189,7 +190,7 @@ mp.add_key_binding("ctrl+shift+z", "undoredo", function()
 		end
 		
 		mp.commandv('seek', seekTable[currentIndex], 'absolute', 'exact')
-		mp.osd_message('Redo Last Seek')
+		mp.osd_message('Redo')
 		seeking = 1
 		undoRedo = 0
 	elseif (filePath ~= nil) and (countTimer > 0) and (countTimer < 0.6) then
@@ -197,4 +198,14 @@ mp.add_key_binding("ctrl+shift+z", "undoredo", function()
 	elseif (filePath ~= nil) and (countTimer == 0) then
 		mp.osd_message('No Undo Found')
 	end
-end)
+end
+
+
+mp.add_key_binding("ctrl+z", "undo", undo)
+mp.add_key_binding("ctrl+Z", "undoCaps", undo)
+
+mp.add_key_binding("ctrl+y", "redo", redo)
+mp.add_key_binding("ctrl+Y", "redoCaps", redo)
+
+mp.add_key_binding("ctrl+alt+z", "undoRedo", undoRedo)
+mp.add_key_binding("ctrl+alt+Z", "undoRedoCaps", undoRedo)
