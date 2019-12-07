@@ -66,14 +66,14 @@ SmartHistory is a script for mpv media player, the script adds a smart history f
 - **OSD**: Displays any SmartHistory action within mpv.
 ### SmartHistory Usage Guide
 **While running a video:**
-- <kbd>ctrl</kbd>+<kbd>l</kbd> to immediately load last closed video 
-- <kbd>ctrl</kbd>+<kbd>r</kbd> to open history log for list of played videos
-	- Use this along with SmartCopyPaste script to copy and paste video from history log into mpv
-
-**While `NOT` running a video:**
 - <kbd>ctrl</kbd>+<kbd>r</kbd> to resume in any previously closed videos
 - <kbd>ctrl</kbd>+<kbd>l</kbd> to add previously closed video into playlist  
 	- Useful for cases when you opened another video by accident and you want to get back to the last video
+
+**While `NOT` running a video:**
+- <kbd>ctrl</kbd>+<kbd>l</kbd> to immediately load last closed video 
+- <kbd>ctrl</kbd>+<kbd>r</kbd> to open history log for list of played videos
+	- Use this along with SmartCopyPaste script to copy and paste video from history log into mpv
 ### SmartHistory Compatibility
  - Currently for Windows OS only.
 # SimpleUndo Script 2.5
