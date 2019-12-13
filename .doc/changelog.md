@@ -7,13 +7,16 @@
 - [**UndoRedo Changelog**](https://github.com/Eisa01/mpv-scripts/blob/master/.doc/changelog.md#undoredo-changelog)
 
 ## SmartCopyPaste Changelog
-- Latest Changes **(1.7)** [12/01/2019]
+- Latest Changes **(1.8)** [12/14/2019]
+	- Fixed bug that caused crash when clipboard is empty 
+	- Updated OSD
+- **(1.7)** [12/01/2019]
 	- Better URL handling when pasting, required changing the format of how the time is copied
 	- Added more extensions for video / audio / image
 	- Handled caps lock, now the script works whether caps lock is enabled or disabled
 	- Simplified OSDs
 - **(1.6)** [11/30/2019]
-	- Urgent fix to support mpv 0.30 and initial support for Mac OS and Linux?
+	- Urgent fix to support mpv 0.30
 - **(1.5)**
 	- Fixed automatic resume of copied time issue
 - **(1.4)**
@@ -33,13 +36,17 @@
 - **(1.0)**
 	- Initial release
 ## SmartCopyPaste-II Changelog
-- Latest Changes **(1.7)** [12/01/2019]
+- Latest Changes **(1.8)** [12/14/2019]
+	- Fixed bug that caused crash when clipboard is empty 
+	- Removed ability to quickly open log file by using key binds (feels more simplified without it)
+	- Updated OSD
+- **(1.7)** [12/01/2019]
 	- Better URL handling when pasting, required changing the format of how the time is copied and logged
 	- Added more extensions for video / audio / image
 	- Handled caps lock, now the script works whether caps lock is enabled or disabled
 	- Simplified OSDs and added OSD for errors when pasting unsupported format
 - **(1.6)** [11/30/2019]
-	- Urgent fix to support mpv 0.30 and initial support for Mac OS and Linux?
+	- Urgent fix to support mpv 0.30
 - **(1.5)**
 	- Fixed automatic resume of copied time issue
 	- Some other fixes and optimizations
@@ -60,35 +67,38 @@
 - **(1.0)**
 	- Initial release of an all new SmartCopyPaste-II containing bookmark features for seamless paste experience!
 ## SmartHistory Changelog
- - Latest Changes **(1.3)** [12/01/2019]
+- Latest Changes **(1.4)** [12/14/2019]
+	- Removed ability to quickly open log file by using key binds (feels more simplified without it)
+	- Updated OSD
+- **(1.3)** [12/01/2019]
 	- Handled caps lock, now the script works whether caps lock is enabled or disabled
 	- Changed the format of how the time is logged
 	- Simplified OSDs
- - **(1.2)**
+- **(1.2)**
  	- One small bug squashed
- - **(1.1)**
+- **(1.1)**
  	- Tons of bug fixes and optimizations
 	- Fixed issues that could cause script to crash
 	- Added OSD everywhere possible
- - **(1.0)**
+- **(1.0)**
 	- Initial release of SmartHistory Script
 	- Contains simple history log file with many smart features mentioned above.
 ## SimpleUndo Changelog
- - Latest Changes **(2.5)** [12/01/2019]
+- Latest Changes **(2.5)** [12/01/2019]
  	- Fixed bug that occurred when using playlists
 	- Handled caps lock, now the script works whether caps lock is enabled or disabled
 	- Simplified OSDs
- - **(2.4)** [3/4/2019]
+- **(2.4)** [3/4/2019]
  	- Fixed possible crash when undoing results in video time less than 0 seconds.
  	- Tons of bug fixes to fix undo and redo while video pausing.
 	- Bug fixes to allow for seamless undo & redo while using playlists.
- - **(2.3)** [3/2/2019]
+- **(2.3)** [3/2/2019]
   	- Fixed OSD not showing the first time seek is in progress. Better code, less if statements and variables.
- - **(2.2)** [2/28/2019]
+- **(2.2)** [2/28/2019]
  	- Less if statements, no more variable tables, and some other bug fixes.
- - **(2.1)** [2/27/2019] 
+- **(2.1)** [2/27/2019] 
  	- Handled trying to undo while seeking is not done.
- - **(2.0)** [2/27/2019] 
+- **(2.0)** [2/27/2019] 
 	 - An all new 2.0 version taking SimpleUndo to a whole new level.
 	 - Now it should work even in all different kinds of jumping in video. Such as, dragging the mouse, using multiple key-presses, or holding the seeking button, and even if you use an external script to seek.
  - **(1.1)** [2/24/2019] 
@@ -96,19 +106,19 @@
  - **(1.0)** [2/23/2019] 
 	- Initial release of SimpleUndo Script
 ## UndoRedo Changelog
- - Latest Changes **(1.5)** [12/01/2019]
+- Latest Changes **(1.5)** [12/01/2019]
  	- Fixed bug that occurred when using playlists
 	- Handled caps lock, now the script works whether caps lock is enabled or disabled
 	- Simplified OSDs
- - **(1.4)** [3/4/2019]
+- **(1.4)** [3/4/2019]
  	- Fixed possible crash when undoing results in video time less than 0 seconds.
- - **(1.3)** [3/4/2019]
+- **(1.3)** [3/4/2019]
  	- Tons of bug fixes to fix undo and redo while video pausing.
 	- Bug fixes to allow for seamless undo & redo while using playlists.
- - **(1.2)** [3/3/2019]
+- **(1.2)** [3/3/2019]
  	- Added new feature, for quick undo & redo (just like SimpleUndo script) loops between last undo & redo.  
- - **(1.1)** [3/2/2019]
+- **(1.1)** [3/2/2019]
  	- Now shows OSD in all cases when unable to undo, such as you are already in last undo or did not seek yet, and more.
 	- Fixed bug that broke a functionality in redo.
- - **(1.0)** [3/1/2019]
+- **(1.0)** [3/1/2019]
  	- Initial release of UndoRedo
