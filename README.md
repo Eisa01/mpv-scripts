@@ -54,7 +54,6 @@ Basically,  the **II**  version is enhanced with a bookmark feature, copying a v
 - *<kbd>ctrl</kbd>+<kbd>v</kbd> does the following:*
 	- To play the copied video with resume time _if available_
 	- Or when no video is currently copied, <kbd>ctrl</kbd>+<kbd>v</kbd> will find and play your last copied or pasted video
-- <kbd>ctrl</kbd>+<kbd>c</kbd> to access your videos clipboard history
 ### SmartCopyPaste-II Compatibility
 - Currently for Windows OS only.
 # SmartHistory Script 1.3
@@ -72,8 +71,6 @@ SmartHistory is a script for mpv media player, the script adds a smart history f
 
 **While `NOT` running a video:**
 - <kbd>ctrl</kbd>+<kbd>l</kbd> to immediately load last closed video 
-- <kbd>ctrl</kbd>+<kbd>r</kbd> to open history log for list of played videos
-	- Use this along with SmartCopyPaste script to copy and paste video from history log into mpv
 ### SmartHistory Compatibility
  - Currently for Windows OS only.
 # SimpleUndo Script 2.5
