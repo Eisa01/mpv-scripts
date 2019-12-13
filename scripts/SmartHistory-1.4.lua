@@ -77,21 +77,7 @@ local function resume()
 		mp.osd_message('No Resume Position')
 	end
 	else
-		historyLogAdd:close()
-		historyLogOpen:close()
-		local res = utils.subprocess({ args = {
-        'powershell', '-NoProfile', '-Command', [[& {
-		Trap {
-                Write-Error -ErrorRecord $_
-                Exit 1
-            }
-		Invoke-Item "$env:APPDATA\mpv\mpvHistory.log"
-        }]]
-    } })
-		if not res.error then
-			return res.stdout
-		end
-		return false
+		mp.osd_message('Failed to Resume\nNo Video Found')
 	end
 	historyLogAdd:close()
 	historyLogOpen:close()
