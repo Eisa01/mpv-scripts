@@ -2,16 +2,16 @@
 This repository contain scripts I have made for [mpv media player](https://github.com/mpv-player/mpv/). To add scripts from this repository, download the desired script in your `mpv/scripts/` directory (click [here](https://mpv.io/manual/master/#lua-scripting) to know more about mpv scripts).
 
 **This repository contain the following scripts:**
-- [**SmartCopyPaste Script 1.7**](https://github.com/Eisa01/mpv-scripts#smartcopypaste-script-17)
-- [**SmartCopyPaste-II Script 1.7**](https://github.com/Eisa01/mpv-scripts#smartcopypaste-ii-script-17)
-- [**SmartHistory Script 1.3**](https://github.com/Eisa01/mpv-scripts#smarthistory-script-13)
+- [**SmartCopyPaste Script 1.8**](https://github.com/Eisa01/mpv-scripts#smartcopypaste-script-18)
+- [**SmartCopyPaste-II Script 1.8**](https://github.com/Eisa01/mpv-scripts#smartcopypaste-ii-script-18)
+- [**SmartHistory Script 1.4**](https://github.com/Eisa01/mpv-scripts#smarthistory-script-14)
 - [**SimpleUndo Script 2.5**](https://github.com/Eisa01/mpv-scripts#simpleundo-script-25)
 - [**UndoRedo Script 1.5**](https://github.com/Eisa01/mpv-scripts#undoredo-script-15)
 
 **The following scripts can conflict with each other:**
 - Either install SmartCopyPaste or SmartCopyPaste-II.
 - Either install SimpleUndo or UndoRedo.
-# SmartCopyPaste Script 1.7
+# SmartCopyPaste Script 1.8
 SmartCopyPaste is a script for mpv media player, the script adds a very smart copy paste experience to mpv. It gives mpv the ability to load videos simply by pasting them into mpv. As for copying,  pressing <kbd>ctrl</kbd>+<kbd>c</kbd> on a video, copies the video path and its time to clipboard, which enables paste to resume or to access video with the copied time by pasting. For installation, download *`SmartCopyPaste.lua`* file into your `mpv/scripts/` directory. 
 ### SmartCopyPaste Main Features
 - **Copy and Paste**: Adds ability to copy and paste any type of video to mpv, like (urls, video paths, or local videos)
@@ -30,7 +30,7 @@ SmartCopyPaste is a script for mpv media player, the script adds a very smart co
 - <kbd>ctrl</kbd>+<kbd>v</kbd> to play the copied video with resume time _if available_
 ### SmartCopyPaste Compatibility
 - Currently for Windows OS only.
-# SmartCopyPaste-II Script 1.7
+# SmartCopyPaste-II Script 1.8
 SmartCopyPaste is a script for mpv media player, the script adds a very smart copy paste experience to mpv. It gives mpv the ability to load videos simply by pasting them into mpv. As for copying,  pressing <kbd>ctrl</kbd>+<kbd>c</kbd> on a video, copies the video path and its time to clipboard, which enables paste to resume or to access video with the copied time by pasting. 
 The **II** version contain additional features which saves your clipboard into a log file. The log adds the option to paste at any time even if clipboard was overwritten or cleared. 
 
@@ -56,7 +56,7 @@ Basically,  the **II**  version is enhanced with a bookmark feature, copying a v
 	- Or when no video is currently copied, <kbd>ctrl</kbd>+<kbd>v</kbd> will find and play your last copied or pasted video
 ### SmartCopyPaste-II Compatibility
 - Currently for Windows OS only.
-# SmartHistory Script 1.3
+# SmartHistory Script 1.4
 SmartHistory is a script for mpv media player, the script adds a smart history functionality to mpv. It logs videos that you opened into `%APPDATA%\mpv\mpvHistory.log` along with the time you have reached on each video. The script uses the log to provide you with various features. More details about SmartHistory are explained in the sections below. For installation, download *`SmartHistory.lua`* file into your `mpv/scripts/` directory. 
 ### SmartHistory Main Features
 - **Remember Last Video:** It will always remember your last played video, and <kbd>ctrl</kbd>+<kbd>l</kbd> will jump to your last played video.
