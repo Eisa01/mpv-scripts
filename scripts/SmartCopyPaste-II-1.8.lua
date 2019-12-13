@@ -1,16 +1,3 @@
-local platform = nil --set to 'linux', 'windows' or 'macos' to override automatic assign
-
-if not platform then
-  local o = {}
-  if mp.get_property_native('options/vo-mmcss-profile', o) ~= o then
-    platform = 'windows'
-  elseif mp.get_property_native('options/input-app-events', o) ~= o then
-    platform = 'macos'
-  else
-    platform = 'linux'
-  end
-end
-
 local utils = require 'mp.utils'
 local msg = require 'mp.msg'
 
@@ -18,16 +5,11 @@ function handleres(res, args, primary)
   if not res.error and res.status == 0 then
       return res.stdout
   else
-    if platform=='linux' and not primary then
-      append(true)
-      return nil
-    end
-    msg.error("There was an error getting "..platform.." clipboard: ")
     msg.error("  Status: "..(res.status or ""))
     msg.error("  Error: "..(res.error or ""))
     msg.error("  stdout: "..(res.stdout or ""))
     msg.error("args: "..utils.to_string(args))
-    return nil
+    return ''
   end
 end
 
@@ -69,11 +51,7 @@ local function has_extension (tab, val)
 end
 
 
-local function get_clipboard(primary) 
-  if platform == 'linux' then
-    local args = { 'xclip', '-selection', primary and 'primary' or 'clipboard', '-out' }
-    return handleres(utils.subprocess({ args = args, cancellable = false }), args, primary)
-  elseif platform == 'windows' then
+local function get_clipboard()
     local args = {
       'powershell', '-NoProfile', '-Command', [[& {
             Trap {
@@ -92,11 +70,6 @@ local function get_clipboard(primary)
         }]]
     }
     return handleres(utils.subprocess({ args =  args, cancellable = false }), args)
-  elseif platform == 'macos' then
-    local args = { 'pbpaste' }
-    return handleres(utils.subprocess({ args = args, cancellable = false }), args)
-  end
-  return nil
 end
 
 
@@ -128,20 +101,7 @@ local function copy()
 		copyLogAdd:write(('[%s] %s\n'):format(os.date('%d/%b/%y %X'), filePath..' |time='..tostring(time)))
 		copyLogAdd:close()
 	else
-		local res = utils.subprocess({ args = {
-        'powershell', '-NoProfile', '-Command', [[& {
-		Trap {
-                Write-Error -ErrorRecord $_
-                Exit 1
-            }
-		Invoke-Item "$env:APPDATA\mpv\mpvClipboard.log"
-        }]]
-    } })
-	
-    if not res.error then
-        return res.stdout
-    end
-    return false
+		mp.osd_message('Failed to Copy\nNo Video Found')
 	end
 end
 
@@ -248,7 +208,7 @@ local function paste()
 			mp.commandv('loadfile', videoFile)
 			mp.osd_message('Pasted Last Logged Item:\n'..videoFile)
 		else 
-			mp.osd_message('Pasted Unsupported Item:\n'..clip)
+			mp.osd_message('Failed to Paste\nPasted Unsupported Item:\n'..clip)
 		end
 		copyLogLastOpen:close()
 	end
