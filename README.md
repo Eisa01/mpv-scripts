@@ -2,7 +2,7 @@
 This repository contain scripts I have made for [mpv media player](https://github.com/mpv-player/mpv/). To add scripts from this repository, download the desired script in your `mpv/scripts/` directory (click [here](https://mpv.io/manual/master/#lua-scripting) to know more about mpv scripts).
 
 **This repository contain the following scripts:**
-- [**SmartCopyPaste Script 1.8**](https://github.com/Eisa01/mpv-scripts#smartcopypaste-script-18)
+- [**SmartCopyPaste Script 1.9**](https://github.com/Eisa01/mpv-scripts#smartcopypaste-script-19)
 - [**SmartCopyPaste-II Script 1.8**](https://github.com/Eisa01/mpv-scripts#smartcopypaste-ii-script-18)
 - [**SmartHistory Script 1.4**](https://github.com/Eisa01/mpv-scripts#smarthistory-script-14)
 - [**SimpleUndo Script 2.5**](https://github.com/Eisa01/mpv-scripts#simpleundo-script-25)
@@ -11,7 +11,7 @@ This repository contain scripts I have made for [mpv media player](https://githu
 **The following scripts can conflict with each other:**
 - Either install SmartCopyPaste or SmartCopyPaste-II.
 - Either install SimpleUndo or UndoRedo.
-# SmartCopyPaste Script 1.8
+# SmartCopyPaste Script 1.9
 SmartCopyPaste is a script for mpv media player, the script adds a very smart copy paste experience to mpv. It gives mpv the ability to load videos simply by pasting them into mpv. As for copying,  pressing <kbd>ctrl</kbd>+<kbd>c</kbd> on a video, copies the video path and its time to clipboard, which enables paste to resume or to access video with the copied time by pasting. For installation, download *`SmartCopyPaste.lua`* file into your `mpv/scripts/` directory. 
 ### SmartCopyPaste Main Features
 - **Copy and Paste**: Adds ability to copy and paste any type of video to mpv, like (urls, video paths, or local videos)
@@ -23,13 +23,15 @@ SmartCopyPaste is a script for mpv media player, the script adds a very smart co
 - *<kbd>ctrl</kbd>+<kbd>v</kbd> does the following:*
 	- To jump to the copied time
 	- Or when different video is copied, <kbd>ctrl</kbd>+<kbd>v</kbd> will add it into playlist
--  <kbd>ctrl</kbd>+<kbd>alt</kbd>+<kbd>c</kbd> to copy video path without resume time
+- <kbd>ctrl</kbd>+<kbd>alt</kbd>+<kbd>c</kbd> to copy video path without resume time
 - <kbd>ctrl</kbd>+<kbd>alt</kbd>+<kbd>v</kbd> to add video into playlist to play it next
 
 **While `NOT` running a video:**
 - <kbd>ctrl</kbd>+<kbd>v</kbd> to play the copied video with resume time _if available_
 ### SmartCopyPaste Compatibility
-- Currently for Windows OS only.
+- Windows OS (full features).
+- MAC OS (requires pbpaste - only pasting is supported for now).
+- Linux (requres xclip - only pasting is supported for now).
 # SmartCopyPaste-II Script 1.8
 SmartCopyPaste is a script for mpv media player, the script adds a very smart copy paste experience to mpv. It gives mpv the ability to load videos simply by pasting them into mpv. As for copying,  pressing <kbd>ctrl</kbd>+<kbd>c</kbd> on a video, copies the video path and its time to clipboard, which enables paste to resume or to access video with the copied time by pasting. 
 The **II** version contain additional features which saves your clipboard into a log file. The log adds the option to paste at any time even if clipboard was overwritten or cleared. 
@@ -106,7 +108,8 @@ UndoRedo is a script for mpv media player, the script adds undo, and redo functi
 ### Special Thanks
 Below is list of contributors/ honorable mentions.
 - **SmartCopyPaste Script** 
-To access windows clipboard, the method was inspired by [@wiiaboo](https://github.com/wiiaboo/) urlcopypaste script. Special thanks for his work.
+For the initial multi-platform support and access of clipboard, the method was originally forked and edited from [@rossy](https://github.com/rossy/) mpv-repl script. Special thanks for his work.
+For the handlers that are used inside the script, which added compatibility for newer mpv versions, the method was originally forked and edited from [@jonniek](https://github.com/jonniek) appendURL script. Specical thanks for his work. 
 - **SmartHistory Script**
 To create the log file, the method was inspired by a deleted author from a reddit post. Special thanks for his work.
 - **UndoRedo Script**
