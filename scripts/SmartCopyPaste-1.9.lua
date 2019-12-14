@@ -1,3 +1,24 @@
+-- detect_platform() and get_clipboard() copied and edited from:
+    -- https://github.com/rossy/mpv-repl
+    -- © 2016, James Ross-Gowan
+    --
+    -- Permission to use, copy, modify, and/or distribute this software for any
+    -- purpose with or without fee is hereby granted, provided that the above
+    -- copyright notice and this permission notice appear in all copies.
+
+local platform = nil --set to 'linux', 'windows' or 'macos' to override automatic assign
+
+if not platform then
+  local o = {}
+  if mp.get_property_native('options/vo-mmcss-profile', o) ~= o then
+    platform = 'windows'
+  elseif mp.get_property_native('options/input-app-events', o) ~= o then
+    platform = 'macos'
+  else
+    platform = 'linux'
+  end
+end
+
 local utils = require 'mp.utils'
 local msg = require 'mp.msg'
 
@@ -5,6 +26,12 @@ function handleres(res, args, primary)
   if not res.error and res.status == 0 then
       return res.stdout
   else
+    if platform=='linux' and not primary then
+      paste(true)
+	  paste_playlist(true)
+      return ''
+    end
+    msg.error("There was an error getting "..platform.." clipboard: ")
     msg.error("  Status: "..(res.status or ""))
     msg.error("  Error: "..(res.error or ""))
     msg.error("  stdout: "..(res.stdout or ""))
@@ -51,8 +78,13 @@ local function has_extension (tab, val)
 end
 
 
-local function get_clipboard()
+local function get_clipboard(primary)
+  if platform == 'linux' then
+    local args = { 'xclip', '-selection', primary and 'primary' or 'clipboard', '-out' }
+    return handleres(utils.subprocess({ args = args, cancellable = false }), args, primary)
+  elseif platform == 'windows' then
     local args = {
+
       'powershell', '-NoProfile', '-Command', [[& {
             Trap {
                 Write-Error -ErrorRecord $_
@@ -70,10 +102,18 @@ local function get_clipboard()
         }]]
     }
     return handleres(utils.subprocess({ args =  args, cancellable = false }), args)
+  elseif platform == 'macos' then
+    local args = { 'pbpaste' }
+    return handleres(utils.subprocess({ args = args, cancellable = false }), args)
+  end
+  return ''
 end
 
 
 local function set_clipboard(text)
+if platform == 'linux' then
+    return false
+elseif platform == 'windows' then	
     local res = utils.subprocess({ args = {
         'powershell', '-NoProfile', '-Command', string.format([[& {
             Trap {
@@ -84,6 +124,10 @@ local function set_clipboard(text)
             [System.Windows.Clipboard]::SetText('%s')
         }]], text)
     } })
+	elseif platform == 'macos' then
+	return false
+  end
+  return ''
 end
 
 
@@ -111,8 +155,8 @@ local function copy_path()
 end
 
 
-local function paste()
-	local clip = get_clipboard()
+local function paste(primaryselect)
+	local clip = get_clipboard(primaryselect or false)
 	local filePath = mp.get_property_native('path')
 	local time
 
@@ -134,24 +178,24 @@ local function paste()
 	elseif (filePath == nil) and (videoFile:find('https?://') == 1) then
 		mp.commandv('loadfile', videoFile)
 		mp.osd_message("Pasted URL:\n"..videoFile)
-	elseif (filePath ~= nil) and (filePath ~= videoFile) and has_extension(extensions, currentVideoExtension) and (currentVideoExtensionPath~= '') or (videoFile:find('https?://') == 1) then
+	elseif (filePath ~= nil) and (filePath ~= videoFile) and has_extension(extensions, currentVideoExtension) and (currentVideoExtensionPath~= '') or (videoFile:find('https?://') == 1) and (filePath ~= videoFile) then
 		mp.commandv('loadfile', videoFile, 'append-play')
-		mp.osd_message("Pasted Into Playlist:\n"..videoFile)
-	else
-		mp.osd_message('Failed to Paste\nPasted Unsupported Item:\n'..clip)
-	end
-
-	if (filePath == videoFile) and (time ~= nil) then
+		mp.osd_message('Pasted Into Playlist:\n'..videoFile)
+	elseif (filePath == videoFile) and (time == nil) then
+		mp.osd_message('Same file is already running:\n'..clip)		
+	elseif (filePath == videoFile) and (time ~= nil) then
 		mp.commandv('seek', time, 'absolute', 'exact')
 		mp.osd_message('Resumed to Copied Time')
+	else
+		mp.osd_message('Failed to Paste\nPasted Unsupported Item:\n'..clip)
 	end
 	
 	pasted = true
 end
 
 
-local function paste_playlist()
-	local clip = get_clipboard()
+local function paste_playlist(primaryselect)
+	local clip = get_clipboard(primaryselect or false)
 	local filePath = mp.get_property_native('path')
 
 	if string.match(clip, '(.*) |time=') then
@@ -166,7 +210,7 @@ local function paste_playlist()
 	
 	if has_extension(extensions, currentVideoExtension) and (currentVideoExtensionPath~= '') or (videoFile:find('https?://') == 1) then
 		mp.commandv('loadfile', videoFile, 'append-play')
-		mp.osd_message("Pasted Into Playlist:\n"..videoFile)
+		mp.osd_message('Pasted Into Playlist:\n'..videoFile)
 	else
 		mp.osd_message('Failed to Add Into Playlist\nPasted Unsupported Item:\n'..clip)
 	end
@@ -182,7 +226,7 @@ end)
 
 mp.register_event('file-loaded', function()
 	if (pasted == true) then
-		local clip = get_clipboard()
+		local clip = get_clipboard(primaryselect or false)
 		local time = string.match(clip, ' |time=(.*)')
 		local videoFile = string.match(clip, '(.*) |time=')
 		local filePath = mp.get_property_native('path')
