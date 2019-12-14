@@ -108,10 +108,9 @@ UndoRedo is a script for mpv media player, the script adds undo, and redo functi
 ### Special Thanks
 Below is list of contributors/ honorable mentions.
 - **SmartCopyPaste Script** 
-For the initial multi-platform support and access of clipboard, the method was originally forked and edited from [@rossy](https://github.com/rossy/) mpv-repl script. Special thanks for his work.
-
-For the handlers that are used inside the script, which added compatibility for newer mpv versions, the method was originally forked and edited from [@jonniek](https://github.com/jonniek) appendURL script. Specical thanks for his work. 
+	- For the initial multi-platform support and access of clipboard, the method was originally forked and edited from [@rossy](https://github.com/rossy/) mpv-repl script. Special thanks for his work.
+	- For the handlers that are used inside the script, which added compatibility for newer mpv versions, the method was originally forked and edited from [@jonniek](https://github.com/jonniek) appendURL script. Specical thanks for his work. 
 - **SmartHistory Script**
 To create the log file, the method was inspired by a deleted author from a reddit post. Special thanks for his work.
 - **UndoRedo Script**
-Credits and special thanks to [@Banz99](https://github.com/Banz99) for forking SimpleUndo script and enhance it by a table to store undo and redo values, as well as iterate between them. Also special thanks for his full explanation on how it works.
+Credits and special thanks to [@Banz99](https://github.com/Banz99) for forking SimpleUndo script and enhance it by a table to store undo and redo values, as well as iterate between them.
