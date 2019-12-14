@@ -7,9 +7,14 @@
 - [**UndoRedo Changelog**](https://github.com/Eisa01/mpv-scripts/blob/master/.doc/changelog.md#undoredo-changelog)
 
 ## SmartCopyPaste Changelog
-- Latest Changes **(1.8)** [12/14/2019]
+- Latest Changes **(1.9)** [12/14/2019]
+	- Initial support for MAC OS X and Linux (Paste only)
+	- Fixed bug that auto added URLs to playlist when resuming time
+	- Some code optimizations
+	- Updated OSDs
+- **(1.8)** [12/14/2019]
 	- Fixed bug that caused crash when clipboard is empty 
-	- Updated OSD
+	- Updated OSDs
 - **(1.7)** [12/01/2019]
 	- Better URL handling when pasting, required changing the format of how the time is copied
 	- Added more extensions for video / audio / image
@@ -39,7 +44,7 @@
 - Latest Changes **(1.8)** [12/14/2019]
 	- Fixed bug that caused crash when clipboard is empty 
 	- Removed ability to quickly open log file by using key binds (feels more simplified without it)
-	- Updated OSD
+	- Updated OSDs
 - **(1.7)** [12/01/2019]
 	- Better URL handling when pasting, required changing the format of how the time is copied and logged
 	- Added more extensions for video / audio / image
@@ -69,7 +74,7 @@
 ## SmartHistory Changelog
 - Latest Changes **(1.4)** [12/14/2019]
 	- Removed ability to quickly open log file by using key binds (feels more simplified without it)
-	- Updated OSD
+	- Updated OSDs
 - **(1.3)** [12/01/2019]
 	- Handled caps lock, now the script works whether caps lock is enabled or disabled
 	- Changed the format of how the time is logged
