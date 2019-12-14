@@ -78,7 +78,7 @@ local function has_extension (tab, val)
 end
 
 
-local function get_clipboard(primary)
+function get_clipboard(primary)
   if platform == 'linux' then
     local args = { 'xclip', '-selection', primary and 'primary' or 'clipboard', '-out' }
     return handleres(utils.subprocess({ args = args, cancellable = false }), args, primary)
@@ -110,7 +110,7 @@ local function get_clipboard(primary)
 end
 
 
-local function set_clipboard(text)
+function set_clipboard(text)
 if platform == 'linux' then
     return false
 elseif platform == 'windows' then	
@@ -155,7 +155,7 @@ local function copy_path()
 end
 
 
-local function paste(primaryselect)
+function paste(primaryselect)
 	local clip = get_clipboard(primaryselect or false)
 	local filePath = mp.get_property_native('path')
 	local time
@@ -194,7 +194,7 @@ local function paste(primaryselect)
 end
 
 
-local function paste_playlist(primaryselect)
+function paste_playlist(primaryselect)
 	local clip = get_clipboard(primaryselect or false)
 	local filePath = mp.get_property_native('path')
 
