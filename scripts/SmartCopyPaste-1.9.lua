@@ -1,21 +1,12 @@
--- detect_platform() and get_clipboard() copied and edited from:
-    -- https://github.com/rossy/mpv-repl
-    -- © 2016, James Ross-Gowan
-    --
-    -- Permission to use, copy, modify, and/or distribute this software for any
-    -- purpose with or without fee is hereby granted, provided that the above
-    -- copyright notice and this permission notice appear in all copies.
+local device = nil --set to nil for automatic device detection, or manually set to: 'windows' or 'mac' or 'linux'
 
-local platform = nil --set to 'linux', 'windows' or 'macos' to override automatic assign
-
-if not platform then
-  local o = {}
-  if mp.get_property_native('options/vo-mmcss-profile', o) ~= o then
-    platform = 'windows'
-  elseif mp.get_property_native('options/input-app-events', o) ~= o then
-    platform = 'macos'
+if not device then 
+  if os.getenv('windir') ~= nil then
+	device = 'windows'
+  elseif os.execute '[ -d "/Applications" ]' and os.execute '[ -d "/Library" ]' then
+	device = 'mac'
   else
-    platform = 'linux'
+	device = 'linux'
   end
 end
 
@@ -26,12 +17,12 @@ function handleres(res, args, primary)
   if not res.error and res.status == 0 then
       return res.stdout
   else
-    if platform=='linux' and not primary then
+    if device=='linux' and not primary then
       paste(true)
 	  paste_playlist(true)
       return ''
     end
-    msg.error("There was an error getting "..platform.." clipboard: ")
+    msg.error("There was an error getting "..device.." clipboard: ")
     msg.error("  Status: "..(res.status or ""))
     msg.error("  Error: "..(res.error or ""))
     msg.error("  stdout: "..(res.stdout or ""))
@@ -79,10 +70,10 @@ end
 
 
 function get_clipboard(primary)
-  if platform == 'linux' then
+  if device == 'linux' then
     local args = { 'xclip', '-selection', primary and 'primary' or 'clipboard', '-out' }
     return handleres(utils.subprocess({ args = args, cancellable = false }), args, primary)
-  elseif platform == 'windows' then
+  elseif device == 'windows' then
     local args = {
 
       'powershell', '-NoProfile', '-Command', [[& {
@@ -102,7 +93,7 @@ function get_clipboard(primary)
         }]]
     }
     return handleres(utils.subprocess({ args =  args, cancellable = false }), args)
-  elseif platform == 'macos' then
+  elseif device == 'mac' then
     local args = { 'pbpaste' }
     return handleres(utils.subprocess({ args = args, cancellable = false }), args)
   end
@@ -111,9 +102,9 @@ end
 
 
 function set_clipboard(text)
-if platform == 'linux' then
+if device == 'linux' then
     return false
-elseif platform == 'windows' then	
+elseif device == 'windows' then	
     local res = utils.subprocess({ args = {
         'powershell', '-NoProfile', '-Command', string.format([[& {
             Trap {
@@ -124,7 +115,7 @@ elseif platform == 'windows' then
             [System.Windows.Clipboard]::SetText('%s')
         }]], text)
     } })
-	elseif platform == 'macos' then
+	elseif device == 'mac' then
 	return false
   end
   return ''
