@@ -1,6 +1,6 @@
 local device = nil --set to nil for automatic device detection, or manually set to: 'windows' or 'mac' or 'linux'
 
-if not device then 
+if not device then
   if os.getenv('windir') ~= nil then
 	device = 'windows'
   elseif os.execute '[ -d "/Applications" ]' and os.execute '[ -d "/Library" ]' then
@@ -9,6 +9,7 @@ if not device then
 	device = 'linux'
   end
 end
+
 
 local utils = require 'mp.utils'
 local msg = require 'mp.msg'
@@ -102,8 +103,11 @@ end
 
 
 function set_clipboard(text)
+local pipe
 if device == 'linux' then
-    return false
+    pipe = io.popen("xclip -silent -in -selection clipboard", "w")
+	pipe:write(text)
+	pipe:close()
 elseif device == 'windows' then	
     local res = utils.subprocess({ args = {
         'powershell', '-NoProfile', '-Command', string.format([[& {
@@ -115,8 +119,10 @@ elseif device == 'windows' then
             [System.Windows.Clipboard]::SetText('%s')
         }]], text)
     } })
-	elseif device == 'mac' then
-	return false
+elseif device == 'mac' then
+	pipe = io.popen('pbcopy','w')
+	pipe:write(text)
+	pipe:close()
   end
   return ''
 end
