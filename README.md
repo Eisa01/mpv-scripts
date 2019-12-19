@@ -29,9 +29,9 @@ SmartCopyPaste is a script for mpv media player, the script adds a very smart co
 **While `NOT` running a video:**
 - <kbd>ctrl</kbd>+<kbd>v</kbd> to play the copied video with resume time _if available_
 ### SmartCopyPaste Compatibility
-- Windows OS (full features).
-- MAC OS (requires pbpaste - only pasting is supported for now).
-- Linux (requres xclip - only pasting is supported for now).
+- Windows OS (requires powershell)
+- MAC OS (requires pbpaste).
+- Linux (requires xclip).
 # SmartCopyPaste-II Script 1.8
 SmartCopyPaste is a script for mpv media player, the script adds a very smart copy paste experience to mpv. It gives mpv the ability to load videos simply by pasting them into mpv. As for copying,  pressing <kbd>ctrl</kbd>+<kbd>c</kbd> on a video, copies the video path and its time to clipboard, which enables paste to resume or to access video with the copied time by pasting. 
 The **II** version contain additional features which saves your clipboard into a log file. The log adds the option to paste at any time even if clipboard was overwritten or cleared. 
