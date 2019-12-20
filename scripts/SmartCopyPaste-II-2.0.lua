@@ -1,10 +1,30 @@
+-- Copyright (c) 2019, Eisa AlAwadhi
+-- License: BSD 2-Clause License
+
+-- Creator: Eisa AlAwadhi
+-- Project: SmartCopyPaste-II
+-- Version: 2.0
+
+local device = nil --set to nil for automatic device detection, or manually set to: 'windows' or 'mac' or 'linux'
+
+if not device then
+  if os.getenv('windir') ~= nil then
+	device = 'windows'
+  elseif os.execute '[ -d "/Applications" ]' and os.execute '[ -d "/Library" ]' then
+	device = 'mac'
+  else
+	device = 'linux'
+  end
+end
+
 local utils = require 'mp.utils'
 local msg = require 'mp.msg'
 
-function handleres(res, args, primary)
+function handleres(res, args)
   if not res.error and res.status == 0 then
       return res.stdout
   else
+    msg.error("There was an error getting "..device.." clipboard: ")
     msg.error("  Status: "..(res.status or ""))
     msg.error("  Error: "..(res.error or ""))
     msg.error("  stdout: "..(res.stdout or ""))
@@ -51,8 +71,13 @@ local function has_extension (tab, val)
 end
 
 
-local function get_clipboard()
+function get_clipboard()
+  if device == 'linux' then
+    local args = { 'xclip', '-o' }
+    return handleres(utils.subprocess({ args = args, cancellable = false }), args)
+  elseif device == 'windows' then
     local args = {
+
       'powershell', '-NoProfile', '-Command', [[& {
             Trap {
                 Write-Error -ErrorRecord $_
@@ -70,20 +95,37 @@ local function get_clipboard()
         }]]
     }
     return handleres(utils.subprocess({ args =  args, cancellable = false }), args)
+  elseif device == 'mac' then
+    local args = { 'pbpaste' }
+    return handleres(utils.subprocess({ args = args, cancellable = false }), args)
+  end
+  return ''
 end
 
 
-local function set_clipboard(text)
-    local res = utils.subprocess({ args = {
-        'powershell', '-NoProfile', '-Command', string.format([[& {
-            Trap {
-                Write-Error -ErrorRecord $_
-                Exit 1
-            }
-            Add-Type -AssemblyName PresentationCore
-            [System.Windows.Clipboard]::SetText('%s')
-        }]], text)
-    } })
+function set_clipboard(text)
+	local pipe
+	if device == 'linux' then
+		pipe = io.popen("xclip -silent -in", "w")
+		pipe:write(text)
+		pipe:close()
+	elseif device == 'windows' then	
+		local res = utils.subprocess({ args = {
+			'powershell', '-NoProfile', '-Command', string.format([[& {
+				Trap {
+					Write-Error -ErrorRecord $_
+					Exit 1
+				}
+				Add-Type -AssemblyName PresentationCore
+				[System.Windows.Clipboard]::SetText('%s')
+			}]], text)
+		} })
+	elseif device == 'mac' then
+		pipe = io.popen('pbcopy','w')
+		pipe:write(text)
+		pipe:close()
+	  end
+  return ''
 end
 
 
@@ -95,7 +137,7 @@ local function copy()
 		set_clipboard(filePath..' |time='..tostring(time))
 		mp.osd_message('Copied & Bookmarked:\n'..filePath..' |time='..tostring(time))
 		
-		local copyLog = os.getenv('APPDATA')..'/mpv/mpvClipboard.log';
+		local copyLog = (os.getenv('APPDATA') or os.getenv('HOME')..'/.config')..'/mpv/mpvClipboard.log'
 		local copyLogAdd = io.open(copyLog, 'a+')
 		
 		copyLogAdd:write(('[%s] %s\n'):format(os.date('%d/%b/%y %X'), filePath..' |time='..tostring(time)))
@@ -112,8 +154,8 @@ local function copy_path()
 	if (filePath ~= nil) then
 		set_clipboard(filePath)
 		mp.osd_message('Copied & Bookmarked Video Only:\n'..filePath)
-		
-		local copyLog = os.getenv('APPDATA')..'/mpv/mpvClipboard.log';
+			
+		local copyLog = (os.getenv('APPDATA') or os.getenv('HOME')..'/.config')..'/mpv/mpvClipboard.log'
 		local copyLogAdd = io.open(copyLog, 'a+')
 		
 		copyLogAdd:write(('[%s] %s\n'):format(os.date('%d/%b/%y %X'), filePath))    
@@ -124,7 +166,7 @@ local function copy_path()
 end
 
 
-local function paste()
+function paste()
 	local clip = get_clipboard()
 	local filePath = mp.get_property_native('path')
 	local time
@@ -140,9 +182,11 @@ local function paste()
 
 	local currentVideoExtension = string.lower(get_extension(videoFile))
 	local currentVideoExtensionPath = (get_extentionpath(videoFile))
-	local copyLog = os.getenv('APPDATA')..'/mpv/mpvClipboard.log'
+	
+	local copyLog = (os.getenv('APPDATA') or os.getenv('HOME')..'/.config')..'/mpv/mpvClipboard.log'
 	local copyLogAdd = io.open(copyLog, 'a+')
 	local copyLogOpen = io.open(copyLog, 'r+')
+	
 	local linePosition
 	local videoFound = ''
 	local logVideo
@@ -161,16 +205,15 @@ local function paste()
 	logVideo = string.match(videoFound, '(.*) |time=')
 	logVideoTime = string.match(videoFound, ' |time=(.*)')
 	
-	if (filePath == logVideo) and (logVideoTime ~= nil) then
-		mp.commandv('seek', logVideoTime, 'absolute', 'exact')
+	if (filePath == videoFile) and (time ~= nil) then
+		mp.commandv('seek', time, 'absolute', 'exact')
 		mp.osd_message('Resumed to Copied Time')
-	end
-	
-	if (filePath ~= nil) and (logVideoTime == nil) then
+	elseif (filePath == logVideo) and (logVideoTime ~= nil) then
+		mp.commandv('seek', logVideoTime, 'absolute', 'exact')
+		mp.osd_message('Resumed to Last Logged Time')
+	elseif (filePath ~= nil) and (logVideoTime == nil) then
 		mp.osd_message('No Copied Time Found')
-	end
-	
-	if (filePath == nil) and has_extension(extensions, currentVideoExtension) and (currentVideoExtensionPath~= '') then
+	elseif (filePath == nil) and has_extension(extensions, currentVideoExtension) and (currentVideoExtensionPath~= '') then
 		mp.commandv('loadfile', videoFile)
 		mp.osd_message('Pasted:\n'..videoFile)
 		
@@ -213,17 +256,12 @@ local function paste()
 		copyLogLastOpen:close()
 	end
 	
-	if (filePath == videoFile) and (time ~= nil) then
-		mp.commandv('seek', time, 'absolute', 'exact')
-		mp.osd_message('Resumed to Copied Time')
-	end
-	
 	pasted = true
 	copyLogAdd:close()
 	copyLogOpen:close()
 end
 
-local function paste_playlist()
+function paste_playlist()
 	local clip = get_clipboard()
 	local filePath = mp.get_property_native('path')
 	local time
@@ -237,9 +275,10 @@ local function paste_playlist()
 		videoFile = clip
 	end
 	
-	local copyLog = os.getenv('APPDATA')..'/mpv/mpvClipboard.log'
+	local copyLog = (os.getenv('APPDATA') or os.getenv('HOME')..'/.config')..'/mpv/mpvClipboard.log'
 	local copyLogAdd = io.open(copyLog, 'a+')
 	local copyLogOpen = io.open(copyLog, 'r+')
+	
 	local currentVideoExtension = string.lower(get_extension(videoFile))
 	local currentVideoExtensionPath = (get_extentionpath(videoFile))
 	
