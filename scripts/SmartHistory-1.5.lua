@@ -1,3 +1,10 @@
+-- Copyright (c) 2019, Eisa AlAwadhi
+-- License: BSD 2-Clause License
+
+-- Creator: Eisa AlAwadhi
+-- Project: SmartHistory
+-- Version: 1.5
+
 local utils = require 'mp.utils'
 local seconds = 0
 local time = 0
@@ -29,7 +36,7 @@ mp.register_event('unpause', function()
 end)
 
 mp.register_event('end-file', function()
-	local historyLog = os.getenv('APPDATA')..'/mpv/mpvHistory.log'
+	local historyLog = (os.getenv('APPDATA') or os.getenv('HOME')..'/.config')..'/mpv/mpvHistory.log'
 	local historyLogAdd = io.open(historyLog, 'a+')
 	
 	if string.match(seconds, '-1') then
@@ -44,7 +51,7 @@ mp.register_event('end-file', function()
 end)
 
 local function resume()
-	local historyLog = os.getenv('APPDATA')..'/mpv/mpvHistory.log'
+	local historyLog = (os.getenv('APPDATA') or os.getenv('HOME')..'/.config')..'/mpv/mpvHistory.log'
 	local historyLogOpen = io.open(historyLog, 'r')
 	local historyLogAdd = io.open(historyLog, 'a+')
 	local filePath = mp.get_property('path')
@@ -77,14 +84,14 @@ local function resume()
 		mp.osd_message('No Resume Position')
 	end
 	else
-		mp.osd_message('Failed to Resume\nNo Video Found')
+		mp.osd_message('Failed to Resume\nNo Item Found')
 	end
 	historyLogAdd:close()
 	historyLogOpen:close()
 end
 
 local function lastPlay()--1.3
-	local historyLog = os.getenv('APPDATA')..'/mpv/mpvHistory.log'
+	local historyLog = (os.getenv('APPDATA') or os.getenv('HOME')..'/.config')..'/mpv/mpvHistory.log'
 	local historyLogAdd = io.open(historyLog, 'a+')
 	local historyLogOpen = io.open(historyLog, 'r+')
     local linePosition
