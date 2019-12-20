@@ -40,7 +40,7 @@ Basically,  the **II**  version is enhanced with a bookmark feature, copying a v
 ### SmartCopyPaste-II Main Features
 - **Copy and Paste:** Adds ability to copy and paste any type of video to mpv, like (urls, video paths, or local videos)
 - **Bookmark:** Any copy in a video is also a bookmark point, to access the bookmark simply paste.
-- **Save Clipboard to a Log File:** The copies from mpv, and the pastes into mpv will be kept in a log file; log file location for Windows OS: `%APPDATA%\mpv\mpvClipboard.log`, for Linux and MAC OS: `~\.config\mpv\mpvClipboard.log`. This is necessary for the bookmark feature.
+- **Saves Clipboard to a Log File:** The copies from mpv, and the pastes into mpv will be kept in a log file; log file location for Windows OS: `%APPDATA%\mpv\mpvClipboard.log`, for Linux and MAC OS: `~\.config\mpv\mpvClipboard.log`. This is necessary for the bookmark feature.
 - **youtube-dl Extension Support:** Immediately paste links without finding exact video address for youtube and any other youtube-dl extension supported sites.
 - **OSD:** Displays any SmartCopyPaste action within mpv.
 ### SmartCopyPaste-II Usage Guide
@@ -65,7 +65,7 @@ SmartHistory is a script for mpv media player, the script adds a smart history f
 ### SmartHistory Main Features
 - **Remember Last Video:** It will always remember your last played video, and <kbd>ctrl</kbd>+<kbd>l</kbd> will jump to your last played video.
 - **Auto Bookmark:** When you exit video, it will always remember position and <kbd>ctrl</kbd>+<kbd>r</kbd> will resume. 
--  **Logs Opened Videos to a Log File:** All videos opened in mpv will be logged to create a history in `%APPDATA%\mpv\mpvHistory.log`. The format is: [date and time] of accessing video, the path & reached video time. This is necessary for Remember Last Video and Auto Bookmark.
+- **Logs Opened Videos to a Log File:** All videos opened in mpv will be logged to create a history in `%APPDATA%\mpv\mpvHistory.log`. The format is: [date and time] of accessing video, the path & reached video time. This is necessary for Remember Last Video and Auto Bookmark.
 - **OSD:** Displays any SmartHistory action within mpv.
 ### SmartHistory Usage Guide
 **While running a video:**
