@@ -1,3 +1,10 @@
+-- Copyright (c) 2019, Eisa AlAwadhi
+-- License: BSD 2-Clause License
+
+-- Creator: Eisa AlAwadhi
+-- Project: UndoRedo
+-- Version: 1.5
+
 local utils = require 'mp.utils'
 local seconds = 0
 local countTimer = 0
