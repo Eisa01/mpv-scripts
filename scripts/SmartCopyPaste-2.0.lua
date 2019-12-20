@@ -1,3 +1,10 @@
+-- Copyright (c) 2019, Eisa AlAwadhi
+-- License: BSD 2-Clause License
+
+-- Creator: Eisa AlAwadhi
+-- Project: SmartCopyPaste
+-- Version: 2.0
+
 local device = nil --set to nil for automatic device detection, or manually set to: 'windows' or 'mac' or 'linux'
 
 if not device then
@@ -10,19 +17,13 @@ if not device then
   end
 end
 
-
 local utils = require 'mp.utils'
 local msg = require 'mp.msg'
 
-function handleres(res, args, primary)
+function handleres(res, args)
   if not res.error and res.status == 0 then
       return res.stdout
   else
-    if device=='linux' and not primary then
-      paste(true)
-	  paste_playlist(true)
-      return ''
-    end
     msg.error("There was an error getting "..device.." clipboard: ")
     msg.error("  Status: "..(res.status or ""))
     msg.error("  Error: "..(res.error or ""))
@@ -70,10 +71,10 @@ local function has_extension (tab, val)
 end
 
 
-function get_clipboard(primary)
+function get_clipboard()
   if device == 'linux' then
-    local args = { 'xclip', '-selection', primary and 'primary' or 'clipboard', '-out' }
-    return handleres(utils.subprocess({ args = args, cancellable = false }), args, primary)
+    local args = { 'xclip', '-o' }
+    return handleres(utils.subprocess({ args = args, cancellable = false }), args)
   elseif device == 'windows' then
     local args = {
 
@@ -103,27 +104,27 @@ end
 
 
 function set_clipboard(text)
-local pipe
-if device == 'linux' then
-    pipe = io.popen("xclip -silent -in -selection clipboard", "w")
-	pipe:write(text)
-	pipe:close()
-elseif device == 'windows' then	
-    local res = utils.subprocess({ args = {
-        'powershell', '-NoProfile', '-Command', string.format([[& {
-            Trap {
-                Write-Error -ErrorRecord $_
-                Exit 1
-            }
-            Add-Type -AssemblyName PresentationCore
-            [System.Windows.Clipboard]::SetText('%s')
-        }]], text)
-    } })
-elseif device == 'mac' then
-	pipe = io.popen('pbcopy','w')
-	pipe:write(text)
-	pipe:close()
-  end
+	local pipe
+	if device == 'linux' then
+		pipe = io.popen("xclip -silent -in", "w")
+		pipe:write(text)
+		pipe:close()
+	elseif device == 'windows' then	
+		local res = utils.subprocess({ args = {
+			'powershell', '-NoProfile', '-Command', string.format([[& {
+				Trap {
+					Write-Error -ErrorRecord $_
+					Exit 1
+				}
+				Add-Type -AssemblyName PresentationCore
+				[System.Windows.Clipboard]::SetText('%s')
+			}]], text)
+		} })
+	elseif device == 'mac' then
+		pipe = io.popen('pbcopy','w')
+		pipe:write(text)
+		pipe:close()
+	  end
   return ''
 end
 
@@ -152,8 +153,8 @@ local function copy_path()
 end
 
 
-function paste(primaryselect)
-	local clip = get_clipboard(primaryselect or false)
+function paste()
+	local clip = get_clipboard()
 	local filePath = mp.get_property_native('path')
 	local time
 
@@ -191,8 +192,8 @@ function paste(primaryselect)
 end
 
 
-function paste_playlist(primaryselect)
-	local clip = get_clipboard(primaryselect or false)
+function paste_playlist()
+	local clip = get_clipboard()
 	local filePath = mp.get_property_native('path')
 
 	if string.match(clip, '(.*) |time=') then
@@ -223,7 +224,7 @@ end)
 
 mp.register_event('file-loaded', function()
 	if (pasted == true) then
-		local clip = get_clipboard(primaryselect or false)
+		local clip = get_clipboard()
 		local time = string.match(clip, ' |time=(.*)')
 		local videoFile = string.match(clip, '(.*) |time=')
 		local filePath = mp.get_property_native('path')
