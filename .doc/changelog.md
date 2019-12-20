@@ -7,7 +7,10 @@
 - [**UndoRedo Changelog**](https://github.com/Eisa01/mpv-scripts/blob/master/.doc/changelog.md#undoredo-changelog)
 
 ## SmartCopyPaste Changelog
-- Latest Changes **(1.9)** [12/14/2019]
+- Latest Changes **(2.0)** [12/20/2019]
+	- Full support for MAC OS X (requires pbcopy and pbpaste) and Linux (requires xclip)
+	- Better device auto detection
+- **(1.9)** [12/14/2019]
 	- Initial support for MAC OS X and Linux (Paste only)
 	- Fixed bug that auto added URLs to playlist when resuming time
 	- Some code optimizations
@@ -41,7 +44,16 @@
 - **(1.0)**
 	- Initial release
 ## SmartCopyPaste-II Changelog
-- Latest Changes **(1.8)** [12/14/2019]
+- Latest Changes **(2.0)** [12/20/2019]
+	- Full support for MAC OS X (requires pbcopy and pbpaste) and Linux (requires xclip)
+	- Better device auto detection
+- **(1.9)** [12/19/2019]
+	- Some code optimizations for the paste which made it faster
+	- Updated OSDs
+- **(1.9)** [12/14/2019]
+	- Some code optimizations for the paste which made it faster
+	- Updated OSDs
+- **(1.8)** [12/14/2019]
 	- Fixed bug that caused crash when clipboard is empty 
 	- Removed ability to quickly open log file by using key binds (feels more simplified without it)
 	- Updated OSDs
@@ -72,7 +84,10 @@
 - **(1.0)**
 	- Initial release of an all new SmartCopyPaste-II containing bookmark features for seamless paste experience!
 ## SmartHistory Changelog
-- Latest Changes **(1.4)** [12/14/2019]
+- Latest Changes **(1.5)** [12/20/2019]
+	- Added support for multi-platform MAC OS X and Linux
+	- Updated OSDs
+- **(1.4)** [12/14/2019]
 	- Removed ability to quickly open log file by using key binds (feels more simplified without it)
 	- Updated OSDs
 - **(1.3)** [12/01/2019]
