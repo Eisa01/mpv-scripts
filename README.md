@@ -2,9 +2,9 @@
 This repository contain scripts I have made for [mpv media player](https://github.com/mpv-player/mpv/). To add scripts from this repository, download the desired script in your `mpv/scripts/` directory (click [here](https://mpv.io/manual/master/#lua-scripting) to know more about mpv scripts).
 
 **This repository contain the following scripts:**
-- [**SmartCopyPaste Script 1.9**](https://github.com/Eisa01/mpv-scripts#smartcopypaste-script-19)
-- [**SmartCopyPaste-II Script 1.8**](https://github.com/Eisa01/mpv-scripts#smartcopypaste-ii-script-18)
-- [**SmartHistory Script 1.4**](https://github.com/Eisa01/mpv-scripts#smarthistory-script-14)
+- [**SmartCopyPaste Script 2.0**](https://github.com/Eisa01/mpv-scripts#smartcopypaste-script-20)
+- [**SmartCopyPaste-II Script 2.0**](https://github.com/Eisa01/mpv-scripts#smartcopypaste-ii-script-20)
+- [**SmartHistory Script 1.5**](https://github.com/Eisa01/mpv-scripts#smarthistory-script-15)
 - [**SimpleUndo Script 2.5**](https://github.com/Eisa01/mpv-scripts#simpleundo-script-25)
 - [**UndoRedo Script 1.5**](https://github.com/Eisa01/mpv-scripts#undoredo-script-15)
 
