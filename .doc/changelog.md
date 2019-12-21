@@ -50,9 +50,6 @@
 - **(1.9)** [12/19/2019]
 	- Some code optimizations for the paste which made it faster
 	- Updated OSDs
-- **(1.9)** [12/14/2019]
-	- Some code optimizations for the paste which made it faster
-	- Updated OSDs
 - **(1.8)** [12/14/2019]
 	- Fixed bug that caused crash when clipboard is empty 
 	- Removed ability to quickly open log file by using key binds (feels more simplified without it)
