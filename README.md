@@ -1,3 +1,4 @@
+
 # Introduction
 This repository contain scripts I have made for [mpv media player](https://github.com/mpv-player/mpv/). To add scripts from this repository, download the desired script in your `mpv/scripts/` directory (click [here](https://mpv.io/manual/master/#lua-scripting) to know more about mpv scripts).
 
@@ -65,7 +66,7 @@ SmartHistory is a script for mpv media player, the script adds a smart history f
 ### SmartHistory Main Features
 - **Remember Last Video:** It will always remember your last played video, and <kbd>ctrl</kbd>+<kbd>l</kbd> will jump to your last played video.
 - **Auto Bookmark:** When you exit video, it will always remember position and <kbd>ctrl</kbd>+<kbd>r</kbd> will resume. 
-- **Logs Opened Videos to a Log File:** All videos opened in mpv will be logged to create a history in `%APPDATA%\mpv\mpvHistory.log`. The format is: [date and time] of accessing video, the path & reached video time. This is necessary for Remember Last Video and Auto Bookmark.
+- **Logs Opened Videos to a Log File:** All videos opened in mpv will be logged to create a history file; log file location for Windows OS: `%APPDATA%\mpv\mpvHistory.log`, for Linux OS and MAC OS: `~\.config\mpv\mpvHistory.log`. The format is: [date and time] of accessing video, the path, then | reached video time. This is necessary for Remember Last Video and Auto Bookmark features.
 - **OSD:** Displays any SmartHistory action within mpv.
 ### SmartHistory Usage Guide
 **While running a video:**
@@ -90,7 +91,7 @@ SimpleUndo is a script for mpv media player, the script adds a simple undo funct
 UndoRedo is a script for mpv media player, the script adds undo, and redo functionality into mpv. If you seek/jump to a different time in the video, press undo <kbd>ctrl</kbd>+<kbd>z</kbd> to linearly undo the seeks/jumps in the video, and press redo <kbd>ctrl</kbd>+<kbd>y</kbd> to linearly return to previous undo positions. For installation, download *`UndoRedo-1.5.lua`* file into your `mpv/scripts/` directory. 
 ### UndoRedo Main Features
 - **Undo and Redo:** Undo any accident time jumps in the video by pressing <kbd>ctrl</kbd>+<kbd>z</kbd> and redo the jumps by <kbd>ctrl</kbd>+<kbd>y</kbd>.
-- **Simple Undo:** Undo accidental time jumps in videos by pressing <kbd>ctrl</kbd>+<kbd>z</kbd> and press again to return to previous position.
+- **Simple Undo:** Undo accidental time jumps in videos by pressing <kbd>ctrl</kbd>+<kbd>alt</kbd>+<kbd>z</kbd> and press again to return to previous position.
 - **OSD:** Displays any SimpleUndo action within mpv.
 ### UndoRedo Usage Guide
 - <kbd>ctrl</kbd>+<kbd>z</kbd> to undo by returning to previous times. 
