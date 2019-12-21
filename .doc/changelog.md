@@ -99,7 +99,7 @@
 	- Added OSD everywhere possible
 - **(1.0)**
 	- Initial release of SmartHistory Script
-	- Contains simple history log file with many smart features mentioned above.
+	- Contains simple history log file with many smart features.
 ## SimpleUndo Changelog
 - Latest Changes **(2.5)** [12/01/2019]
  	- Fixed bug that occurred when using playlists
