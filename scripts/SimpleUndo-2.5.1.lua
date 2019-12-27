@@ -3,7 +3,7 @@
 
 -- Creator: Eisa AlAwadhi
 -- Project: SimpleUndo
--- Version: 2.5
+-- Version: 2.5.1
 
 local utils = require 'mp.utils'
 local seconds = 0
@@ -65,8 +65,12 @@ mp.register_event('unpause', function()
 end)
 
 mp.register_event('end-file', function()
-	timer:kill()
-	timer2:kill()
+	if timer ~= nil then
+		timer:kill()
+	end
+	if timer2 ~= nil then
+		timer2:kill()
+	end
 	previousUndoTime = 0
 	undoTime = 0
 	seconds = 0
