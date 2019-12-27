@@ -101,7 +101,9 @@
 	- Initial release of SmartHistory Script
 	- Contains simple history log file with many smart features.
 ## SimpleUndo Changelog
-- Latest Changes **(2.5)** [12/01/2019]
+- Latest Changes **(2.5.1)** [12/27/2019]
+	- Fixed bug that caused script to crash if mpv opened a directory
+- **(2.5)** [12/01/2019]
  	- Fixed bug that occurred when using playlists
 	- Handled caps lock, now the script works whether caps lock is enabled or disabled
 	- Simplified OSDs
@@ -123,7 +125,9 @@
  - **(1.0)** [2/23/2019] 
 	- Initial release of SimpleUndo Script
 ## UndoRedo Changelog
-- Latest Changes **(1.5)** [12/01/2019]
+- Latest Changes **(1.5.1)** [12/27/2019]
+	- Fixed bug that caused script to crash if mpv opened a directory
+- **(1.5)** [12/01/2019]
  	- Fixed bug that occurred when using playlists
 	- Handled caps lock, now the script works whether caps lock is enabled or disabled
 	- Simplified OSDs
