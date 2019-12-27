@@ -3,7 +3,7 @@
 
 -- Creator: Eisa AlAwadhi
 -- Project: UndoRedo
--- Version: 1.5
+-- Version: 1.5.1
 
 local utils = require 'mp.utils'
 local seconds = 0
@@ -85,8 +85,12 @@ mp.register_event('unpause', function()
 end)
 
 mp.register_event('end-file', function()
-	timer:kill()
-	timer2:kill()
+	if timer ~= nil then
+		timer:kill()
+	end
+	if timer2 ~= nil then
+		timer2:kill()
+	end
 	seekNumber = 0
 	currentIndex = 0
 	undoRedo = 0
