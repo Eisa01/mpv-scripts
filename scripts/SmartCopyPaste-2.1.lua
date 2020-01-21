@@ -1,19 +1,30 @@
--- Copyright (c) 2019, Eisa AlAwadhi
+-- Copyright (c) 2020, Eisa AlAwadhi
 -- License: BSD 2-Clause License
 
 -- Creator: Eisa AlAwadhi
 -- Project: SmartCopyPaste
--- Version: 2.0
+-- Version: 2.1
 
-local device = nil --set to nil for automatic device detection, or manually set to: 'windows' or 'mac' or 'linux'
+local device = nil --nil is for automatic device detection, or manually change to: 'windows' or 'mac' or 'linux'
+
+local protocols = { --add below (after a comma) any protocol you want SmartCopyPaste to work with; e.g: ,'ftp://'
+	'https?://' ,'magnet:'
+}
+
+local extensions = { --add below (after a comma) any extension you want SmartCopyPaste to work with; e.g: ,'pdf'
+	--video & audio
+    'ac3', 'a52', 'eac3', 'mlp', 'dts', 'dts-hd', 'dtshd', 'true-hd', 'thd', 'truehd', 'thd+ac3', 'tta', 'pcm', 'wav', 'aiff', 'aif',  'aifc', 'amr', 'awb', 'au', 'snd', 'lpcm', 'yuv', 'y4m', 'ape', 'wv', 'shn', 'm2ts', 'm2t', 'mts', 'mtv', 'ts', 'tsv', 'tsa', 'tts', 'trp', 'adts', 'adt', 'mpa', 'm1a', 'm2a', 'mp1', 'mp2', 'mp3', 'mpeg', 'mpg', 'mpe', 'mpeg2', 'm1v', 'm2v', 'mp2v', 'mpv', 'mpv2', 'mod', 'tod', 'vob', 'vro', 'evob', 'evo', 'mpeg4', 'm4v', 'mp4', 'mp4v', 'mpg4', 'm4a', 'aac', 'h264', 'avc', 'x264', '264', 'hevc', 'h265', 'x265', '265', 'flac', 'oga', 'ogg', 'opus', 'spx', 'ogv', 'ogm', 'ogx', 'mkv', 'mk3d', 'mka', 'webm', 'weba', 'avi', 'vfw', 'divx', '3iv', 'xvid', 'nut', 'flic', 'fli', 'flc', 'nsv', 'gxf', 'mxf', 'wma', 'wm', 'wmv', 'asf', 'dvr-ms', 'dvr', 'wtv', 'dv', 'hdv', 'flv','f4v', 'f4a', 'qt', 'mov', 'hdmov', 'rm', 'rmvb', 'ra', 'ram', '3ga', '3ga2', '3gpp', '3gp', '3gp2', '3g2', 'ay', 'gbs', 'gym', 'hes', 'kss', 'nsf', 'nsfe', 'sap', 'spc', 'vgm', 'vgz', 'm3u', 'm3u8', 'pls', 'cue',
+	--images
+	"ase", "art", "bmp", "blp", "cd5", "cit", "cpt", "cr2", "cut", "dds", "dib", "djvu", "egt", "exif", "gif", "gpl", "grf", "icns", "ico", "iff", "jng", "jpeg", "jpg", "jfif", "jp2", "jps", "lbm", "max", "miff", "mng", "msp", "nitf", "ota", "pbm", "pc1", "pc2", "pc3", "pcf", "pcx", "pdn", "pgm", "PI1", "PI2", "PI3", "pict", "pct", "pnm", "pns", "ppm", "psb", "psd", "pdd", "psp", "px", "pxm", "pxr", "qfx", "raw", "rle", "sct", "sgi", "rgb", "int", "bw", "tga", "tiff", "tif", "vtf", "xbm", "xcf", "xpm", "3dv", "amf", "ai", "awg", "cgm", "cdr", "cmx", "dxf", "e2d", "egt", "eps", "fs", "gbr", "odg", "svg", "stl", "vrml", "x3d", "sxd", "v2d", "vnd", "wmf", "emf", "art", "xar", "png", "webp", "jxr", "hdp", "wdp", "cur", "ecw", "iff", "lbm", "liff", "nrrd", "pam", "pcx", "pgf", "sgi", "rgb", "rgba", "bw", "int", "inta", "sid", "ras", "sun", "tga"
+}
 
 if not device then
-  if os.getenv('windir') ~= nil then
-	device = 'windows'
-  elseif os.execute '[ -d "/Applications" ]' and os.execute '[ -d "/Library" ]' then
-	device = 'mac'
-  else
-	device = 'linux'
+	if os.getenv('windir') ~= nil then
+		device = 'windows'
+	elseif os.execute '[ -d "/Applications" ]' == 0 and os.execute '[ -d "/Library" ]' == 0 or os.execute '[ -d "/Applications" ]' == true and os.execute '[ -d "/Library" ]' == true then
+		device = 'mac'
+	else
+		device = 'linux'
   end
 end
 
@@ -32,13 +43,6 @@ function handleres(res, args)
     return ''
   end
 end
-
-local extensions = {
-	--video & audio
-    'ac3', 'a52', 'eac3', 'mlp', 'dts', 'dts-hd', 'dtshd', 'true-hd', 'thd', 'truehd', 'thd+ac3', 'tta', 'pcm', 'wav', 'aiff', 'aif',  'aifc', 'amr', 'awb', 'au', 'snd', 'lpcm', 'yuv', 'y4m', 'ape', 'wv', 'shn', 'm2ts', 'm2t', 'mts', 'mtv', 'ts', 'tsv', 'tsa', 'tts', 'trp', 'adts', 'adt', 'mpa', 'm1a', 'm2a', 'mp1', 'mp2', 'mp3', 'mpeg', 'mpg', 'mpe', 'mpeg2', 'm1v', 'm2v', 'mp2v', 'mpv', 'mpv2', 'mod', 'tod', 'vob', 'vro', 'evob', 'evo', 'mpeg4', 'm4v', 'mp4', 'mp4v', 'mpg4', 'm4a', 'aac', 'h264', 'avc', 'x264', '264', 'hevc', 'h265', 'x265', '265', 'flac', 'oga', 'ogg', 'opus', 'spx', 'ogv', 'ogm', 'ogx', 'mkv', 'mk3d', 'mka', 'webm', 'weba', 'avi', 'vfw', 'divx', '3iv', 'xvid', 'nut', 'flic', 'fli', 'flc', 'nsv', 'gxf', 'mxf', 'wma', 'wm', 'wmv', 'asf', 'dvr-ms', 'dvr', 'wtv', 'dv', 'hdv', 'flv','f4v', 'f4a', 'qt', 'mov', 'hdmov', 'rm', 'rmvb', 'ra', 'ram', '3ga', '3ga2', '3gpp', '3gp', '3gp2', '3g2', 'ay', 'gbs', 'gym', 'hes', 'kss', 'nsf', 'nsfe', 'sap', 'spc', 'vgm', 'vgz', 'm3u', 'm3u8', 'pls', 'cue',
-	--images
-	"ase", "art", "bmp", "blp", "cd5", "cit", "cpt", "cr2", "cut", "dds", "dib", "djvu", "egt", "exif", "gif", "gpl", "grf", "icns", "ico", "iff", "jng", "jpeg", "jpg", "jfif", "jp2", "jps", "lbm", "max", "miff", "mng", "msp", "nitf", "ota", "pbm", "pc1", "pc2", "pc3", "pcf", "pcx", "pdn", "pgm", "PI1", "PI2", "PI3", "pict", "pct", "pnm", "pns", "ppm", "psb", "psd", "pdd", "psp", "px", "pxm", "pxr", "qfx", "raw", "rle", "sct", "sgi", "rgb", "int", "bw", "tga", "tiff", "tif", "vtf", "xbm", "xcf", "xpm", "3dv", "amf", "ai", "awg", "cgm", "cdr", "cmx", "dxf", "e2d", "egt", "eps", "fs", "gbr", "odg", "svg", "stl", "vrml", "x3d", "sxd", "v2d", "vnd", "wmf", "emf", "art", "xar", "png", "webp", "jxr", "hdp", "wdp", "cur", "ecw", "iff", "lbm", "liff", "nrrd", "pam", "pcx", "pgf", "sgi", "rgb", "rgba", "bw", "int", "inta", "sid", "ras", "sun", "tga"
-}
 
 local pasted = false
 
@@ -70,10 +74,19 @@ local function has_extension (tab, val)
     return false
 end
 
+local function starts_protocol (tab, val)
+    for index, value in ipairs(tab) do
+        if (val:find(value) == 1) then
+            return true
+        end
+	end
+    return false
+end
+
 
 function get_clipboard()
   if device == 'linux' then
-    local args = { 'xclip', '-o' }
+    local args = { 'xclip', '-selection', 'clipboard', '-o' }
     return handleres(utils.subprocess({ args = args, cancellable = false }), args)
   elseif device == 'windows' then
     local args = {
@@ -106,7 +119,7 @@ end
 function set_clipboard(text)
 	local pipe
 	if device == 'linux' then
-		pipe = io.popen("xclip -silent -in", "w")
+		pipe = io.popen("xclip -silent -selection clipboard -in", "w")
 		pipe:write(text)
 		pipe:close()
 	elseif device == 'windows' then	
@@ -173,10 +186,10 @@ function paste()
 	if (filePath == nil) and has_extension(extensions, currentVideoExtension) and (currentVideoExtensionPath~= '') then
 		mp.commandv('loadfile', videoFile)
 		mp.osd_message("Pasted:\n"..videoFile)
-	elseif (filePath == nil) and (videoFile:find('https?://') == 1) then
+	elseif (filePath == nil) and (starts_protocol(protocols, videoFile)) then
 		mp.commandv('loadfile', videoFile)
 		mp.osd_message("Pasted URL:\n"..videoFile)
-	elseif (filePath ~= nil) and (filePath ~= videoFile) and has_extension(extensions, currentVideoExtension) and (currentVideoExtensionPath~= '') or (videoFile:find('https?://') == 1) and (filePath ~= videoFile) then
+	elseif (filePath ~= nil) and (filePath ~= videoFile) and has_extension(extensions, currentVideoExtension) and (currentVideoExtensionPath~= '') or (starts_protocol(protocols, videoFile)) and (filePath ~= videoFile) then
 		mp.commandv('loadfile', videoFile, 'append-play')
 		mp.osd_message('Pasted Into Playlist:\n'..videoFile)
 	elseif (filePath == videoFile) and (time == nil) then
@@ -206,7 +219,7 @@ function paste_playlist()
 	local currentVideoExtension = string.lower(get_extension(videoFile))
 	local currentVideoExtensionPath = (get_extentionpath(videoFile))
 	
-	if has_extension(extensions, currentVideoExtension) and (currentVideoExtensionPath~= '') or (videoFile:find('https?://') == 1) then
+	if has_extension(extensions, currentVideoExtension) and (currentVideoExtensionPath~= '') or (starts_protocol(protocols, videoFile)) then
 		mp.commandv('loadfile', videoFile, 'append-play')
 		mp.osd_message('Pasted Into Playlist:\n'..videoFile)
 	else
@@ -238,12 +251,24 @@ mp.register_event('file-loaded', function()
 end)
 
 
-mp.add_key_binding('ctrl+c', 'copy', copy)
-mp.add_key_binding('ctrl+C', 'copyCaps', copy)
-mp.add_key_binding('ctrl+v', 'paste', paste)
-mp.add_key_binding('ctrl+V', 'pasteCaps', paste)
+if device == 'mac' then
+	mp.add_key_binding('Meta+c', 'copy', copy)
+	mp.add_key_binding('Meta+C', 'copyCaps', copy)
+	mp.add_key_binding('Meta+v', 'paste', paste)
+	mp.add_key_binding('Meta+V', 'pasteCaps', paste)
 
-mp.add_key_binding('ctrl+alt+c', 'copy-path', copy_path)
-mp.add_key_binding('ctrl+alt+C', 'copy-pathCaps', copy_path)
-mp.add_key_binding('ctrl+alt+v', 'paste-playlist', paste_playlist)
-mp.add_key_binding('ctrl+alt+V', 'paste-playlistCaps', paste_playlist)
+	mp.add_key_binding('Meta+alt+c', 'copy-path', copy_path)
+	mp.add_key_binding('Meta+alt+C', 'copy-pathCaps', copy_path)
+	mp.add_key_binding('Meta+alt+v', 'paste-playlist', paste_playlist)
+	mp.add_key_binding('Meta+alt+V', 'paste-playlistCaps', paste_playlist)
+else
+	mp.add_key_binding('ctrl+c', 'copy', copy)
+	mp.add_key_binding('ctrl+C', 'copyCaps', copy)
+	mp.add_key_binding('ctrl+v', 'paste', paste)
+	mp.add_key_binding('ctrl+V', 'pasteCaps', paste)
+
+	mp.add_key_binding('ctrl+alt+c', 'copy-path', copy_path)
+	mp.add_key_binding('ctrl+alt+C', 'copy-pathCaps', copy_path)
+	mp.add_key_binding('ctrl+alt+v', 'paste-playlist', paste_playlist)
+	mp.add_key_binding('ctrl+alt+V', 'paste-playlistCaps', paste_playlist)
+end
