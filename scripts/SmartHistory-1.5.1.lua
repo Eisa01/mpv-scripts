@@ -1,9 +1,9 @@
--- Copyright (c) 2019, Eisa AlAwadhi
+-- Copyright (c) 2020, Eisa AlAwadhi
 -- License: BSD 2-Clause License
 
 -- Creator: Eisa AlAwadhi
 -- Project: SmartHistory
--- Version: 1.5
+-- Version: 1.5.1
 
 local utils = require 'mp.utils'
 local seconds = 0
@@ -45,9 +45,11 @@ mp.register_event('end-file', function()
 		seconds = seconds
 	end
 	
-	historyLogAdd:write(('[%s] %s\n'):format(os.date('%d/%b/%y %X'), filePath..' |time='..tostring(seconds)))
-	timer:kill()
-	historyLogAdd:close()
+	if (filePath ~= nil) then --1.5.1#1 Fixed issue that sometimes happens when starting mpv with video
+		historyLogAdd:write(('[%s] %s\n'):format(os.date('%d/%b/%y %X'), filePath..' |time='..tostring(seconds)))
+		timer:kill()
+		historyLogAdd:close()
+	end
 end)
 
 local function resume()
@@ -90,7 +92,7 @@ local function resume()
 	historyLogOpen:close()
 end
 
-local function lastPlay()--1.3
+local function lastPlay()
 	local historyLog = (os.getenv('APPDATA') or os.getenv('HOME')..'/.config')..'/mpv/mpvHistory.log'
 	local historyLogAdd = io.open(historyLog, 'a+')
 	local historyLogOpen = io.open(historyLog, 'r+')
