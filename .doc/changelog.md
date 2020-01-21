@@ -7,7 +7,13 @@
 - [**UndoRedo Changelog**](https://github.com/Eisa01/mpv-scripts/blob/master/.doc/changelog.md#undoredo-changelog)
 
 ## SmartCopyPaste Changelog
-- Latest Changes **(2.0)** [12/20/2019]
+- Latest Changes **(2.1)** [1/22/2020]
+	- Improved auto detection method for device OS as discussed https://github.com/Eisa01/mpv-scripts/issues/1
+	- Added option to customize accepted protocols as discussed https://github.com/Eisa01/mpv-scripts/issues/7
+	- Changed Linux copy and paste method to leverage clipboard as discussed https://github.com/Eisa01/mpv-scripts/issues/6
+	- Copy and paste now accepts magnet and torrent files for users that use peerflix
+	- MAC OS will automatically use <kbd>command</kbd> instead of <kbd>ctrl</kbd> key as it makes more sense for MAC users	
+- **(2.0)** [12/20/2019]
 	- Full support for MAC OS X (requires pbcopy and pbpaste) and Linux (requires xclip)
 	- Better device auto detection
 - **(1.9)** [12/14/2019]
@@ -44,7 +50,13 @@
 - **(1.0)**
 	- Initial release
 ## SmartCopyPaste-II Changelog
-- Latest Changes **(2.0)** [12/20/2019]
+- Latest Changes **(2.1)** [1/22/2020]
+	- Improved auto detection method for device OS as discussed https://github.com/Eisa01/mpv-scripts/issues/1
+	- Added option to customize accepted protocols as discussed https://github.com/Eisa01/mpv-scripts/issues/7
+	- Changed Linux copy and paste method to leverage clipboard as discussed https://github.com/Eisa01/mpv-scripts/issues/6
+	- Copy and paste now accepts magnet and torrent files for users that use peerflix
+	- MAC OS will automatically use <kbd>command</kbd> instead of <kbd>ctrl</kbd> key as it makes more sense for MAC users
+- **(2.0)** [12/20/2019]
 	- Full support for MAC OS X (requires pbcopy and pbpaste) and Linux (requires xclip)
 	- Better device auto detection
 - **(1.9)** [12/19/2019]
@@ -81,7 +93,9 @@
 - **(1.0)**
 	- Initial release of an all new SmartCopyPaste-II containing bookmark features for seamless paste experience!
 ## SmartHistory Changelog
-- Latest Changes **(1.5)** [12/20/2019]
+- Latest Changes **(1.5.1)** [1/22/2020]
+	- Fixed rare bug that occurs on some videos as discussed https://github.com/Eisa01/mpv-scripts/issues/5
+- **(1.5)** [12/20/2019]
 	- Added support for multi-platform MAC OS X and Linux
 	- Updated OSDs
 - **(1.4)** [12/14/2019]
