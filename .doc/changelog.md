@@ -7,12 +7,16 @@
 - [**UndoRedo Changelog**](https://github.com/Eisa01/mpv-scripts/blob/master/.doc/changelog.md#undoredo-changelog)
 
 ## SmartCopyPaste Changelog
+- Latest Changes **(2.2)** [2/11/2020]
+	- Added multiple customizable settings, including a setting to change the copy and paste command of each platform, and more..
+	- Changed the default paste method for Linux OS and Mac OS
+	- Fixed possible bug
 - Latest Changes **(2.1)** [1/22/2020]
 	- Improved auto detection method for device OS as discussed https://github.com/Eisa01/mpv-scripts/issues/1
 	- Added option to customize accepted protocols as discussed https://github.com/Eisa01/mpv-scripts/issues/7
 	- Changed Linux copy and paste method to leverage clipboard as discussed https://github.com/Eisa01/mpv-scripts/issues/6
 	- Copy and paste now accepts magnet and torrent files for users that use peerflix
-	- MAC OS will automatically use <kbd>command</kbd> instead of <kbd>ctrl</kbd> key as it makes more sense for MAC users	
+	- MAC OS will automatically use <kbd>command</kbd> instead of <kbd>ctrl</kbd> key as it makes more sense for MAC users
 - **(2.0)** [12/20/2019]
 	- Full support for MAC OS X (requires pbcopy and pbpaste) and Linux (requires xclip)
 	- Better device auto detection
@@ -50,7 +54,11 @@
 - **(1.0)**
 	- Initial release
 ## SmartCopyPaste-II Changelog
-- Latest Changes **(2.1)** [1/22/2020]
+- Latest Changes **(2.2)** [2/11/2020]
+	- Added multiple customizable settings, including a setting to change the copy and paste command of each platform, and more..
+	- Changed the default paste method for Linux OS and Mac OS
+	- Fixed possible bug
+- **(2.1)** [1/22/2020]
 	- Improved auto detection method for device OS as discussed https://github.com/Eisa01/mpv-scripts/issues/1
 	- Added option to customize accepted protocols as discussed https://github.com/Eisa01/mpv-scripts/issues/7
 	- Changed Linux copy and paste method to leverage clipboard as discussed https://github.com/Eisa01/mpv-scripts/issues/6
