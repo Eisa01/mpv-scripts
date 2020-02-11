@@ -12,7 +12,7 @@ This repository contain scripts I have made for [mpv media player](https://githu
 - Either install SmartCopyPaste or SmartCopyPaste-II.
 - Either install SimpleUndo or UndoRedo.
 # SmartCopyPaste Script 2.2
-SmartCopyPaste is a script for mpv media player, the script adds a very smart copy paste experience to mpv. It gives mpv the ability to load videos simply by pasting them into mpv. As for copying,  pressing <kbd>ctrl</kbd>+<kbd>c</kbd> on a video, copies the video path and its time to clipboard, which enables paste to resume or to access video with the copied time by pasting. For installation, download *`SmartCopyPaste-2.1.lua`* file into your `mpv/scripts/` directory. 
+SmartCopyPaste is a script for mpv media player, the script adds a very smart copy paste experience to mpv. It gives mpv the ability to load videos simply by pasting them into mpv. As for copying,  pressing <kbd>ctrl</kbd>+<kbd>c</kbd> on a video, copies the video path and its time to clipboard, which enables paste to resume or to access video with the copied time by pasting. For installation, download *`SmartCopyPaste-2.2.lua`* file into your `mpv/scripts/` directory. 
 ### SmartCopyPaste Main Features
 - **Copy and Paste:** Adds ability to copy and paste any type of video to mpv, like (urls, video paths, or local videos)
 - **youtube-dl Extension Support:** Immediately paste links without finding exact video address for youtube and any other youtube-dl extension supported sites.
@@ -32,7 +32,7 @@ SmartCopyPaste is a script for mpv media player, the script adds a very smart co
 - <kbd>ctrl</kbd>+<kbd>v</kbd> to play the copied video with resume time _if available_
 
 **Sidenote:**
-- MAC OS by default will use <kbd>command</kbd> key instead of <kbd>ctrl</kbd> key, in order to copy and paste.
+- MAC OS will automatically use <kbd>command</kbd> instead of <kbd>ctrl</kbd> key
 ### SmartCopyPaste Compatibility
 - Windows OS (default powershell, customizable / can be changed in the settings inside the script).
 - MAC OS (default pbcopy and pbpaste, customizable / can be changed in the settings inside the script).
@@ -41,7 +41,7 @@ SmartCopyPaste is a script for mpv media player, the script adds a very smart co
 SmartCopyPaste is a script for mpv media player, the script adds a very smart copy paste experience to mpv. It gives mpv the ability to load videos simply by pasting them into mpv. As for copying,  pressing <kbd>ctrl</kbd>+<kbd>c</kbd> on a video, copies the video path and its time to clipboard, which enables paste to resume or to access video with the copied time by pasting. 
 The **II** version contain additional features which saves your clipboard into a log file. The log adds the option to paste at any time even if clipboard was overwritten or cleared. 
 
-Basically,  the **II**  version is enhanced with a bookmark feature, copying a video will bookmark the video and time, while pasting will access the bookmark (even if clipboard is cleared). For installation, download *`SmartCopyPaste-II-2.1.lua`* file into your `mpv/scripts/` directory. 
+Basically,  the **II**  version is enhanced with a bookmark feature, copying a video will bookmark the video and time, while pasting will access the bookmark (even if clipboard is cleared). For installation, download *`SmartCopyPaste-II-2.2.lua`* file into your `mpv/scripts/` directory. 
 ### SmartCopyPaste-II Main Features
 - **Copy and Paste:** Adds ability to copy and paste any type of video to mpv, like (urls, video paths, or local videos)
 - **Bookmark:** Any copy in a video is also a bookmark point, to access the bookmark simply paste.
@@ -65,7 +65,7 @@ Basically,  the **II**  version is enhanced with a bookmark feature, copying a v
 	- Or when no video is currently copied, <kbd>ctrl</kbd>+<kbd>v</kbd> will find and play your last copied or pasted video
 	
 **Sidenote:**
-- MAC OS by default will use <kbd>command</kbd> key instead of <kbd>ctrl</kbd> key, in order to copy and paste.
+- MAC OS will automatically use <kbd>command</kbd> instead of <kbd>ctrl</kbd> key
 ### SmartCopyPaste-II Compatibility
 - Windows OS (default powershell, customizable / can be changed in the settings inside the script).
 - MAC OS (default pbcopy and pbpaste, customizable / can be changed in the settings inside the script).
