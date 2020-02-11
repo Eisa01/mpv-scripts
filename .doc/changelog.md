@@ -11,7 +11,7 @@
 	- Added multiple customizable settings, including a setting to change the copy and paste command of each platform, and more..
 	- Changed the default paste method for Linux OS and Mac OS
 	- Fixed possible bug
-- Latest Changes **(2.1)** [1/22/2020]
+- **(2.1)** [1/22/2020]
 	- Improved auto detection method for device OS as discussed https://github.com/Eisa01/mpv-scripts/issues/1
 	- Added option to customize accepted protocols as discussed https://github.com/Eisa01/mpv-scripts/issues/7
 	- Changed Linux copy and paste method to leverage clipboard as discussed https://github.com/Eisa01/mpv-scripts/issues/6
