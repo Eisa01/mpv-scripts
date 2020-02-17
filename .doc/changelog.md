@@ -101,7 +101,11 @@
 - **(1.0)**
 	- Initial release of an all new SmartCopyPaste-II containing bookmark features for seamless paste experience!
 ## SmartHistory Changelog
-- Latest Changes **(1.5.1)** [1/22/2020]
+- Latest Changes **(1.5.2)** [1/22/2020]
+	- Better handling for playlists / changing file while mpv is still open 
+	- Fixed bug that caused script to crash when overriding video and paused
+	- Fixed bug that timer did not start from 0 when overriding video, e.g.: playlist
+- **(1.5.1)** [1/22/2020]
 	- Fixed rare bug that occurs on some videos as discussed https://github.com/Eisa01/mpv-scripts/issues/5
 - **(1.5)** [12/20/2019]
 	- Added support for multi-platform MAC OS X and Linux
