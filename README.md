@@ -4,7 +4,7 @@ This repository contain scripts I have made for [mpv media player](https://githu
 **This repository contain the following scripts:**
 - [**SmartCopyPaste Script 2.2**](https://github.com/Eisa01/mpv-scripts#smartcopypaste-script-22)
 - [**SmartCopyPaste-II Script 2.2**](https://github.com/Eisa01/mpv-scripts#smartcopypaste-ii-script-22)
-- [**SmartHistory Script 1.5.1**](https://github.com/Eisa01/mpv-scripts#smarthistory-script-151)
+- [**SmartHistory Script 1.5.2**](https://github.com/Eisa01/mpv-scripts#smarthistory-script-152)
 - [**SimpleUndo Script 2.5.1**](https://github.com/Eisa01/mpv-scripts#simpleundo-script-251)
 - [**UndoRedo Script 1.5.1**](https://github.com/Eisa01/mpv-scripts#undoredo-script-151)
 
@@ -70,8 +70,8 @@ Basically,  the **II**  version is enhanced with a bookmark feature, copying a v
 - Windows OS (default powershell, customizable / can be changed in the settings inside the script).
 - MAC OS (default pbcopy and pbpaste, customizable / can be changed in the settings inside the script).
 - Linux OS (default xclip, customizable / can be changed in the settings inside the script).
-# SmartHistory Script 1.5.1
-SmartHistory is a script for mpv media player, the script adds a smart history functionality to mpv. It logs videos that you opened into a log file along with the time you have reached on each video; log file location for Windows OS: `%APPDATA%\mpv\mpvHistory.log`, for Linux OS and MAC OS: `~\.config\mpv\mpvHistory.log`. The script uses the log to provide you with various features. More details about SmartHistory are explained in the sections below. For installation, download *`SmartHistory-1.5.1.lua`* file into your `mpv/scripts/` directory. 
+# SmartHistory Script 1.5.2
+SmartHistory is a script for mpv media player, the script adds a smart history functionality to mpv. It logs videos that you opened into a log file along with the time you have reached on each video; log file location for Windows OS: `%APPDATA%\mpv\mpvHistory.log`, for Linux OS and MAC OS: `~\.config\mpv\mpvHistory.log`. The script uses the log to provide you with various features. More details about SmartHistory are explained in the sections below. For installation, download *`SmartHistory-1.5.2.lua`* file into your `mpv/scripts/` directory. 
 ### SmartHistory Main Features
 - **Remember Last Video:** It will always remember your last played video, and <kbd>ctrl</kbd>+<kbd>l</kbd> will jump to your last played video.
 - **Auto Bookmark:** When you exit video, it will always remember position and <kbd>ctrl</kbd>+<kbd>r</kbd> will resume. 
