@@ -3,36 +3,46 @@
 
 -- Creator: Eisa AlAwadhi
 -- Project: SmartHistory
--- Version: 1.5.1
+-- Version: 1.5.2
 
 local utils = require 'mp.utils'
 local seconds = 0
 local time = 0
+local pause = false
 
-mp.register_event('file-loaded', function()
+mp.register_event('file-loaded', function()	
 	filePath = mp.get_property('path')
 
 	timer = mp.add_periodic_timer(1, function()
 		seconds = seconds + 1
 	end)
+	
+	if (pause == true) then
+		timer:stop()
+	else
+		timer:resume()
+	end
+	
 end)
 
 mp.register_event('playback-restart', function()
 	seconds = 0
-	time = math.floor(mp.get_property_number('time-pos'))
+	time = math.floor(mp.get_property_number('time-pos') or 0)
 	seconds = seconds + time
 end)
 
 mp.register_event('pause', function()
 	timer:stop()
-	time = math.floor(mp.get_property_number('time-pos'))
+	time = math.floor(mp.get_property_number('time-pos') or 0)
 	seconds = time
+	pause = true
 end)
 
 mp.register_event('unpause', function()
 	timer:resume()
-	time = math.floor(mp.get_property_number('time-pos'))
+	time = math.floor(mp.get_property_number('time-pos') or 0)
 	seconds = time
+	pause = false
 end)
 
 mp.register_event('end-file', function()
@@ -45,9 +55,11 @@ mp.register_event('end-file', function()
 		seconds = seconds
 	end
 	
-	if (filePath ~= nil) then --1.5.1#1 Fixed issue that sometimes happens when starting mpv with video
+	if (filePath ~= nil) then
 		historyLogAdd:write(('[%s] %s\n'):format(os.date('%d/%b/%y %X'), filePath..' |time='..tostring(seconds)))
 		timer:kill()
+		seconds = 0
+		time = 0
 		historyLogAdd:close()
 	end
 end)
@@ -126,7 +138,6 @@ local function lastPlay()
 		mp.osd_message('History is Empty')
 	end
 end
-
 
 mp.add_key_binding("ctrl+r", "resume", resume)
 mp.add_key_binding("ctrl+R", "resumeCaps", resume)
