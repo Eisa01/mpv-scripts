@@ -151,7 +151,9 @@
  - **(1.0)** [2/23/2019] 
 	- Initial release of SimpleUndo Script
 ## UndoRedo Changelog
-- Latest Changes **(1.5.1)** [12/27/2019]
+- Latest Changes **(1.5.2)** [4/8/2020]
+	- Fixed bug that caused script to crash in older lua versions https://github.com/Eisa01/mpv-scripts/issues/9
+- **(1.5.1)** [12/27/2019]
 	- Fixed bug that caused script to crash if mpv opened a directory
 - **(1.5)** [12/01/2019]
  	- Fixed bug that occurred when using playlists
