@@ -6,7 +6,7 @@ This repository contain scripts I have made for [mpv media player](https://githu
 - [**SmartCopyPaste-II Script 2.2**](https://github.com/Eisa01/mpv-scripts#smartcopypaste-ii-script-22)
 - [**SmartHistory Script 1.5.2**](https://github.com/Eisa01/mpv-scripts#smarthistory-script-152)
 - [**SimpleUndo Script 2.5.1**](https://github.com/Eisa01/mpv-scripts#simpleundo-script-251)
-- [**UndoRedo Script 1.5.1**](https://github.com/Eisa01/mpv-scripts#undoredo-script-151)
+- [**UndoRedo Script 1.5.2**](https://github.com/Eisa01/mpv-scripts#undoredo-script-152)
 
 **The following scripts can conflict with each other:**
 - Either install SmartCopyPaste or SmartCopyPaste-II.
@@ -96,8 +96,8 @@ SimpleUndo is a script for mpv media player, the script adds a simple undo funct
 - <kbd>ctrl</kbd>+<kbd>z</kbd> to undo accidental seek by returning to previous time and vise-versa.
 ### SimpleUndo Compatibility
 - Works on all of mpv supported platforms.
-# UndoRedo Script 1.5.1
-UndoRedo is a script for mpv media player, the script adds undo, and redo functionality into mpv. If you seek/jump to a different time in the video, press undo <kbd>ctrl</kbd>+<kbd>z</kbd> to linearly undo the seeks/jumps in the video, and press redo <kbd>ctrl</kbd>+<kbd>y</kbd> to linearly return to previous undo positions. For installation, download *`UndoRedo-1.5.1.lua`* file into your `mpv/scripts/` directory. 
+# UndoRedo Script 1.5.2
+UndoRedo is a script for mpv media player, the script adds undo, and redo functionality into mpv. If you seek/jump to a different time in the video, press undo <kbd>ctrl</kbd>+<kbd>z</kbd> to linearly undo the seeks/jumps in the video, and press redo <kbd>ctrl</kbd>+<kbd>y</kbd> to linearly return to previous undo positions. For installation, download *`UndoRedo-1.5.2.lua`* file into your `mpv/scripts/` directory. 
 ### UndoRedo Main Features
 - **Undo and Redo:** Undo any accident time jumps in the video by pressing <kbd>ctrl</kbd>+<kbd>z</kbd> and redo the jumps by <kbd>ctrl</kbd>+<kbd>y</kbd>.
 - **Simple Undo:** Undo accidental time jumps in videos by pressing <kbd>ctrl</kbd>+<kbd>alt</kbd>+<kbd>z</kbd> and press again to return to previous position.
