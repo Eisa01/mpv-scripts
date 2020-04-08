@@ -3,7 +3,7 @@
 
 -- Creator: Eisa AlAwadhi
 -- Project: UndoRedo
--- Version: 1.5.1
+-- Version: 1.5.2
 
 local utils = require 'mp.utils'
 local seconds = 0
@@ -19,7 +19,7 @@ local undoRedo = 0
 
 local pause = false
 
-table.insert(seekTable,0,0)
+seekTable[0] = 0
 
 mp.register_event('file-loaded', function()
 	filePath = mp.get_property('path')
@@ -96,7 +96,7 @@ mp.register_event('end-file', function()
 	undoRedo = 0
 	seconds = 0
 	countTimer = 0
-	table.insert(seekTable,0,0)
+	seekTable[0] = 0
 end)
 
 local function undo()
