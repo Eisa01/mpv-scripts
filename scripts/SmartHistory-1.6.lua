@@ -3,14 +3,25 @@
 
 -- Creator: Eisa AlAwadhi
 -- Project: SmartHistory
--- Version: 1.5.2
+-- Version: 1.6
 
 local utils = require 'mp.utils'
 local seconds = 0
 local time = 0
 local pause = false
+local empty = false
+local lastVideoTime
 
-mp.register_event('file-loaded', function()	
+----------------------------USER CUSTOMIZATION SETTINGS-----------------------------------
+--These settings are for users to manually change some options in the script.
+--Keybinds can be defined in the bottom of the script.
+
+local offset = -0.65 --change to 0 so that pasting resumes from the exact position, or decrease the value so that it gives you a little preview before reaching the exact pasted position
+
+---------------------------END OF USER CUSTOMIZATION SETTINGS------------------------
+
+
+mp.register_event('file-loaded', function()
 	filePath = mp.get_property('path')
 
 	timer = mp.add_periodic_timer(1, function()
@@ -23,6 +34,20 @@ mp.register_event('file-loaded', function()
 		timer:resume()
 	end
 	
+	if (empty == true) then
+		local seekTime
+		if (lastVideoTime ~= nil) then
+			
+			seekTime = lastVideoTime + offset
+			if (seekTime < 0) then
+				seekTime = 0
+			end
+			
+			mp.commandv('seek', seekTime, 'absolute', 'exact')
+			
+			empty = false
+		end
+	end
 end)
 
 mp.register_event('playback-restart', function()
@@ -46,6 +71,7 @@ mp.register_event('unpause', function()
 end)
 
 mp.register_event('end-file', function()
+	empty = false
 	local historyLog = (os.getenv('APPDATA') or os.getenv('HOME')..'/.config')..'/mpv/mpvHistory.log'
 	local historyLogAdd = io.open(historyLog, 'a+')
 	
@@ -73,6 +99,7 @@ local function resume()
 	local videoFound
 	local currentVideo
 	local currentVideoTime
+	local seekTime
 	
 	if (filePath ~= nil) then
 		for line in historyLogOpen:lines() do
@@ -91,25 +118,33 @@ local function resume()
 		currentVideoTime = string.match(videoFound, ' |time=(.*)')
 
 		if (filePath == currentVideo) and (currentVideoTime ~= nil) then
-			mp.commandv('seek', currentVideoTime, 'absolute', 'exact')
-			mp.osd_message('Resumed To Last Position')
+			mp.osd_message('Resumed Last Position')
+			
+			seekTime = currentVideoTime + offset
+			if (seekTime < 0) then
+				seekTime = 0
+			end
+		
+			mp.commandv('seek', seekTime, 'absolute', 'exact')
 		end
 	else
 		mp.osd_message('No Resume Position')
 	end
 	else
-		mp.osd_message('Failed to Resume\nNo Item Found')
+		empty = true
+		lastPlay()
 	end
 	historyLogAdd:close()
 	historyLogOpen:close()
 end
 
-local function lastPlay()
+function lastPlay()
 	local historyLog = (os.getenv('APPDATA') or os.getenv('HOME')..'/.config')..'/mpv/mpvHistory.log'
 	local historyLogAdd = io.open(historyLog, 'a+')
 	local historyLogOpen = io.open(historyLog, 'r+')
     local linePosition
 	local videoFile
+	local lastVideoFound
 
 	for line in historyLogOpen:lines() do
 		lastVideoFound = line
@@ -123,24 +158,33 @@ local function lastPlay()
 		
 		if string.match(lastVideoFound, '(.*) |time=') then
 			videoFile = string.match(lastVideoFound, '(.*) |time=')
+			lastVideoTime = string.match(lastVideoFound, ' |time=(.*)')
 		else
 			videoFile = lastVideoFound
 		end
 		
 		if (filePath ~= nil) then
-			mp.commandv('loadfile', videoFile, 'append-play')
 			mp.osd_message('Added Last Item Into Playlist:\n'..videoFile)
+			mp.commandv('loadfile', videoFile, 'append-play')
 		else
+			if (empty == false) then
+				mp.osd_message('Loaded Last Item:\n'..videoFile)
+			else 
+				mp.osd_message('Resumed Last Item:\n'..videoFile)
+			end
 			mp.commandv('loadfile', videoFile)
-			mp.osd_message('Loaded Last Item:\n'..videoFile)
 		end
 	else
 		mp.osd_message('History is Empty')
 	end
 end
 
+---------------------------KEYBINDS CUSTOMIZATION SETTINGS---------------------------------
+
 mp.add_key_binding("ctrl+r", "resume", resume)
 mp.add_key_binding("ctrl+R", "resumeCaps", resume)
 
 mp.add_key_binding("ctrl+l", "lastPlay", lastPlay)
 mp.add_key_binding("ctrl+L", "lastPlayCaps", lastPlay)
+
+---------------------END OF KEYBINDS CUSTOMIZATION SETTINGS---------------------------------
