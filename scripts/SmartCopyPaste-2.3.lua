@@ -3,7 +3,7 @@
 
 -- Creator: Eisa AlAwadhi
 -- Project: SmartCopyPaste
--- Version: 2.2
+-- Version: 2.3
 
 local utils = require 'mp.utils'
 local msg = require 'mp.msg'
@@ -25,6 +25,8 @@ local mac_paste = 'pbpaste' --paste command that will be used in MAC. OR write a
 
 local windows_copy = 'powershell' --'powershell' is for using windows powershell to copy. OR write the copy command, e.g: ' clip'
 local windows_paste = 'powershell' --'powershell' is for using windows powershell to paste. OR write the paste command
+
+local offset = -0.65 --change to 0 so that pasting resumes from the exact position, or decrease the value so that it gives you a little preview before reaching the exact pasted position
 
 local paste_anything = false --false is for specific paste based on the specified extensions and protocols. Change to true so paste accepts anything (not recommended to change this).
 
@@ -191,8 +193,8 @@ local function copy()
     local filePath = mp.get_property_native('path')
 	if (filePath ~= nil) then
 		local time = math.floor(mp.get_property_number('time-pos'))
-		set_clipboard(filePath..' |time='..tostring(time))
 		mp.osd_message("Copied:\n"..filePath..' |time='..tostring(time))
+		set_clipboard(filePath..' |time='..tostring(time))
 	else
 		mp.osd_message('Failed to Copy\nNo Video Found')
 	end
@@ -203,8 +205,8 @@ end
 local function copy_path()
     local filePath = mp.get_property_native('path')
 	if (filePath ~= nil) then
-		set_clipboard(filePath)
 		mp.osd_message("Copied Video Only:\n"..filePath)
+		set_clipboard(filePath)
 	else
 		return false
 	end
@@ -212,6 +214,7 @@ end
 
 
 function paste()
+	mp.osd_message("Pasting...")
 	local clip = get_clipboard()
 	clip = string.gsub(clip, "[\r\n]" , "")
 
@@ -230,20 +233,28 @@ function paste()
 	local currentVideoExtension = string.lower(get_extension(videoFile))
 	local currentVideoExtensionPath = (get_extentionpath(videoFile))
 	
+	local seekTime
+	
 	if (filePath == nil) and has_extension(extensions, currentVideoExtension) and (currentVideoExtensionPath~= '') then
-		mp.commandv('loadfile', videoFile)
 		mp.osd_message("Pasted:\n"..videoFile)
+		mp.commandv('loadfile', videoFile)
 	elseif (filePath == nil) and (starts_protocol(protocols, videoFile)) then
-		mp.commandv('loadfile', videoFile)
 		mp.osd_message("Pasted:\n"..videoFile)
+		mp.commandv('loadfile', videoFile)
 	elseif (filePath ~= nil) and (filePath ~= videoFile) and has_extension(extensions, currentVideoExtension) and (currentVideoExtensionPath~= '') or (starts_protocol(protocols, videoFile)) and (filePath ~= videoFile) then
-		mp.commandv('loadfile', videoFile, 'append-play')
 		mp.osd_message('Pasted Into Playlist:\n'..videoFile)
+		mp.commandv('loadfile', videoFile, 'append-play')
 	elseif (filePath == videoFile) and (time == nil) then
 		mp.osd_message('Same file is already running:\n'..clip)		
 	elseif (filePath == videoFile) and (time ~= nil) then
-		mp.commandv('seek', time, 'absolute', 'exact')
 		mp.osd_message('Resumed to Copied Time')
+
+		seekTime = time + offset
+		if (seekTime < 0) then
+			seekTime = 0
+		end
+	
+		mp.commandv('seek', seekTime, 'absolute', 'exact')
 	else
 		mp.osd_message('Failed to Paste\nPasted Unsupported Item:\n'..clip)
 	end
@@ -253,6 +264,8 @@ end
 
 
 function paste_playlist()
+	mp.osd_message("Pasting...")
+
 	local clip = get_clipboard()
 	clip = string.gsub(clip, "[\r\n]" , "")
 	
@@ -269,8 +282,8 @@ function paste_playlist()
 	local currentVideoExtensionPath = (get_extentionpath(videoFile))
 	
 	if has_extension(extensions, currentVideoExtension) and (currentVideoExtensionPath~= '') or (starts_protocol(protocols, videoFile)) then
-		mp.commandv('loadfile', videoFile, 'append-play')
 		mp.osd_message('Pasted Into Playlist:\n'..videoFile)
+		mp.commandv('loadfile', videoFile, 'append-play')
 	else
 		mp.osd_message('Failed to Add Into Playlist\nPasted Unsupported Item:\n'..clip)
 	end
@@ -291,8 +304,16 @@ mp.register_event('file-loaded', function()
 		local videoFile = string.match(clip, '(.*) |time=')
 		local filePath = mp.get_property_native('path')
 
+		local seekTime
+
 		if (filePath == videoFile) and (time ~= nil) then
-			mp.commandv('seek', time, 'absolute', 'exact')
+			
+			seekTime = time + offset
+			if (seekTime < 0) then
+				seekTime = 0
+			end
+		
+			mp.commandv('seek', seekTime, 'absolute', 'exact')
 		end
 	else
 		return false
