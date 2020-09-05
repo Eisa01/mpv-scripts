@@ -7,7 +7,11 @@
 - [**UndoRedo Changelog**](https://github.com/Eisa01/mpv-scripts/blob/master/.doc/changelog.md#undoredo-changelog)
 
 ## SmartCopyPaste Changelog
-- Latest Changes **(2.2)** [2/11/2020]
+- Latest Changes **(2.3)** [09/05/2020]
+	- Added a customizable offset when resuming to position (default of 0.65 seconds, gives a very short and nice preview)
+	- Added some speed optimizations
+	- Added pasting indicator since pasting has little delay in Windows OS
+- **(2.2)** [2/11/2020]
 	- Added multiple customizable settings, including a setting to change the copy and paste command of each platform, and more..
 	- Changed the default paste method for Linux OS and Mac OS
 	- Fixed possible bug
@@ -54,7 +58,11 @@
 - **(1.0)**
 	- Initial release
 ## SmartCopyPaste-II Changelog
-- Latest Changes **(2.2)** [2/11/2020]
+- Latest Changes **(2.3)** [09/05/2020]
+	- Added a customizable offset when resuming to position (default of 0.65 seconds, gives a very short and nice preview)
+	- Added some speed optimizations
+	- Added pasting indicator since pasting has little delay in Windows OS
+- **(2.2)** [2/11/2020]
 	- Added multiple customizable settings, including a setting to change the copy and paste command of each platform, and more..
 	- Changed the default paste method for Linux OS and Mac OS
 	- Fixed possible bug
@@ -101,7 +109,11 @@
 - **(1.0)**
 	- Initial release of an all new SmartCopyPaste-II containing bookmark features for seamless paste experience!
 ## SmartHistory Changelog
-- Latest Changes **(1.5.2)** [2/17/2020]
+- Latest Changes **(1.6)** [09/05/2020]
+	- Added a new feature to immediately load and resume last closed video by pressing [ctrl] + [r] when no video is loaded
+	- Added a customizable offset when resuming to position (default of 0.65 seconds, gives a very short and nice preview)
+	- Added some speed optimizations
+- **(1.5.2)** [2/17/2020]
 	- Better handling for playlists / changing file while mpv is still open 
 	- Fixed bug that caused script to crash when overriding video and paused
 	- Fixed bug that timer did not start from 0 when overriding video, e.g.: playlist
