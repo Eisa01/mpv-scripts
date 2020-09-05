@@ -2,22 +2,22 @@
 This repository contain scripts I have made for [mpv media player](https://github.com/mpv-player/mpv/). To add scripts from this repository, download the desired script in your `mpv/scripts/` directory (click [here](https://mpv.io/manual/master/#lua-scripting) to know more about mpv scripts).
 
 **This repository contain the following scripts:**
-- [**SmartCopyPaste Script 2.2**](https://github.com/Eisa01/mpv-scripts#smartcopypaste-script-22)
-- [**SmartCopyPaste-II Script 2.2**](https://github.com/Eisa01/mpv-scripts#smartcopypaste-ii-script-22)
-- [**SmartHistory Script 1.5.2**](https://github.com/Eisa01/mpv-scripts#smarthistory-script-152)
+- [**SmartCopyPaste Script 2.3**](https://github.com/Eisa01/mpv-scripts#smartcopypaste-script-23)
+- [**SmartCopyPaste-II Script 2.3**](https://github.com/Eisa01/mpv-scripts#smartcopypaste-ii-script-23)
+- [**SmartHistory Script 1.6**](https://github.com/Eisa01/mpv-scripts#smarthistory-script-16)
 - [**SimpleUndo Script 2.5.1**](https://github.com/Eisa01/mpv-scripts#simpleundo-script-251)
 - [**UndoRedo Script 1.5.2**](https://github.com/Eisa01/mpv-scripts#undoredo-script-152)
 
 **The following scripts can conflict with each other:**
 - Either install SmartCopyPaste or SmartCopyPaste-II.
 - Either install SimpleUndo or UndoRedo.
-# SmartCopyPaste Script 2.2
-SmartCopyPaste is a script for mpv media player, the script adds a smart copy paste experience to mpv. It gives mpv the ability to load videos simply by pasting them into mpv. As for copying, pressing <kbd>ctrl</kbd>+<kbd>c</kbd> on a video, copies the video path and its time to clipboard, which enables paste to resume or to access video with the copied time by pasting. For installation, download *`SmartCopyPaste-2.2.lua`* file into your `mpv/scripts/` directory. 
+# SmartCopyPaste Script 2.3
+SmartCopyPaste is a script for mpv media player, the script adds a smart copy paste experience to mpv. It gives mpv the ability to load videos simply by pasting them into mpv. As for copying, pressing <kbd>ctrl</kbd>+<kbd>c</kbd> on a video, copies the video path and its time to clipboard, which enables paste to resume or to access video with the copied time by pasting. For installation, download *`SmartCopyPaste-2.3.lua`* file into your `mpv/scripts/` directory. 
 ### SmartCopyPaste Main Features
 - **Copy and Paste:** Adds ability to copy and paste any type of video to mpv, like (urls, video paths, or local videos)
 - **youtube-dl Extension Support:** Immediately paste links without finding exact video address for youtube and any other youtube-dl extension supported sites.
 - **Peerflix Extension Support:** Immediately paste torrent links or magnet links when proper peerflix extensions are installed. 
-- **Customization:** In the script there are user customizable settings, such as the option to change the copy and paste command for each platform, option to add or remove file extensions and protocols that you want copying and pasting to accept, option of setting device OS manually if automatic detection fails, option to change and add more keyboard shortcuts (keybinds), and more...
+- **Customization:** In the script there are user customizable settings, such as the option to change the copy and paste command for each platform, option to add or remove file extensions and protocols that you want copying and pasting to accept, option of setting device OS manually if automatic detection fails, option to change / add more keyboard shortcuts (keybinds), and more...
 - **OSD** (On Screen Display): Displays any SmartCopyPaste action within mpv.
 ### SmartCopyPaste Usage Guide
 **While running a video:**
@@ -37,18 +37,18 @@ SmartCopyPaste is a script for mpv media player, the script adds a smart copy pa
 - Windows OS (default powershell, customizable / can be changed in the settings inside the script).
 - MAC OS (default pbcopy and pbpaste, customizable / can be changed in the settings inside the script).
 - Linux OS (default xclip, customizable / can be changed in the settings inside the script).
-# SmartCopyPaste-II Script 2.2
+# SmartCopyPaste-II Script 2.3
 SmartCopyPaste is a script for mpv media player, the script adds a smart copy paste experience to mpv. It gives mpv the ability to load videos simply by pasting them into mpv. As for copying, pressing <kbd>ctrl</kbd>+<kbd>c</kbd> on a video, copies the video path and its time to clipboard, which enables paste to resume or to access video with the copied time by pasting. 
 The **II** version contain additional features which saves your clipboard into a log file. The log adds the option to paste at any time even if clipboard was overwritten or cleared. 
 
-Basically,  the **II**  version is enhanced with a bookmark feature, copying a video will bookmark the video and time, while pasting will access the bookmark (even if clipboard is cleared). For installation, download *`SmartCopyPaste-II-2.2.lua`* file into your `mpv/scripts/` directory. 
+Basically,  the **II**  version is enhanced with a bookmark feature, copying a video will bookmark the video and time, while pasting will access the bookmark (even if clipboard is cleared). For installation, download *`SmartCopyPaste-II-2.3.lua`* file into your `mpv/scripts/` directory. 
 ### SmartCopyPaste-II Main Features
 - **Copy and Paste:** Adds ability to copy and paste any type of video to mpv, like (urls, video paths, or local videos)
 - **Bookmark:** Any copy in a video is also a bookmark point, to access the bookmark simply paste.
 - **Saves Clipboard to a Log File:** The copies from mpv, and the pastes into mpv will be kept in a log file; log file location for Windows OS: `%APPDATA%\mpv\mpvClipboard.log`, for Linux OS and MAC OS: `~\.config\mpv\mpvClipboard.log`. This is necessary for the bookmark feature.
 - **youtube-dl Extension Support:** Immediately paste links without finding exact video address for youtube and any other youtube-dl extension supported sites.
 - **Peerflix Extension Support:** Immediately paste torrent links or magnet links when proper peerflix extensions are installed. 
-- **Customization:** In the script there are user customizable settings, such as the option to change the copy and paste command for each platform, option to add or remove file extensions and protocols that you want copying and pasting to accept, option of setting device OS manually if automatic detection fails, option to change and add more keyboard shortcuts (keybinds), and more...
+- **Customization:** In the script there are user customizable settings, such as the option to change the copy and paste command for each platform, option to add or remove file extensions and protocols that you want copying and pasting to accept, option of setting device OS manually if automatic detection fails, option to change / add more keyboard shortcuts (keybinds), and more...
 - **OSD:** Displays any SmartCopyPaste action within mpv.
 ### SmartCopyPaste-II Usage Guide
 **While running a video:**
@@ -70,8 +70,8 @@ Basically,  the **II**  version is enhanced with a bookmark feature, copying a v
 - Windows OS (default powershell, customizable / can be changed in the settings inside the script).
 - MAC OS (default pbcopy and pbpaste, customizable / can be changed in the settings inside the script).
 - Linux OS (default xclip, customizable / can be changed in the settings inside the script).
-# SmartHistory Script 1.5.2
-SmartHistory is a script for mpv media player, the script adds a smart history functionality to mpv. It logs videos that you opened into a log file along with the time you have reached on each video; log file location for Windows OS: `%APPDATA%\mpv\mpvHistory.log`, for Linux OS and MAC OS: `~\.config\mpv\mpvHistory.log`. The script uses the log to provide you with various features. More details about SmartHistory are explained in the sections below. For installation, download *`SmartHistory-1.5.2.lua`* file into your `mpv/scripts/` directory. 
+# SmartHistory Script 1.6
+SmartHistory is a script for mpv media player, the script adds a smart history functionality to mpv. It logs videos that you opened into a log file along with the time you have reached on each video; log file location for Windows OS: `%APPDATA%\mpv\mpvHistory.log`, for Linux OS and MAC OS: `~\.config\mpv\mpvHistory.log`. The script uses the log to provide you with various features. More details about SmartHistory are explained in the sections below. For installation, download *`SmartHistory-1.6.lua`* file into your `mpv/scripts/` directory. 
 ### SmartHistory Main Features
 - **Remember Last Video:** It will always remember your last played video, and <kbd>ctrl</kbd>+<kbd>l</kbd> will jump to your last played video.
 - **Auto Bookmark:** When you exit video, it will always remember position and <kbd>ctrl</kbd>+<kbd>r</kbd> will resume. 
@@ -84,7 +84,8 @@ SmartHistory is a script for mpv media player, the script adds a smart history f
 	- Useful for cases when you opened another video by accident and you want to get back to the last video
 
 **While `NOT` running a video:**
-- <kbd>ctrl</kbd>+<kbd>l</kbd> to immediately load last closed video 
+- <kbd>ctrl</kbd>+<kbd>l</kbd> to load last closed video
+- <kbd>ctrl</kbd>+<kbd>r</kbd> to load and resume last closed video 
 ### SmartHistory Compatibility
 - Works on all of mpv supported platforms.
 # SimpleUndo Script 2.5.1
