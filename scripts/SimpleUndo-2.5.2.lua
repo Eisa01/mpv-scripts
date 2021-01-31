@@ -54,14 +54,14 @@ mp.register_event('seek', function()
 	countTimer = 0
 end)
 
-mp.register_event('pause', function()
-	timer:stop()
-	pause = true
-end)
-
-mp.register_event('unpause', function()
-	timer:resume()
-	pause = false
+mp.observe_property('pause', 'bool', function(name, value)
+	if value then
+		timer:stop()
+		pause = true
+	elseif timer then  -- otherwise we error on startup, likely because the property is observed as startup, but timer not yet set
+		timer:resume()
+		pause = false
+	end
 end)
 
 mp.register_event('end-file', function()
