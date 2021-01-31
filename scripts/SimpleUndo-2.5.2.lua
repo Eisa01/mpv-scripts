@@ -3,7 +3,7 @@
 
 -- Creator: Eisa AlAwadhi
 -- Project: SimpleUndo
--- Version: 2.5.1
+-- Version: 2.5.2
 
 local utils = require 'mp.utils'
 local seconds = 0
