@@ -3,7 +3,7 @@
 
 -- Creator: Eisa AlAwadhi
 -- Project: SimpleUndo
--- Version: 3.0
+-- Version: 3.0.1
 
 local utils = require 'mp.utils'
 local seconds = 0
@@ -60,10 +60,12 @@ end)
 
 mp.observe_property('pause', 'bool', function(name, value)
 	if value then
-		timer:stop()
+		if timer ~= nil then
+			timer:stop()
+		end
 		pause = true
 	else
-		if timer ~= nil then
+		if timer ~= nil then 
 			timer:resume()
 		end
 		pause = false
