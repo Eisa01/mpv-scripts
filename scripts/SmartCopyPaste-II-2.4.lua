@@ -1,9 +1,9 @@
--- Copyright (c) 2020, Eisa AlAwadhi
+-- Copyright (c) 2021, Eisa AlAwadhi
 -- License: BSD 2-Clause License
 
 -- Creator: Eisa AlAwadhi
 -- Project: SmartCopyPaste-II
--- Version: 2.3
+-- Version: 2.4
 
 local utils = require 'mp.utils'
 local msg = require 'mp.msg'
@@ -422,19 +422,15 @@ if device == 'mac' then --MAC OS Keybinds
 	mp.add_key_binding('Meta+v', 'paste', paste)
 	mp.add_key_binding('Meta+V', 'pasteCaps', paste)
 
-	mp.add_key_binding('Meta+alt+c', 'copy-path', copy_path)
-	mp.add_key_binding('Meta+alt+C', 'copy-pathCaps', copy_path)
-	mp.add_key_binding('Meta+alt+v', 'paste-playlist', paste_playlist)
-	mp.add_key_binding('Meta+alt+V', 'paste-playlistCaps', paste_playlist)
+	mp.add_key_binding('Meta+shift+c', 'copy-path', copy_path)
+	mp.add_key_binding('Meta+shift+v', 'paste-playlist', paste_playlist)
 else --Windows and Linux Keybinds
 	mp.add_key_binding('ctrl+c', 'copy', copy)
 	mp.add_key_binding('ctrl+C', 'copyCaps', copy)
 	mp.add_key_binding('ctrl+v', 'paste', paste)
 	mp.add_key_binding('ctrl+V', 'pasteCaps', paste)
 
-	mp.add_key_binding('ctrl+alt+c', 'copy-path', copy_path)
-	mp.add_key_binding('ctrl+alt+C', 'copy-pathCaps', copy_path)
-	mp.add_key_binding('ctrl+alt+v', 'paste-playlist', paste_playlist)
-	mp.add_key_binding('ctrl+alt+V', 'paste-playlistCaps', paste_playlist)
+	mp.add_key_binding('ctrl+shift+c', 'copy-path', copy_path)
+	mp.add_key_binding('ctrl+shift+v', 'paste-playlist', paste_playlist)
 end
 ---------------------END OF KEYBINDS CUSTOMIZATION SETTINGS---------------------------------
