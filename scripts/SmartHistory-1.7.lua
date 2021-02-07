@@ -1,9 +1,9 @@
--- Copyright (c) 2020, Eisa AlAwadhi
+-- Copyright (c) 2021, Eisa AlAwadhi
 -- License: BSD 2-Clause License
 
 -- Creator: Eisa AlAwadhi
 -- Project: SmartHistory
--- Version: 1.6
+-- Version: 1.7
 
 local utils = require 'mp.utils'
 local seconds = 0
@@ -56,18 +56,20 @@ mp.register_event('playback-restart', function()
 	seconds = seconds + time
 end)
 
-mp.register_event('pause', function()
-	timer:stop()
-	time = math.floor(mp.get_property_number('time-pos') or 0)
-	seconds = time
-	pause = true
-end)
-
-mp.register_event('unpause', function()
-	timer:resume()
-	time = math.floor(mp.get_property_number('time-pos') or 0)
-	seconds = time
-	pause = false
+mp.observe_property('pause', 'bool', function(name, value)
+	if value then
+		timer:stop()
+		time = math.floor(mp.get_property_number('time-pos') or 0)
+		seconds = time
+		pause = true
+	else
+		if timer ~= nil then
+			timer:resume()
+		end
+		time = math.floor(mp.get_property_number('time-pos') or 0)
+		seconds = time
+		pause = false
+	end
 end)
 
 mp.register_event('end-file', function()
