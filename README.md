@@ -2,17 +2,17 @@
 This repository contain scripts I have made for [mpv media player](https://github.com/mpv-player/mpv/). To add scripts from this repository, download the desired script in your `mpv/scripts/` directory (click [here](https://mpv.io/manual/master/#lua-scripting) to know more about mpv scripts).
 
 **This repository contain the following scripts:**
-- [**SmartCopyPaste Script 2.3**](https://github.com/Eisa01/mpv-scripts#smartcopypaste-script-23)
-- [**SmartCopyPaste-II Script 2.3**](https://github.com/Eisa01/mpv-scripts#smartcopypaste-ii-script-23)
-- [**SmartHistory Script 1.6**](https://github.com/Eisa01/mpv-scripts#smarthistory-script-16)
-- [**SimpleUndo Script 2.5.1**](https://github.com/Eisa01/mpv-scripts#simpleundo-script-251)
-- [**UndoRedo Script 1.5.2**](https://github.com/Eisa01/mpv-scripts#undoredo-script-152)
+- [**SmartCopyPaste Script 2.4**](https://github.com/Eisa01/mpv-scripts#smartcopypaste-script-24)
+- [**SmartCopyPaste-II Script 2.4**](https://github.com/Eisa01/mpv-scripts#smartcopypaste-ii-script-24)
+- [**SmartHistory Script 1.7**](https://github.com/Eisa01/mpv-scripts#smarthistory-script-17)
+- [**SimpleUndo Script 3.0**](https://github.com/Eisa01/mpv-scripts#simpleundo-script-30)
+- [**UndoRedo Script 2.0**](https://github.com/Eisa01/mpv-scripts#undoredo-script-20)
 
 **The following scripts can conflict with each other:**
 - Either install SmartCopyPaste or SmartCopyPaste-II.
 - Either install SimpleUndo or UndoRedo.
-# SmartCopyPaste Script 2.3
-SmartCopyPaste is a script for mpv media player, the script adds a smart copy paste experience to mpv. It gives mpv the ability to load videos simply by pasting them into mpv. As for copying, pressing <kbd>ctrl</kbd>+<kbd>c</kbd> on a video, copies the video path and its time to clipboard, which enables paste to resume or to access video with the copied time by pasting. For installation, download *`SmartCopyPaste-2.3.lua`* file into your `mpv/scripts/` directory. 
+# SmartCopyPaste Script 2.4
+SmartCopyPaste is a script for mpv media player, the script adds a smart copy paste experience to mpv. It gives mpv the ability to load videos simply by pasting them into mpv. As for copying, pressing <kbd>Ctrl</kbd>+<kbd>c</kbd> on a video, copies the video path and its time to clipboard, which enables paste to resume or to access video with the copied time by pasting. For installation, download *`SmartCopyPaste-2.4.lua`* file into your `mpv/scripts/` directory. 
 ### SmartCopyPaste Main Features
 - **Copy and Paste:** Adds ability to copy and paste any type of video to mpv, like (urls, video paths, or local videos)
 - **youtube-dl Extension Support:** Immediately paste links without finding exact video address for youtube and any other youtube-dl extension supported sites.
@@ -21,15 +21,15 @@ SmartCopyPaste is a script for mpv media player, the script adds a smart copy pa
 - **OSD** (On Screen Display): Displays any SmartCopyPaste action within mpv.
 ### SmartCopyPaste Usage Guide
 **While running a video:**
-- <kbd>ctrl</kbd>+<kbd>c</kbd> to copy video path with resume time
-- *<kbd>ctrl</kbd>+<kbd>v</kbd> does the following:*
+- <kbd>Ctrl</kbd>+<kbd>c</kbd> to copy video path with resume time
+- *<kbd>Ctrl</kbd>+<kbd>v</kbd> does the following:*
 	- To jump to the copied time
 	- Or when different video is copied, <kbd>ctrl</kbd>+<kbd>v</kbd> will add it into playlist
-- <kbd>ctrl</kbd>+<kbd>alt</kbd>+<kbd>c</kbd> to copy video path without resume time
-- <kbd>ctrl</kbd>+<kbd>alt</kbd>+<kbd>v</kbd> to add video into playlist to play it next
+- <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>c</kbd> to copy video path without resume time
+- <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>v</kbd> to add video into playlist to play it next
 
 **While `NOT` running a video:**
-- <kbd>ctrl</kbd>+<kbd>v</kbd> to play the copied video with resume time _if available_
+- <kbd>Ctrl</kbd>+<kbd>v</kbd> to play the copied video with resume time _if available_
 
 **Sidenote:**
 - MAC OS will automatically use <kbd>command</kbd> instead of <kbd>ctrl</kbd> key
@@ -37,11 +37,11 @@ SmartCopyPaste is a script for mpv media player, the script adds a smart copy pa
 - Windows OS (default powershell, customizable / can be changed in the settings inside the script).
 - MAC OS (default pbcopy and pbpaste, customizable / can be changed in the settings inside the script).
 - Linux OS (default xclip, customizable / can be changed in the settings inside the script).
-# SmartCopyPaste-II Script 2.3
-SmartCopyPaste is a script for mpv media player, the script adds a smart copy paste experience to mpv. It gives mpv the ability to load videos simply by pasting them into mpv. As for copying, pressing <kbd>ctrl</kbd>+<kbd>c</kbd> on a video, copies the video path and its time to clipboard, which enables paste to resume or to access video with the copied time by pasting. 
+# SmartCopyPaste-II Script 2.4
+SmartCopyPaste is a script for mpv media player, the script adds a smart copy paste experience to mpv. It gives mpv the ability to load videos simply by pasting them into mpv. As for copying, pressing <kbd>Ctrl</kbd>+<kbd>c</kbd> on a video, copies the video path and its time to clipboard, which enables paste to resume or to access video with the copied time by pasting. 
 The **II** version contain additional features which saves your clipboard into a log file. The log adds the option to paste at any time even if clipboard was overwritten or cleared. 
 
-Basically,  the **II**  version is enhanced with a bookmark feature, copying a video will bookmark the video and time, while pasting will access the bookmark (even if clipboard is cleared). For installation, download *`SmartCopyPaste-II-2.3.lua`* file into your `mpv/scripts/` directory. 
+Basically,  the **II**  version is enhanced with a bookmark feature, copying a video will bookmark the video and time, while pasting will access the bookmark (even if clipboard is cleared). For installation, download *`SmartCopyPaste-II-2.4.lua`* file into your `mpv/scripts/` directory. 
 ### SmartCopyPaste-II Main Features
 - **Copy and Paste:** Adds ability to copy and paste any type of video to mpv, like (urls, video paths, or local videos)
 - **Bookmark:** Any copy in a video is also a bookmark point, to access the bookmark simply paste.
@@ -52,15 +52,15 @@ Basically,  the **II**  version is enhanced with a bookmark feature, copying a v
 - **OSD:** Displays any SmartCopyPaste action within mpv.
 ### SmartCopyPaste-II Usage Guide
 **While running a video:**
-- <kbd>ctrl</kbd>+<kbd>c</kbd> to copy video path with resume time and bookmark it
-- *<kbd>ctrl</kbd>+<kbd>v</kbd> does the following:*
+- <kbd>Ctrl</kbd>+<kbd>c</kbd> to copy video path with resume time and bookmark it
+- *<kbd>Ctrl</kbd>+<kbd>v</kbd> does the following:*
 	- To jump to the copied time
 	- Or to jump to the bookmarked position in the bookmarked video (resume)
-- <kbd>ctrl</kbd>+<kbd>alt</kbd>+<kbd>c</kbd> to copy video path without resume time and bookmark
-- <kbd>ctrl</kbd>+<kbd>alt</kbd>+<kbd>v</kbd> to add video into playlist to play it next
+- <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>c</kbd> to copy video path without resume time and bookmark
+- <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>v</kbd> to add video into playlist to play it next
 	
 **While `NOT` running a video:**
-- *<kbd>ctrl</kbd>+<kbd>v</kbd> does the following:*
+- *<kbd>Ctrl</kbd>+<kbd>v</kbd> does the following:*
 	- To play the copied video with resume time _if available_
 	- Or when no video is currently copied, <kbd>ctrl</kbd>+<kbd>v</kbd> will find and play your last copied or pasted video
 	
@@ -70,45 +70,45 @@ Basically,  the **II**  version is enhanced with a bookmark feature, copying a v
 - Windows OS (default powershell, customizable / can be changed in the settings inside the script).
 - MAC OS (default pbcopy and pbpaste, customizable / can be changed in the settings inside the script).
 - Linux OS (default xclip, customizable / can be changed in the settings inside the script).
-# SmartHistory Script 1.6
-SmartHistory is a script for mpv media player, the script adds a smart history functionality to mpv. It logs videos that you opened into a log file along with the time you have reached on each video; log file location for Windows OS: `%APPDATA%\mpv\mpvHistory.log`, for Linux OS and MAC OS: `~\.config\mpv\mpvHistory.log`. The script uses the log to provide you with various features. More details about SmartHistory are explained in the sections below. For installation, download *`SmartHistory-1.6.lua`* file into your `mpv/scripts/` directory. 
+# SmartHistory Script 1.7
+SmartHistory is a script for mpv media player, the script adds a smart history functionality to mpv. It logs videos that you opened into a log file along with the time you have reached on each video; log file location for Windows OS: `%APPDATA%\mpv\mpvHistory.log`, for Linux OS and MAC OS: `~\.config\mpv\mpvHistory.log`. The script uses the log to provide you with various features. More details about SmartHistory are explained in the sections below. For installation, download *`SmartHistory-1.7.lua`* file into your `mpv/scripts/` directory. 
 ### SmartHistory Main Features
-- **Remember Last Video:** It will always remember your last played video, and <kbd>ctrl</kbd>+<kbd>l</kbd> will jump to your last played video.
-- **Auto Bookmark:** When you exit video, it will always remember position and <kbd>ctrl</kbd>+<kbd>r</kbd> will resume. 
+- **Remember Last Video:** It will always remember your last played video, and <kbd>Ctrl</kbd>+<kbd>l</kbd> will jump to your last played video.
+- **Auto Bookmark:** When you exit video, it will always remember position and <kbd>Ctrl</kbd>+<kbd>r</kbd> will resume. 
 - **Logs Opened Videos to a Log File:** All videos opened in mpv will be logged to create a history file; log file location for Windows OS: `%APPDATA%\mpv\mpvHistory.log`, for Linux OS and MAC OS: `~\.config\mpv\mpvHistory.log`. The format is: [date and time] of accessing video, the path, then | reached video time. This is necessary for Remember Last Video and Auto Bookmark features.
 - **OSD:** Displays any SmartHistory action within mpv.
 ### SmartHistory Usage Guide
 **While running a video:**
-- <kbd>ctrl</kbd>+<kbd>r</kbd> to resume in any previously closed videos
-- <kbd>ctrl</kbd>+<kbd>l</kbd> to add previously closed video into playlist  
+- <kbd>Ctrl</kbd>+<kbd>r</kbd> to resume in any previously closed videos
+- <kbd>Ctrl</kbd>+<kbd>l</kbd> to add previously closed video into playlist  
 	- Useful for cases when you opened another video by accident and you want to get back to the last video
 
 **While `NOT` running a video:**
-- <kbd>ctrl</kbd>+<kbd>l</kbd> to load last closed video
-- <kbd>ctrl</kbd>+<kbd>r</kbd> to load and resume last closed video 
+- <kbd>Ctrl</kbd>+<kbd>l</kbd> to load last closed video
+- <kbd>Ctrl</kbd>+<kbd>r</kbd> to load and resume last closed video 
 ### SmartHistory Compatibility
 - Works on all of mpv supported platforms.
-# SimpleUndo Script 2.5.1
-SimpleUndo is a script for mpv media player, the script adds a simple undo functionality into mpv. If you accidentally seek/jump to a different time in the video, press undo <kbd>ctrl</kbd>+<kbd>z</kbd> to return to your previous time and vice-versa. For installation, download *`SimpleUndo-2.5.1.lua`* file into your `mpv/scripts/` directory. 
+# SimpleUndo Script 3.0
+SimpleUndo is a script for mpv media player, the script adds a simple undo functionality into mpv. If you accidentally seek/jump to a different time in the video, press undo <kbd>Ctrl</kbd>+<kbd>z</kbd> to return to your previous time and vice-versa. For installation, download *`SimpleUndo-3.0.lua`* file into your `mpv/scripts/` directory. 
 ### SimpleUndo Main Features
-- **Simple Undo:** Undo accidental time jumps in videos by pressing <kbd>ctrl</kbd>+<kbd>z</kbd> and press again to return to previous position.
+- **Simple Undo:** Undo accidental time jumps in videos by pressing <kbd>Ctrl</kbd>+<kbd>z</kbd> and press again to return to previous position.
 - **OSD:** Displays any SimpleUndo action within mpv.
 ### SimpleUndo Usage Guide
-- <kbd>ctrl</kbd>+<kbd>z</kbd> to undo accidental seek by returning to previous time and vise-versa.
+- <kbd>Ctrl</kbd>+<kbd>z</kbd> to undo accidental seek by returning to previous time and vise-versa.
 ### SimpleUndo Compatibility
 - Works on all of mpv supported platforms.
-# UndoRedo Script 1.5.2
-UndoRedo is a script for mpv media player, the script adds undo, and redo functionality into mpv. If you seek/jump to a different time in the video, press undo <kbd>ctrl</kbd>+<kbd>z</kbd> to linearly undo the seeks/jumps in the video, and press redo <kbd>ctrl</kbd>+<kbd>y</kbd> to linearly return to previous undo positions. For installation, download *`UndoRedo-1.5.2.lua`* file into your `mpv/scripts/` directory. 
+# UndoRedo Script 2.0
+UndoRedo is a script for mpv media player, the script adds undo, and redo functionality into mpv. If you seek/jump to a different time in the video, press undo <kbd>Ctrl</kbd>+<kbd>z</kbd> to linearly undo the seeks/jumps in the video, and press redo <kbd>Ctrl</kbd>+<kbd>y</kbd> to linearly return to previous undo positions. For installation, download *`UndoRedo-2.0.lua`* file into your `mpv/scripts/` directory. 
 ### UndoRedo Main Features
 - **Undo and Redo:** Undo any accident time jumps in the video by pressing <kbd>ctrl</kbd>+<kbd>z</kbd> and redo the jumps by <kbd>ctrl</kbd>+<kbd>y</kbd>.
-- **Simple Undo:** Undo accidental time jumps in videos by pressing <kbd>ctrl</kbd>+<kbd>alt</kbd>+<kbd>z</kbd> and press again to return to previous position.
+- **Simple Undo:** Undo accidental time jumps in videos by pressing <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>z</kbd> and press again to return to previous position.
 - **OSD:** Displays any SimpleUndo action within mpv.
 ### UndoRedo Usage Guide
-- <kbd>ctrl</kbd>+<kbd>z</kbd> to undo by returning to previous times. 
+- <kbd>Ctrl</kbd>+<kbd>z</kbd> to undo by returning to previous times. 
 	- Example: from second 30 jumped to minute 5, then 10, then 15. Undo will return to 10, undo again to return to 5, undo again to return to second 30.
-- <kbd>ctrl</kbd>+<kbd>y</kbd> to redo by restoring undo times. 
+- <kbd>Ctrl</kbd>+<kbd>y</kbd> to redo by restoring undo times. 
 	- Example: from second 30 jumped to minute 5, then 10. Undo twice for second 30. Redo will restore to 5, redo again to restore to 10.
-- <kbd>ctrl</kbd>+<kbd>alt</kbd>+<kbd>z</kbd> loop between last undo and redo.
+- <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>z</kbd> loop between last undo and redo.
 	- This is for quick undo & redo (Just like **SimpleUndo**) it loops between the last undo & redo.
 ### UndoRedo Compatibility
 - Works on all of mpv supported platforms.
