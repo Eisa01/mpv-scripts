@@ -3,7 +3,7 @@
 
 -- Creator: Eisa AlAwadhi
 -- Project: SimpleUndo
--- Version: 2.5.2
+-- Version: 3.0
 
 local utils = require 'mp.utils'
 local seconds = 0
@@ -12,6 +12,20 @@ local previousUndoTime = 0
 local undoTime = 0
 
 local pause = false
+
+local function getUndo()
+	previousUndoTime = undoTime
+	undoTime = math.floor(mp.get_property_number('time-pos'))
+
+	if (pause == true) then
+		seconds = seconds
+	else
+		seconds = seconds - 0.5
+	end
+	
+	previousUndoTime = previousUndoTime + seconds
+	seconds = 0
+end
 
 mp.register_event('file-loaded', function()
 	filePath = mp.get_property('path')
@@ -29,20 +43,9 @@ mp.register_event('file-loaded', function()
 	timer2 = mp.add_periodic_timer(0.1, function()
 	
 		countTimer = countTimer + 0.1
-		
 		if (countTimer == 0.6) then
-			previousUndoTime = undoTime
-			undoTime = math.floor(mp.get_property_number('time-pos'))
-		
-			if (pause == true) then
-				seconds = seconds
-			else
-				seconds = seconds - 0.7
-			end
-			
-			previousUndoTime = previousUndoTime + seconds
-			seconds = 0
-			
+			timer:resume()
+			getUndo()
 		end
 		
 	end)
@@ -50,6 +53,7 @@ mp.register_event('file-loaded', function()
 end)
 
 mp.register_event('seek', function()
+	timer:stop()
 	timer2:resume()
 	countTimer = 0
 end)
@@ -58,8 +62,10 @@ mp.observe_property('pause', 'bool', function(name, value)
 	if value then
 		timer:stop()
 		pause = true
-	elseif timer then  -- otherwise we error on startup, likely because the property is observed as startup, but timer not yet set
-		timer:resume()
+	else
+		if timer ~= nil then
+			timer:resume()
+		end
 		pause = false
 	end
 end)
@@ -79,21 +85,27 @@ end)
 
 local function undo()
 	if (filePath ~= nil) and (countTimer > 0.5) then
-	
+		
 		if (previousUndoTime < 0) then
 			previousUndoTime = 0
 		end
 		
 		mp.commandv('seek', previousUndoTime, 'absolute', 'exact')
-		
 		mp.osd_message('Undo')
 	elseif (filePath ~= nil) and (countTimer > 0) and (countTimer < 0.6) then
-		mp.osd_message('Seeking Still Running')
+		
+		getUndo()
+		
+		if (previousUndoTime < 0) then
+			previousUndoTime = 0
+		end
+		
+		mp.commandv('seek', previousUndoTime, 'absolute', 'exact')
+		mp.osd_message('Undo')
 	elseif (filePath ~= nil) and (countTimer == 0) then
 		mp.osd_message('No Undo Found')
 	end
 end
-
 
 mp.add_key_binding("ctrl+z", "undo", undo)
 mp.add_key_binding("ctrl+Z", "undoCaps", undo)
