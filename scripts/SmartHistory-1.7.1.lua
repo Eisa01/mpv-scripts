@@ -3,7 +3,7 @@
 
 -- Creator: Eisa AlAwadhi
 -- Project: SmartHistory
--- Version: 1.7
+-- Version: 1.7.1
 
 local utils = require 'mp.utils'
 local seconds = 0
@@ -58,7 +58,9 @@ end)
 
 mp.observe_property('pause', 'bool', function(name, value)
 	if value then
-		timer:stop()
+		if timer ~= nil then
+			timer:stop()
+		end
 		time = math.floor(mp.get_property_number('time-pos') or 0)
 		seconds = time
 		pause = true
