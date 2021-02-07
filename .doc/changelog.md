@@ -7,7 +7,10 @@
 - [**UndoRedo Changelog**](https://github.com/Eisa01/mpv-scripts/blob/master/.doc/changelog.md#undoredo-changelog)
 
 ## SmartCopyPaste Changelog
-- Latest Changes **(2.3)** [09/05/2020]
+- Latest Changes **(2.4)** [02/07/2021]
+	- Changed copying video without time from <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>c</kbd> to <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>c</kbd>
+	- Changed pasting to playlist from<kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>c</kbd> to <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>v</kbd>
+- **(2.3)** [09/05/2020]
 	- Added a customizable offset when resuming to position (default of 0.65 seconds, gives a very short and nice preview)
 	- Added pasting indicator since pasting has little delay in Windows OS
 	- Added some speed optimizations	
@@ -58,7 +61,10 @@
 - **(1.0)**
 	- Initial release
 ## SmartCopyPaste-II Changelog
-- Latest Changes **(2.3)** [09/05/2020]
+- Latest Changes **(2.4)** [02/07/2021]
+	- Changed copying video without time from <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>c</kbd> to <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>c</kbd>
+	- Changed pasting to playlist from<kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>c</kbd> to <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>v</kbd>
+- **(2.3)** [09/05/2020]
 	- Added a customizable offset when resuming to position (default of 0.65 seconds, gives a very short and nice preview)
 	- Added pasting indicator since pasting has little delay in Windows OS
 	- Added some speed optimizations	
@@ -109,7 +115,9 @@
 - **(1.0)**
 	- Initial release of an all new SmartCopyPaste-II containing bookmark features for seamless paste experience!
 ## SmartHistory Changelog
-- Latest Changes **(1.6)** [09/05/2020]
+- Latest Changes **(1.7)** [02/07/2021]
+	- Added better support for latest mpv stable version 0.33.0
+- **(1.6)** [09/05/2020]
 	- Added a new feature to immediately load and resume last closed video by pressing [ctrl] + [r] when no video is loaded
 	- Added a customizable offset when resuming to position (default of 0.65 seconds, gives a very short and nice preview)
 	- Added some speed optimizations
@@ -139,7 +147,12 @@
 	- Initial release of SmartHistory Script
 	- Contains simple history log file with many smart features.
 ## SimpleUndo Changelog
-- Latest Changes **(2.5.1)** [12/27/2019]
+- Latest Changes **(3.0)** [02/07/2021]
+	- Killed "Seeking still running" limitation, thanks to a better logic popping-up in my brain for undoing!! Thought it is impossible, but now it is possible to spam Undo without needing to wait 0.6 seconds! Awesome = Version jump to 3.0!
+	- Fixed seconds timer not pausing when seeking, this results in a very accurate undo capability!
+	- Added code optimizations
+	- Added better support for latest mpv stable version 0.33.0
+- **(2.5.1)** [12/27/2019]
 	- Fixed bug that caused script to crash if mpv opened a directory
 - **(2.5)** [12/01/2019]
  	- Fixed bug that occurred when using playlists
@@ -163,7 +176,14 @@
  - **(1.0)** [2/23/2019] 
 	- Initial release of SimpleUndo Script
 ## UndoRedo Changelog
-- Latest Changes **(1.5.2)** [4/8/2020]
+- Latest Changes **(2.0)** [02/07/2021]
+	- Killed "Seeking still running" limitation, thanks to a better logic popping-up in my brain for undoing!! Thought it is impossible, but now it is possible to spam Undo and Redo without needing to wait 0.6 seconds! Awesome = Version jump to 2.0!
+	- Fixed seconds timer not pausing when seeking, this results in a very accurate undo and redo capability!
+	- Fixed <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>z</kbd> not working and not looping between last undo and redo
+	- Changed looping between last undo and redo from<kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>z</kbd> to <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>z</kbd>
+	- Added a lot of code optimizations
+	- Added better support for latest mpv stable version 0.33.0
+- **(1.5.2)** [4/8/2020]
 	- Fixed bug that caused script to crash in older lua versions https://github.com/Eisa01/mpv-scripts/issues/9
 - **(1.5.1)** [12/27/2019]
 	- Fixed bug that caused script to crash if mpv opened a directory
