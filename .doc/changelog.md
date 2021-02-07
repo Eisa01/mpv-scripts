@@ -115,7 +115,9 @@
 - **(1.0)**
 	- Initial release of an all new SmartCopyPaste-II containing bookmark features for seamless paste experience!
 ## SmartHistory Changelog
-- Latest Changes **(1.7)** [02/07/2021]
+- Latest Changes **(1.7.1)** [02/07/2021]
+	- Fixed issue that caused script to crash. Issue https://github.com/Eisa01/mpv-scripts/issues/16
+- **(1.7)** [02/07/2021]
 	- Added better support for latest mpv stable version 0.33.0
 - **(1.6)** [09/05/2020]
 	- Added a new feature to immediately load and resume last closed video by pressing [ctrl] + [r] when no video is loaded
@@ -147,7 +149,9 @@
 	- Initial release of SmartHistory Script
 	- Contains simple history log file with many smart features.
 ## SimpleUndo Changelog
-- Latest Changes **(3.0)** [02/07/2021]
+- Latest Changes **(3.0.1)** [02/07/2021]
+	- Fixed issue that caused script to crash. Issue https://github.com/Eisa01/mpv-scripts/issues/16
+- **(3.0)** [02/07/2021]
 	- Killed "Seeking still running" limitation, thanks to a better logic popping-up in my brain for undoing!! Thought it is impossible, but now it is possible to spam Undo without needing to wait 0.6 seconds! Awesome = Version jump to 3.0!
 	- Fixed seconds timer not pausing when seeking, this results in a very accurate undo capability!
 	- Added code optimizations
@@ -176,6 +180,8 @@
  - **(1.0)** [2/23/2019] 
 	- Initial release of SimpleUndo Script
 ## UndoRedo Changelog
+- Latest Changes **(2.0.1)** [02/07/2021]
+	- Fixed issue that caused script to crash. Issue https://github.com/Eisa01/mpv-scripts/issues/16
 - Latest Changes **(2.0)** [02/07/2021]
 	- Killed "Seeking still running" limitation, thanks to a better logic popping-up in my brain for undoing!! Thought it is impossible, but now it is possible to spam Undo and Redo without needing to wait 0.6 seconds! Awesome = Version jump to 2.0!
 	- Fixed seconds timer not pausing when seeking, this results in a very accurate undo and redo capability!
