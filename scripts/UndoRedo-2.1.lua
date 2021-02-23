@@ -3,11 +3,11 @@
 
 -- Creator: Eisa AlAwadhi
 -- Project: UndoRedo
--- Version: 2.0.1
+-- Version: 2.1
 
 local utils = require 'mp.utils'
 local seconds = 0
-local countTimer = 0
+local countTimer = -1
 local seekTime = 0
 
 local seekNumber = 0
@@ -40,9 +40,9 @@ local function getUndoRedo()
 			currentIndex = seekNumber
 			seekTime = math.floor(mp.get_property_number('time-pos'))
 			table.insert(seekTable, seekNumber, seekTime)
-			
+
 			undoRedo = 0
-	
+
 	elseif (seeking == 1) then
 		seeking = 0
 	end
@@ -54,13 +54,13 @@ mp.register_event('file-loaded', function()
 	timer = mp.add_periodic_timer(0.1, function()
 		seconds = seconds + 0.1
 	end)
-	
+
 	if (pause == true) then
 		timer:stop()
 	else
 		timer:resume()
 	end
-	
+
 	timer2 = mp.add_periodic_timer(0.1, function()
 		countTimer = countTimer + 0.1
 		
@@ -70,15 +70,15 @@ mp.register_event('file-loaded', function()
 		end
 
 	end)
-	
+
 	timer2:stop()
 end)
 
 
 mp.register_event('seek', function()
-	timer:stop()
-	timer2:resume()
 	countTimer = 0
+	timer2:resume()
+	timer:stop()
 end)
 
 mp.observe_property('pause', 'bool', function(name, value)
@@ -88,7 +88,7 @@ mp.observe_property('pause', 'bool', function(name, value)
 		end
 		pause = true
 	else
-		if timer ~= nil then 
+		if timer ~= nil then
 			timer:resume()
 		end
 		pause = false
@@ -106,90 +106,69 @@ mp.register_event('end-file', function()
 	currentIndex = 0
 	undoRedo = 0
 	seconds = 0
-	countTimer = 0
+	countTimer = -1
 	seekTable[0] = 0
 end)
 
 local function undo()
-	if (filePath ~= nil) and (currentIndex > 0) and (seeking == 0) then
-		
-		prepareUndoRedo()
-		currentIndex = currentIndex - 1
-		
-		if (seekTable[currentIndex] < 0) then
-			seekTable[currentIndex] = 0
-		end
-		
-		mp.commandv('seek', seekTable[currentIndex], 'absolute', 'exact')
-		
-		seeking = 1
-		undoRedo = 1
-		
-		mp.osd_message('Undo')
-	elseif (filePath ~= nil) and (countTimer > 0) and (countTimer < 0.6) then
+	if (filePath ~= nil) and (countTimer >= 0) and (countTimer < 0.6) and (seeking == 0) then
+		timer2:stop()
 
 		getUndoRedo()
-		
+
 		currentIndex = currentIndex - 1
 		if (currentIndex < 0) then
 			mp.osd_message('No Undo Found')
 			currentIndex = 0
-			seeking = 1 
-			undoRedo = 1
-			
 		else
 			if (seekTable[currentIndex] < 0) then
 				seekTable[currentIndex] = 0
 			end
-			
-			mp.commandv('seek', seekTable[currentIndex], 'absolute', 'exact')
 
 			seeking = 1
-			undoRedo = 1	
-			
+
+			mp.commandv('seek', seekTable[currentIndex], 'absolute', 'exact')
+
+			undoRedo = 1
+
 			mp.osd_message('Undo')
 		end
+	elseif (filePath ~= nil) and (currentIndex > 0) then
+
+		prepareUndoRedo()
+		currentIndex = currentIndex - 1
+
+		if (seekTable[currentIndex] < 0) then
+			seekTable[currentIndex] = 0
+		end
+
+		seeking = 1
+		mp.commandv('seek', seekTable[currentIndex], 'absolute', 'exact')
+
+		undoRedo = 1
+
+		mp.osd_message('Undo')
 	elseif (filePath ~= nil) and (currentIndex == 0) then
 		mp.osd_message('No Undo Found')
 	end
 end
 
 local function redo()
-	if (filePath ~= nil) and (currentIndex < seekNumber) and (seeking == 0) then
-	
+	if (filePath ~= nil) and (currentIndex < seekNumber) then
+
 		prepareUndoRedo()
-		currentIndex = currentIndex + 1 
-		
+		currentIndex = currentIndex + 1
+
 		if (seekTable[currentIndex] < 0) then
 			seekTable[currentIndex] = 0
 		end
-		
+
+	    seeking = 1
 		mp.commandv('seek', seekTable[currentIndex], 'absolute', 'exact')
 
-		seeking = 1
 		undoRedo = 0
-		
+
 		mp.osd_message('Redo')
-	elseif (filePath ~= nil) and (countTimer > 0) and (countTimer < 0.6) then
-		getUndoRedo()
-		currentIndex = currentIndex + 1
-		if (currentIndex > seekNumber) then
-			mp.osd_message('No Redo Found') 
-			currentIndex = currentIndex - 1
-			seeking = 1
-			undoRedo = 0
-		else
-			if (seekTable[currentIndex] < 0) then
-				seekTable[currentIndex] = 0
-			end
-			
-			mp.commandv('seek', seekTable[currentIndex], 'absolute', 'exact')
-			
-			seeking = 1
-			undoRedo = 0
-			
-			mp.osd_message('Redo')
-		end
 	elseif (filePath ~= nil) and (currentIndex == seekNumber) then
 		mp.osd_message('No Redo Found')
 	end
@@ -200,7 +179,7 @@ local function undoLoop()
 		undo()
 	elseif (filePath ~= nil) and (undoRedo == 1) then
 		redo()
-	elseif (filePath ~= nil) and (countTimer == 0) then
+	elseif (filePath ~= nil) and (countTimer == -1) then
 		mp.osd_message('No Undo Found')
 	end
 end
@@ -212,4 +191,5 @@ mp.add_key_binding("ctrl+Z", "undoCaps", undo)
 mp.add_key_binding("ctrl+y", "redo", redo)
 mp.add_key_binding("ctrl+Y", "redoCaps", redo)
 
-mp.add_key_binding("ctrl+shift+z", "undoLoop", undoLoop)
+mp.add_key_binding("ctrl+alt+z", "undoLoop", undoLoop)
+mp.add_key_binding("ctrl+alt+Z", "undoLoopCaps", undoLoop)
