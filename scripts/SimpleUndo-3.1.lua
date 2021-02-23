@@ -3,11 +3,11 @@
 
 -- Creator: Eisa AlAwadhi
 -- Project: SimpleUndo
--- Version: 3.0.1
+-- Version: 3.1
 
 local utils = require 'mp.utils'
 local seconds = 0
-local countTimer = 0
+local countTimer = -1
 local previousUndoTime = 0
 local undoTime = 0
 
@@ -22,7 +22,7 @@ local function getUndo()
 	else
 		seconds = seconds - 0.5
 	end
-	
+
 	previousUndoTime = previousUndoTime + seconds
 	seconds = 0
 end
@@ -33,29 +33,29 @@ mp.register_event('file-loaded', function()
 	timer = mp.add_periodic_timer(0.1, function()
 		seconds = seconds + 0.1
 	end)
-	
+
 	if (pause == true) then
 		timer:stop()
 	else
 		timer:resume()
 	end
-	
+
 	timer2 = mp.add_periodic_timer(0.1, function()
-	
+
 		countTimer = countTimer + 0.1
 		if (countTimer == 0.6) then
 			timer:resume()
 			getUndo()
 		end
-		
+
 	end)
 	timer2:stop()
 end)
 
 mp.register_event('seek', function()
-	timer:stop()
-	timer2:resume()
 	countTimer = 0
+	timer2:resume()
+	timer:stop()
 end)
 
 mp.observe_property('pause', 'bool', function(name, value)
@@ -82,29 +82,30 @@ mp.register_event('end-file', function()
 	previousUndoTime = 0
 	undoTime = 0
 	seconds = 0
-	countTimer = 0
+	countTimer = -1
 end)
 
 local function undo()
-	if (filePath ~= nil) and (countTimer > 0.5) then
-		
-		if (previousUndoTime < 0) then
-			previousUndoTime = 0
-		end
-		
-		mp.commandv('seek', previousUndoTime, 'absolute', 'exact')
-		mp.osd_message('Undo')
-	elseif (filePath ~= nil) and (countTimer > 0) and (countTimer < 0.6) then
-		
+	if (filePath ~= nil) and (countTimer >= 0) and (countTimer < 0.6) then
+		timer2:stop()
+
 		getUndo()
-		
+
 		if (previousUndoTime < 0) then
 			previousUndoTime = 0
 		end
-		
+
 		mp.commandv('seek', previousUndoTime, 'absolute', 'exact')
 		mp.osd_message('Undo')
-	elseif (filePath ~= nil) and (countTimer == 0) then
+	elseif (filePath ~= nil) and (countTimer > 0.5) then
+
+		if (previousUndoTime < 0) then
+			previousUndoTime = 0
+		end
+
+		mp.commandv('seek', previousUndoTime, 'absolute', 'exact')
+		mp.osd_message('Undo')
+	elseif (filePath ~= nil) and (countTimer == -1) then
 		mp.osd_message('No Undo Found')
 	end
 end
