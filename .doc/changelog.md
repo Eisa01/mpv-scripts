@@ -7,7 +7,9 @@
 - [**UndoRedo Changelog**](https://github.com/Eisa01/mpv-scripts/blob/master/.doc/changelog.md#undoredo-changelog)
 
 ## SmartCopyPaste Changelog
-- Latest Changes **(2.4)** [02/07/2021]
+- Latest Changes **(2.4.1)** [02/23/2021]
+	- Reverted keybind changes back to previous version. <kbd>Alt</kbd> will be used again because changing to <kbd>Shift</kbd> can cause issues.
+- **(2.4)** [02/24/2021]
 	- Changed copying video without time from <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>c</kbd> to <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>c</kbd>
 	- Changed pasting to playlist from<kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>c</kbd> to <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>v</kbd>
 - **(2.3)** [09/05/2020]
@@ -61,7 +63,9 @@
 - **(1.0)**
 	- Initial release
 ## SmartCopyPaste-II Changelog
-- Latest Changes **(2.4)** [02/07/2021]
+- Latest Changes **(2.4.1)** [02/23/2021]
+	- Reverted keybind changes back to previous version. <kbd>Alt</kbd> will be used again because changing to <kbd>Shift</kbd> can cause issues.
+- **(2.4)** [02/07/2021]
 	- Changed copying video without time from <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>c</kbd> to <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>c</kbd>
 	- Changed pasting to playlist from<kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>c</kbd> to <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>v</kbd>
 - **(2.3)** [09/05/2020]
@@ -149,7 +153,10 @@
 	- Initial release of SmartHistory Script
 	- Contains simple history log file with many smart features.
 ## SimpleUndo Changelog
-- Latest Changes **(3.0.1)** [02/07/2021]
+- Latest Changes **(3.1)** [02/23/2021]
+	- Fixed an issue that Undo was not working while seeking
+	- Various optimizations and logic improvements of the script
+- **(3.0.1)** [02/07/2021]
 	- Fixed issue that caused script to crash. Issue https://github.com/Eisa01/mpv-scripts/issues/16
 - **(3.0)** [02/07/2021]
 	- Killed "Seeking still running" limitation, thanks to a better logic popping-up in my brain for undoing!! Thought it is impossible, but now it is possible to spam Undo without needing to wait 0.6 seconds! Awesome = Version jump to 3.0!
@@ -180,9 +187,14 @@
  - **(1.0)** [2/23/2019] 
 	- Initial release of SimpleUndo Script
 ## UndoRedo Changelog
-- Latest Changes **(2.0.1)** [02/07/2021]
+- Latest Changes **(2.1)** [02/23/2021]
+	- Fixed annoying bug that caused multiple quick undos' not registering for redo
+	- Fixed an issue that Undo was not working while seeking
+	- Various optimizations and logic improvements of the script that made the script even smaller
+	- Reverted keybind changes back of previous version
+- **(2.0.1)** [02/07/2021]
 	- Fixed issue that caused script to crash. Issue https://github.com/Eisa01/mpv-scripts/issues/16
-- Latest Changes **(2.0)** [02/07/2021]
+- **(2.0)** [02/07/2021]
 	- Killed "Seeking still running" limitation, thanks to a better logic popping-up in my brain for undoing!! Thought it is impossible, but now it is possible to spam Undo and Redo without needing to wait 0.6 seconds! Awesome = Version jump to 2.0!
 	- Fixed seconds timer not pausing when seeking, this results in a very accurate undo and redo capability!
 	- Fixed <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>z</kbd> not working and not looping between last undo and redo
