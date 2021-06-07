@@ -1,6 +1,8 @@
 # Introduction
 This repository contain scripts I have made for [mpv media player](https://github.com/mpv-player/mpv/). To add scripts from this repository, download the desired script in your `mpv/scripts/` directory (click [here](https://mpv.io/manual/master/#lua-scripting) to know more about mpv scripts).
 
+[MPV.net](https://github.com/stax76/mpv.net) users must change the option `input-default-bindings = no` to `input-default-bindings = yes` located in `MPV.net/mpv.conf` 
+
 **This repository contain the following scripts:**
 - [**SmartCopyPaste Script 2.4.1**](https://github.com/Eisa01/mpv-scripts#smartcopypaste-script)
 - [**SmartCopyPaste-II Script 2.4.1**](https://github.com/Eisa01/mpv-scripts#smartcopypaste-ii-script)
