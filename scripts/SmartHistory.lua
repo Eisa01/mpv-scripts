@@ -3,12 +3,9 @@
 
 -- Creator: Eisa AlAwadhi
 -- Project: SmartHistory
--- Version: 1.7.1
+-- Version: 1.8
 
 local utils = require 'mp.utils'
-local seconds = 0
-local time = 0
-local pause = false
 local empty = false
 local lastVideoTime
 
@@ -24,16 +21,6 @@ local offset = -0.65 --change to 0 so that pasting resumes from the exact positi
 mp.register_event('file-loaded', function()
 	filePath = mp.get_property('path')
 
-	timer = mp.add_periodic_timer(1, function()
-		seconds = seconds + 1
-	end)
-	
-	if (pause == true) then
-		timer:stop()
-	else
-		timer:resume()
-	end
-	
 	if (empty == true) then
 		local seekTime
 		if (lastVideoTime ~= nil) then
@@ -50,46 +37,15 @@ mp.register_event('file-loaded', function()
 	end
 end)
 
-mp.register_event('playback-restart', function()
-	seconds = 0
-	time = math.floor(mp.get_property_number('time-pos') or 0)
-	seconds = seconds + time
-end)
-
-mp.observe_property('pause', 'bool', function(name, value)
-	if value then
-		if timer ~= nil then
-			timer:stop()
-		end
-		time = math.floor(mp.get_property_number('time-pos') or 0)
-		seconds = time
-		pause = true
-	else
-		if timer ~= nil then
-			timer:resume()
-		end
-		time = math.floor(mp.get_property_number('time-pos') or 0)
-		seconds = time
-		pause = false
-	end
-end)
-
-mp.register_event('end-file', function()
+mp.add_hook('on_unload', 50, function()
 	empty = false
 	local historyLog = (os.getenv('APPDATA') or os.getenv('HOME')..'/.config')..'/mpv/mpvHistory.log'
 	local historyLogAdd = io.open(historyLog, 'a+')
 	
-	if string.match(seconds, '-1') then
-		seconds = 0
-	else
-		seconds = seconds
-	end
+	local seconds = math.floor(mp.get_property_number('time-pos') or 0)
 	
 	if (filePath ~= nil) then
 		historyLogAdd:write(('[%s] %s\n'):format(os.date('%d/%b/%y %X'), filePath..' |time='..tostring(seconds)))
-		timer:kill()
-		seconds = 0
-		time = 0
 		historyLogAdd:close()
 	end
 end)
