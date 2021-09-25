@@ -7,7 +7,11 @@
 - [**UndoRedo Changelog**](https://github.com/Eisa01/mpv-scripts/blob/master/.doc/changelog.md#undoredo-changelog)
 
 ## SmartCopyPaste Changelog
-- Latest Changes **(2.4.1)** [02/23/2021]
+- Latest Changes **(2.5)** [09/25/2021]
+	- Added configurable option to disable OSD messages in the script. Closes https://github.com/Eisa01/mpv-scripts/issues/21
+	- Added mpv terminal messages for all actions in the script 
+	- Reviewed and enhanced currently available OSD messages
+- **(2.4.1)** [02/23/2021]
 	- Reverted keybind changes back to previous version. <kbd>Alt</kbd> will be used again because changing to <kbd>Shift</kbd> can cause issues.
 - **(2.4)** [02/24/2021]
 	- Changed copying video without time from <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>c</kbd> to <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>c</kbd>
@@ -63,7 +67,11 @@
 - **(1.0)**
 	- Initial release
 ## SmartCopyPaste-II Changelog
-- Latest Changes **(2.4.1)** [02/23/2021]
+- Latest Changes **(2.5)** [09/25/2021]
+	- Added configurable option to disable OSD messages in the script
+	- Added mpv terminal messages for all actions in the script 
+	- Reviewed and enhanced currently available OSD messages
+- **(2.4.1)** [02/23/2021]
 	- Reverted keybind changes back to previous version. <kbd>Alt</kbd> will be used again because changing to <kbd>Shift</kbd> can cause issues.
 - **(2.4)** [02/07/2021]
 	- Changed copying video without time from <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>c</kbd> to <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>c</kbd>
@@ -119,7 +127,13 @@
 - **(1.0)**
 	- Initial release of an all new SmartCopyPaste-II containing bookmark features for seamless paste experience!
 ## SmartHistory Changelog
-- Latest Changes **(1.7.1)** [02/07/2021]
+- Latest Changes **(1.9)** [09/25/2021]
+	- Added configurable option to disable OSD messages in the script
+	- Added mpv terminal messages for all actions in the script 
+	- Reviewed and enhanced currently available OSD messages
+- **(1.8)** [09/25/2021]
+	- Code enhancements thanks to @snowman, closes https://github.com/Eisa01/mpv-scripts/issues/19
+- **(1.7.1)** [02/07/2021]
 	- Fixed issue that caused script to crash. Issue https://github.com/Eisa01/mpv-scripts/issues/16
 - **(1.7)** [02/07/2021]
 	- Added better support for latest mpv stable version 0.33.0
