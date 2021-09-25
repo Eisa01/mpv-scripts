@@ -3,24 +3,28 @@
 
 -- Creator: Eisa AlAwadhi
 -- Project: UndoRedo
--- Version: 2.1
+-- Version: 2.2
 
 local utils = require 'mp.utils'
+local msg = require 'mp.msg'
 local seconds = 0
 local countTimer = -1
 local seekTime = 0
-
 local seekNumber = 0
 local currentIndex = 0
 local seekTable = {}
 local seeking = 0
-
 local undoRedo = 0
-
 local pause = false
-
 seekTable[0] = 0
 
+----------------------------USER CUSTOMIZATION SETTINGS-----------------------------------
+--These settings are for users to manually change some options in the script.
+--Keybinds can be defined in the bottom of the script.
+
+local osd_messages = true --true is for displaying osd messages when actions occur, Change to false will disable all osd messages generated from this script
+
+---------------------------END OF USER CUSTOMIZATION SETTINGS---------------------
 
 local function prepareUndoRedo()
 	if (pause == true) then
@@ -118,8 +122,11 @@ local function undo()
 
 		currentIndex = currentIndex - 1
 		if (currentIndex < 0) then
-			mp.osd_message('No Undo Found')
+			if (osd_messages == true) then
+				mp.osd_message('No Undo Found')
+			end
 			currentIndex = 0
+			msg.info('No undo found')
 		else
 			if (seekTable[currentIndex] < 0) then
 				seekTable[currentIndex] = 0
@@ -130,8 +137,10 @@ local function undo()
 			mp.commandv('seek', seekTable[currentIndex], 'absolute', 'exact')
 
 			undoRedo = 1
-
-			mp.osd_message('Undo')
+			if (osd_messages == true) then
+				mp.osd_message('Undo')
+			end
+			msg.info('Seeked using undo')
 		end
 	elseif (filePath ~= nil) and (currentIndex > 0) then
 
@@ -146,10 +155,15 @@ local function undo()
 		mp.commandv('seek', seekTable[currentIndex], 'absolute', 'exact')
 
 		undoRedo = 1
-
-		mp.osd_message('Undo')
+		if (osd_messages == true) then
+			mp.osd_message('Undo')
+		end
+		msg.info('Seeked using undo')
 	elseif (filePath ~= nil) and (currentIndex == 0) then
-		mp.osd_message('No Undo Found')
+		if (osd_messages == true) then
+			mp.osd_message('No Undo Found')
+		end
+		msg.info('No undo found')
 	end
 end
 
@@ -167,10 +181,16 @@ local function redo()
 		mp.commandv('seek', seekTable[currentIndex], 'absolute', 'exact')
 
 		undoRedo = 0
-
-		mp.osd_message('Redo')
+		
+		if (osd_messages == true) then
+			mp.osd_message('Redo')
+		end
+		msg.info('Seeked using redo')
 	elseif (filePath ~= nil) and (currentIndex == seekNumber) then
-		mp.osd_message('No Redo Found')
+		if (osd_messages == true) then
+			mp.osd_message('No Redo Found')
+		end
+		msg.info('No redo found')
 	end
 end
 
@@ -180,7 +200,10 @@ local function undoLoop()
 	elseif (filePath ~= nil) and (undoRedo == 1) then
 		redo()
 	elseif (filePath ~= nil) and (countTimer == -1) then
-		mp.osd_message('No Undo Found')
+		if (osd_messages == true) then
+			mp.osd_message('No Undo Found')
+		end
+		msg.info('No undo found')
 	end
 end
 
