@@ -3,7 +3,7 @@
 
 -- Creator: Eisa AlAwadhi
 -- Project: SmartCopyPaste
--- Version: 2.4.1
+-- Version: 2.5
 
 local utils = require 'mp.utils'
 local msg = require 'mp.msg'
@@ -27,6 +27,8 @@ local windows_copy = 'powershell' --'powershell' is for using windows powershell
 local windows_paste = 'powershell' --'powershell' is for using windows powershell to paste. OR write the paste command
 
 local offset = -0.65 --change to 0 so that pasting resumes from the exact position, or decrease the value so that it gives you a little preview before reaching the exact pasted position
+
+local osd_messages = true --true is for displaying osd messages when actions occur, Change to false will disable all osd messages generated from this script
 
 local paste_anything = false --false is for specific paste based on the specified extensions and protocols. Change to true so paste accepts anything (not recommended to change this).
 
@@ -193,28 +195,43 @@ local function copy()
     local filePath = mp.get_property_native('path')
 	if (filePath ~= nil) then
 		local time = math.floor(mp.get_property_number('time-pos'))
-		mp.osd_message("Copied:\n"..filePath..' |time='..tostring(time))
+		if (osd_messages == true) then
+			mp.osd_message("Copied:\n"..filePath..' |time='..tostring(time))
+		end
 		set_clipboard(filePath..' |time='..tostring(time))
+		msg.info("Copied the below into clipboard:\n"..filePath..' |time='..tostring(time))
 	else
-		mp.osd_message('Failed to Copy\nNo Video Found')
+		if (osd_messages == true) then
+			mp.osd_message('Failed to Copy\nNo Video Found')
+		end
+		msg.info("Failed to copy, no video found")
 	end
-
 end
 
 
 local function copy_path()
     local filePath = mp.get_property_native('path')
 	if (filePath ~= nil) then
-		mp.osd_message("Copied Video Only:\n"..filePath)
+		if (osd_messages == true) then
+			mp.osd_message("Copied Video Only:\n"..filePath)
+		end
 		set_clipboard(filePath)
+		msg.info("Copied the below into clipboard:\n"..filePath)
 	else
-		return false
+		if (osd_messages == true) then
+			mp.osd_message('Failed to Copy Path\nNo Video Found')
+		end
+		msg.info("Failed to copy video path, no video found")
 	end
 end
 
 
 function paste()
-	mp.osd_message("Pasting...")
+	if (osd_messages == true) then
+		mp.osd_message("Pasting...")
+	end
+	msg.info("Pasting...")
+
 	local clip = get_clipboard()
 	clip = string.gsub(clip, "[\r\n]" , "")
 
@@ -236,27 +253,44 @@ function paste()
 	local seekTime
 	
 	if (filePath == nil) and has_extension(extensions, currentVideoExtension) and (currentVideoExtensionPath~= '') then
-		mp.osd_message("Pasted:\n"..videoFile)
+		if (osd_messages == true) then
+			mp.osd_message("Pasted:\n"..videoFile)
+		end
 		mp.commandv('loadfile', videoFile)
+		msg.info("Pasted the below into mpv:\n"..videoFile)
 	elseif (filePath == nil) and (starts_protocol(protocols, videoFile)) then
-		mp.osd_message("Pasted:\n"..videoFile)
+		if (osd_messages == true) then
+			mp.osd_message("Pasted:\n"..videoFile)
+		end
 		mp.commandv('loadfile', videoFile)
+		msg.info("Pasted the below into mpv:\n"..videoFile)
 	elseif (filePath ~= nil) and (filePath ~= videoFile) and has_extension(extensions, currentVideoExtension) and (currentVideoExtensionPath~= '') or (starts_protocol(protocols, videoFile)) and (filePath ~= videoFile) then
-		mp.osd_message('Pasted Into Playlist:\n'..videoFile)
+		if (osd_messages == true) then
+			mp.osd_message('Pasted Into Playlist:\n'..videoFile)
+		end
 		mp.commandv('loadfile', videoFile, 'append-play')
+		msg.info("Pasted the below into playlist:\n"..videoFile)
 	elseif (filePath == videoFile) and (time == nil) then
-		mp.osd_message('Same file is already running:\n'..clip)		
+		if (osd_messages == true) then
+			mp.osd_message('Same file is already running:\n'..clip)
+		end
+		msg.info("Pasted file shown below is already running:\n"..videoFile)
 	elseif (filePath == videoFile) and (time ~= nil) then
-		mp.osd_message('Resumed to Copied Time')
-
+		if (osd_messages == true) then
+			mp.osd_message('Resumed to Pasted Time')
+		end
 		seekTime = time + offset
 		if (seekTime < 0) then
 			seekTime = 0
 		end
 	
 		mp.commandv('seek', seekTime, 'absolute', 'exact')
+		msg.info("Resumed to the pasted time")
 	else
-		mp.osd_message('Failed to Paste\nPasted Unsupported Item:\n'..clip)
+		if (osd_messages == true) then
+			mp.osd_message('Failed to Paste\nPasted Unsupported Item:\n'..clip)
+		end
+		msg.info('Failed to paste into mpv, pasted item shown below is unsupported:\n'..clip)
 	end
 	
 	pasted = true
@@ -264,7 +298,10 @@ end
 
 
 function paste_playlist()
-	mp.osd_message("Pasting...")
+	if (osd_messages == true) then
+		mp.osd_message("Pasting...")
+	end
+	msg.info("Pasting...")
 
 	local clip = get_clipboard()
 	clip = string.gsub(clip, "[\r\n]" , "")
@@ -282,10 +319,16 @@ function paste_playlist()
 	local currentVideoExtensionPath = (get_extentionpath(videoFile))
 	
 	if has_extension(extensions, currentVideoExtension) and (currentVideoExtensionPath~= '') or (starts_protocol(protocols, videoFile)) then
-		mp.osd_message('Pasted Into Playlist:\n'..videoFile)
+		if (osd_messages == true) then
+			mp.osd_message('Pasted Into Playlist:\n'..videoFile)
+		end
 		mp.commandv('loadfile', videoFile, 'append-play')
+		msg.info("Pasted the below into playlist:\n"..videoFile)
 	else
-		mp.osd_message('Failed to Add Into Playlist\nPasted Unsupported Item:\n'..clip)
+		if (osd_messages == true) then
+			mp.osd_message('Failed to Add Into Playlist\nPasted Unsupported Item:\n'..clip)
+		end
+		msg.info('Failed to paste into playlist, pasted item shown below is unsupported:\n'..clip)
 	end
 	
 	pasted = true

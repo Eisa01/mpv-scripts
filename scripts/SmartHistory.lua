@@ -3,9 +3,10 @@
 
 -- Creator: Eisa AlAwadhi
 -- Project: SmartHistory
--- Version: 1.8
+-- Version: 1.9
 
 local utils = require 'mp.utils'
+local msg = require 'mp.msg'
 local empty = false
 local lastVideoTime
 
@@ -15,6 +16,7 @@ local lastVideoTime
 
 local offset = -0.65 --change to 0 so that pasting resumes from the exact position, or decrease the value so that it gives you a little preview before reaching the exact pasted position
 
+local osd_messages = true --true is for displaying osd messages when actions occur, Change to false will disable all osd messages generated from this script
 ---------------------------END OF USER CUSTOMIZATION SETTINGS------------------------
 
 
@@ -78,17 +80,22 @@ local function resume()
 		currentVideoTime = string.match(videoFound, ' |time=(.*)')
 
 		if (filePath == currentVideo) and (currentVideoTime ~= nil) then
-			mp.osd_message('Resumed Last Position')
-			
+			if (osd_messages == true) then
+				mp.osd_message('Resumed To Last Logged Position')
+			end
 			seekTime = currentVideoTime + offset
 			if (seekTime < 0) then
 				seekTime = 0
 			end
 		
 			mp.commandv('seek', seekTime, 'absolute', 'exact')
+			msg.info('Resumed to the last logged position for this video')
 		end
 	else
-		mp.osd_message('No Resume Position')
+		if (osd_messages == true) then
+			mp.osd_message('No Resume Position Found For This Video')
+		end
+		msg.info('No resume position logged found for this video')
 	end
 	else
 		empty = true
@@ -124,18 +131,30 @@ function lastPlay()
 		end
 		
 		if (filePath ~= nil) then
-			mp.osd_message('Added Last Item Into Playlist:\n'..videoFile)
+			if (osd_messages == true) then
+				mp.osd_message('Added Last Logged Item Into Playlist:\n'..videoFile)
+			end
 			mp.commandv('loadfile', videoFile, 'append-play')
+			msg.info('Added last logged item shown below into playlist:\n'..videoFile)
 		else
 			if (empty == false) then
-				mp.osd_message('Loaded Last Item:\n'..videoFile)
-			else 
-				mp.osd_message('Resumed Last Item:\n'..videoFile)
+				if (osd_messages == true) then
+					mp.osd_message('Loaded Last Item:\n'..videoFile)
+				end
+				msg.info('Loaded the last logged item shown below into mpv:\n'..videoFile)
+			else
+				if (osd_messages == true) then
+					mp.osd_message('Resumed Last Item:\n'..videoFile)
+				end
+				msg.info('Resumed the last logged item shown below into mpv:\n'..videoFile)
 			end
 			mp.commandv('loadfile', videoFile)
 		end
 	else
-		mp.osd_message('History is Empty')
+		if (osd_messages == true) then
+			mp.osd_message('History is Empty')
+		end
+		msg.info('History log file is empty')
 	end
 end
 
