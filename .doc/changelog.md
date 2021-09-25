@@ -127,7 +127,7 @@
 - **(1.0)**
 	- Initial release of an all new SmartCopyPaste-II containing bookmark features for seamless paste experience!
 ## SmartHistory Changelog
-- Latest Changes **(1.9)** [09/25/2021]
+- Latest Changes **(1.9)** [09/26/2021]
 	- Added configurable option to disable OSD messages in the script
 	- Added mpv terminal messages for all actions in the script 
 	- Reviewed and enhanced currently available OSD messages
@@ -167,7 +167,10 @@
 	- Initial release of SmartHistory Script
 	- Contains simple history log file with many smart features.
 ## SimpleUndo Changelog
-- Latest Changes **(3.1)** [02/23/2021]
+- Latest Changes **(3.2)** [09/26/2021]
+	- Added configurable option to disable OSD messages in the script
+	- Added mpv terminal messages for all actions in the script
+- **(3.1)** [02/23/2021]
 	- Fixed an issue that Undo was not working while seeking
 	- Various optimizations and logic improvements of the script
 - **(3.0.1)** [02/07/2021]
@@ -201,7 +204,10 @@
  - **(1.0)** [2/23/2019] 
 	- Initial release of SimpleUndo Script
 ## UndoRedo Changelog
-- Latest Changes **(2.1)** [02/23/2021]
+- Latest Changes **(2.2)** [09/25/2021]
+	- Added configurable option to disable OSD messages in the script
+	- Added mpv terminal messages for all actions in the script
+- **(2.1)** [02/23/2021]
 	- Fixed annoying bug that caused multiple quick undos' not registering for redo
 	- Fixed an issue that Undo was not working while seeking
 	- Various optimizations and logic improvements of the script that made the script even smaller
