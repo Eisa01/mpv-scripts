@@ -2,9 +2,9 @@
 This repository contain scripts I have made for [mpv media player](https://github.com/mpv-player/mpv/). To add scripts from this repository, download the desired script in your `mpv/scripts/` directory (click [here](https://mpv.io/manual/master/#lua-scripting) to know more about mpv scripts).
 
 **This repository contain the following scripts:**
-- [**SmartCopyPaste Script 2.4.1**](https://github.com/Eisa01/mpv-scripts#smartcopypaste-script)
-- [**SmartCopyPaste-II Script 2.4.1**](https://github.com/Eisa01/mpv-scripts#smartcopypaste-ii-script)
-- [**SmartHistory Script 1.7.1**](https://github.com/Eisa01/mpv-scripts#smarthistory-script)
+- [**SmartCopyPaste Script 2.5**](https://github.com/Eisa01/mpv-scripts#smartcopypaste-script)
+- [**SmartCopyPaste-II Script 2.5**](https://github.com/Eisa01/mpv-scripts#smartcopypaste-ii-script)
+- [**SmartHistory Script 1.9**](https://github.com/Eisa01/mpv-scripts#smarthistory-script)
 - [**SimpleUndo Script 3.1**](https://github.com/Eisa01/mpv-scripts#simpleundo-script)
 - [**UndoRedo Script 2.1**](https://github.com/Eisa01/mpv-scripts#undoredo-script)
 
@@ -113,6 +113,10 @@ UndoRedo is a script for mpv media player, the script adds undo, and redo functi
 ### UndoRedo Compatibility
 - Works on all of mpv supported platforms.
 # Misc
+### Visitors
+![:Vistors](https://count.getloli.com/get/@236d2c6a-efc0-447d-9008-8ecc754f8606?theme=gelbooru)
+
+Counting since `2021-09-25T19:04:24Z` (ISO 8601)
 ### MPV.net Support
 [MPV.net](https://github.com/stax76/mpv.net) users must change the option `input-default-bindings = no` to `input-default-bindings = yes` located in `MPV.net/mpv.conf` 
 ### To-Do List
