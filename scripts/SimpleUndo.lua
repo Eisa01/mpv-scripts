@@ -3,15 +3,23 @@
 
 -- Creator: Eisa AlAwadhi
 -- Project: SimpleUndo
--- Version: 3.1
+-- Version: 3.2
 
 local utils = require 'mp.utils'
+local msg = require 'mp.msg'
 local seconds = 0
 local countTimer = -1
 local previousUndoTime = 0
 local undoTime = 0
-
 local pause = false
+
+----------------------------USER CUSTOMIZATION SETTINGS-----------------------------------
+--These settings are for users to manually change some options in the script.
+--Keybinds can be defined in the bottom of the script.
+
+local osd_messages = true --true is for displaying osd messages when actions occur, Change to false will disable all osd messages generated from this script
+
+---------------------------END OF USER CUSTOMIZATION SETTINGS---------------------
 
 local function getUndo()
 	previousUndoTime = undoTime
@@ -96,7 +104,10 @@ local function undo()
 		end
 
 		mp.commandv('seek', previousUndoTime, 'absolute', 'exact')
-		mp.osd_message('Undo')
+		if (osd_messages == true) then
+			mp.osd_message('Undo')
+		end
+		msg.info('Seeked using undo')
 	elseif (filePath ~= nil) and (countTimer > 0.5) then
 
 		if (previousUndoTime < 0) then
@@ -104,9 +115,15 @@ local function undo()
 		end
 
 		mp.commandv('seek', previousUndoTime, 'absolute', 'exact')
-		mp.osd_message('Undo')
+		if (osd_messages == true) then
+			mp.osd_message('Undo')
+		end
+		msg.info('Seeked using undo')
 	elseif (filePath ~= nil) and (countTimer == -1) then
-		mp.osd_message('No Undo Found')
+		if (osd_messages == true) then
+			mp.osd_message('No Undo Found')
+		end
+		msg.info('No undo found')
 	end
 end
 
