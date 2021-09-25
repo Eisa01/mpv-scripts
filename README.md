@@ -5,8 +5,8 @@ This repository contain scripts I have made for [mpv media player](https://githu
 - [**SmartCopyPaste Script 2.5**](https://github.com/Eisa01/mpv-scripts#smartcopypaste-script)
 - [**SmartCopyPaste-II Script 2.5**](https://github.com/Eisa01/mpv-scripts#smartcopypaste-ii-script)
 - [**SmartHistory Script 1.9**](https://github.com/Eisa01/mpv-scripts#smarthistory-script)
-- [**SimpleUndo Script 3.1**](https://github.com/Eisa01/mpv-scripts#simpleundo-script)
-- [**UndoRedo Script 2.1**](https://github.com/Eisa01/mpv-scripts#undoredo-script)
+- [**SimpleUndo Script 3.2**](https://github.com/Eisa01/mpv-scripts#simpleundo-script)
+- [**UndoRedo Script 2.2**](https://github.com/Eisa01/mpv-scripts#undoredo-script)
 
 **The following scripts can conflict with each other:**
 - Either install SmartCopyPaste or SmartCopyPaste-II.
