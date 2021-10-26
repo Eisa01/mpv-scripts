@@ -6,7 +6,7 @@ local o = {
     -- Script Settings
     auto_run_idle = false, --Runs automatically when idle and no video is loaded --idle
 	bookmark_loads_last_idle = true, --When attempting to bookmark, if there is no file, it will instead jump to your last bookmarked item
-	slots_empty_auto_create = true, --If the keybind slot is empty, this enables quick bookmarking and adding to slot, Otherwise keybinds are assigned from the bookmark list.
+	slots_empty_auto_create = false, --If the keybind slot is empty, this enables quick bookmarking and adding to slot, Otherwise keybinds are assigned from the bookmark list.
 	slots_empty_fileonly = true, --When auto creating slot, it will not save position.
 	slots_auto_resume = true, --When loading a slot, it will auto resume to the bookmarked time.
     show_paths = false, --Show file paths instead of media-title
@@ -46,20 +46,23 @@ local o = {
     list_sliced_suffix = '...', --The text that indicates there are more items below.
 	list_middle_loader = true, --False for more items to show u must reach the end. Change to true so that new items show after reaching the middle of list.
     -- Keybind Settings: to bind multiple keys separate them by a space, e.g.:'ctrl+b ctrl+x'
-    bookmark_list_keybind = 'b B', --Keybind that will be used to display the bookmark list
-    bookmark_save_keybind = 'ctrl+b ctrl+B', --Keybind that will be used to save the video and its time to bookmark file
-	bookmark_fileonly_keybind = 'alt+b alt+B', --Keybind that will be used to save the video without time to bookmark file
-	bookmark_slots_keybind = 'alt+1 alt+2 alt+3 alt+4 alt+5 alt+6 alt+7 alt+8 alt+9',-- alt+2 alt+3 alt+4 alt+5 alt+6 alt+7 alt+8 alt+9 alt+0', --Keybind that will be used to bind a bookmark to a key. e.g.: Press alt+1 on a bookmark slot to assign it, press while list is hidden to load. A new slot is automatically created for each keybind.
-	bookmark_slots_remove_keybind = 'alt+-', --Keybind that is used to remove the highlighted bookmark slot keybind from a bookmark entry
-    list_move_up_keybind = 'UP WHEEL_UP', --Keybind that will be used to navigate up on the bookmark list
-    list_move_down_keybind = 'DOWN WHEEL_DOWN', --Keybind that will be used to navigate down on the bookmark list
-    list_page_up_keybind = 'PGUP LEFT', --Keybind that will be used to go to the first item for the page shown on the bookmark list
-    list_page_down_keybind = 'PGDWN RIGHT', --Keybind that will be used to go to the last item for the page shown on the bookmark list
-    list_move_first_keybind = 'HOME', --Keybind that will be used to navigate to the first item on the bookmark list
-    list_move_last_keybind = 'END', --Keybind that will be used to navigate to the last item on the bookmark list
-    list_select_keybind = 'ENTER MBTN_MID', --Keybind that will be used to load highlighted entry from the bookmark list
-    list_close_keybind = 'ESC MBTN_RIGHT', --Keybind that will be used to close the bookmark list
-    list_delete_keybind = 'DEL', --Keybind that will be used to delete the highlighted entry from the bookmark list
+    bookmark_list_keybind ={ 'b', 'B'}, --Keybind that will be used to display the bookmark list
+    bookmark_save_keybind ={ 'ctrl+b', 'ctrl+B' }, --Keybind that will be used to save the video and its time to bookmark file
+	bookmark_fileonly_keybind ={ 'alt+b', 'alt+B' }, --Keybind that will be used to save the video without time to bookmark file
+	bookmark_slots_add_load_keybind={ 'alt+1', 'alt+2', 'alt+3', 'alt+4', 'alt+5', 'alt+6', 'alt+7', 'alt+8', 'alt+9' },--Keybind that will be used to bind a bookmark to a key. e.g.: Press alt+1 on a bookmark slot to assign it, press while list is hidden to load. A new slot is automatically created for each keybind.
+	bookmark_slots_remove_keybind ={ 'alt+-', 'alt+_' }, --Keybind that is used to remove the highlighted bookmark slot keybind from a bookmark entry
+	bookmark_slots_quicksave_keybind ={ 'alt+!', 'alt+@', 'alt+#', 'alt+$', 'alt+%', 'alt+^', 'alt+&', 'alt+*', 'alt+)' }, --ِTo save keybind to a slot without opening the bookmark list, to load these bookmarks it uses bookmark_slots_add_load_keybind (default is the same keybind as above but with shift)
+	list_filter_slots_keybind ={ 's', 'S'}, --Keybind to filter out the bookmarked slots
+	--list_sort_slots_keybind = 's S', --Keybind to sort by the bookmarked slots first (confused between this and above or both)
+    list_move_up_keybind ={ 'UP', 'WHEEL_UP' }, --Keybind that will be used to navigate up on the bookmark list
+    list_move_down_keybind ={ 'DOWN', 'WHEEL_DOWN' }, --Keybind that will be used to navigate down on the bookmark list
+    list_page_up_keybind ={ 'PGUP', 'LEFT' }, --Keybind that will be used to go to the first item for the page shown on the bookmark list
+    list_page_down_keybind ={ 'PGDWN', 'RIGHT' }, --Keybind that will be used to go to the last item for the page shown on the bookmark list
+    list_move_first_keybind ={ 'HOME' }, --Keybind that will be used to navigate to the first item on the bookmark list
+    list_move_last_keybind ={ 'END' }, --Keybind that will be used to navigate to the last item on the bookmark list
+    list_select_keybind ={ 'ENTER', 'MBTN_MID' }, --Keybind that will be used to load highlighted entry from the bookmark list
+    list_close_keybind ={ 'ESC', 'MBTN_RIGHT' }, --Keybind that will be used to close the bookmark list
+    list_delete_keybind ={ 'DEL' }, --Keybind that will be used to delete the highlighted entry from the bookmark list
     quickselect_0to9_keybind = true, --Keybind entries from 0 to 9 for quick selection when list is open (list_show_amount = 10 is maximum for this feature to work)	
 ---------------------------END OF USER CUSTOMIZATION SETTINGS---------------------
 }
@@ -84,7 +87,7 @@ local list_drawn = false
 
 local filePath, fileTitle, seekTime
 
-local slotKeypress = ''
+local slotKeyIndex = 0
 
 function starts_protocol (tab, val)
     for index, value in ipairs(tab) do
@@ -113,27 +116,23 @@ end
 
 function bind_keys(keys, name, func, opts)
     if not keys then
-    mp.add_forced_key_binding(keys, name, func, opts)
-    return
+		mp.add_forced_key_binding(keys, name, func, opts)
+		return
     end
-    local i = 0
-    for key in keys:gmatch("[^%s]+") do
-    local prefix = i == 1 and '' or i
-    mp.add_forced_key_binding(key, name..prefix, func, opts)
-    i = i + 1
+	
+    for i=1, #keys do --1.02# changed to support arrays
+		mp.add_forced_key_binding(keys[i], name..i, func, opts)
     end
 end
 
 function unbind_keys(keys, name)
     if not keys then
-    mp.remove_key_binding(name)
-    return
+		mp.remove_key_binding(name)
+		return
     end
-    local i = 0
-    for key in keys:gmatch("[^%s]+") do
-    local prefix = i == 1 and '' or i
-    mp.remove_key_binding(name..prefix)
-    i = i + 1
+	
+	for i=1, #keys do --1.02# changed to support arrays
+		mp.remove_key_binding(name..i)
     end
 end
 
@@ -222,6 +221,18 @@ function get_path()
 	
     if not path then return end
     return path, title
+end
+
+function get_slot_keybind(keyindex) --1.02# function to return the keybind using the slotKeyIndex
+	local keybind_return
+	
+	if o.bookmark_slots_add_load_keybind[keyindex] then
+		keybind_return = o.bookmark_slots_add_load_keybind[keyindex]
+	else
+		keybind_return = o.keybind_slot_text..keyindex..' is NA'
+	end
+	
+	return keybind_return
 end
 
 function unbind()
@@ -313,7 +324,7 @@ function write_log(logged_time, keybind_slot)
 		f:write(("[%s] %s | %s"):format(os.date(o.date_format), filePath, o.bookmark_time_text..tostring(seekTime)))
 	end
 	if keybind_slot then
-		f:write(' | '..o.keybind_slot_text..slotKeypress)
+		f:write(' | '..o.keybind_slot_text..slotKeyIndex)
 	end
 	f:write('\n')
     f:close()
@@ -339,7 +350,7 @@ end
 
 function remove_slot_log_entry()
     local content = read_log(function(line)
-        if line:match(' | .* | '..esc_string(o.keybind_slot_text)..esc_string(slotKeypress)) then --1.0# if it finds the current keypress, then remove it from everywhere it found it.
+        if line:match(' | .* | '..esc_string(o.keybind_slot_text)..slotKeyIndex) then --1.02# if it finds the current keyindex, then remove it from everywhere it found it.
 			return line:match('(.* | '..esc_string(o.bookmark_time_text)..'%d*%.?%d*)(.*)$')--Get everything until time, the rest put it in the next sequence
         else
             return line
@@ -355,9 +366,10 @@ function remove_slot_log_entry()
 	f:close()
 end
 
-function add_load_slot(keybind)
-	if not keybind then return end --1.01# just in case something happened, only proceed if keybind was passed
-	slotKeypress = keybind --1.01# receive the keybind so that we get the current pressed keybind that will be added to the log
+function add_load_slot(key_index)
+	if not key_index then return end --1.01# just in case something happened, only proceed if keybind was passed
+	slotKeyIndex = key_index --1.02# receive the keyindex so that we get the current pressed key that will be added to the log
+
 	if list_drawn then
 		local playing_path = filePath
 		filePath = list_contents[#list_contents-list_cursor+1].found_path
@@ -376,7 +388,7 @@ function add_load_slot(keybind)
 		local slot_taken --Need to create it so I can do a different action when keybind slot is not taken
 		get_list_contents() --Get the contents of list
 		for i=1, #list_contents do -- 1.01# Loop through and list_contents
-            if list_contents[i].found_slot == slotKeypress then --1.01# If the pressed key is found then update the global variables
+            if tonumber(list_contents[i].found_slot) == slotKeyIndex then --1.02# If the pressed key_index is found then update the global variables
 				filePath = list_contents[i].found_path
 				seekTime = tonumber(list_contents[i].found_time)
 				slot_taken = true
@@ -391,7 +403,6 @@ function add_load_slot(keybind)
 				selected = true
 			end
 		else
-			print('I will add bookmark here')
 			if o.slots_empty_auto_create then -- Add bookmark point
 				if filePath ~= nil then
 					if o.slots_empty_fileonly then
@@ -400,7 +411,7 @@ function add_load_slot(keybind)
 						write_log(false, true)
 					end
 					if o.osd_messages == true then
-						mp.osd_message('Bookmarked & Added Keybind:\n'..fileTitle..o.time_seperator..format_time(seekTime)..o.slot_seperator..slotKeypress)
+						mp.osd_message('Bookmarked & Added Keybind:\n'..fileTitle..o.time_seperator..format_time(seekTime)..o.slot_seperator..get_slot_keybind(slotKeyIndex))
 					end
 					msg.info('Bookmarked the below & added keybind:\n'..fileTitle..o.time_seperator..format_time(seekTime))
 				else
@@ -417,6 +428,8 @@ function add_load_slot(keybind)
 			end
 		end
 	end
+	
+	slotKeyIndex = 0 --revert slotKeyIndex
 end
 
 -- Display list on OSD and terminal
@@ -487,8 +500,9 @@ function draw_list()
 		if tonumber(list_contents[#list_contents-i].found_time) > 0 then
 			osd_msg = osd_msg..o.time_seperator..format_time(list_contents[#list_contents-i].found_time)
 		end
-		if list_contents[#list_contents-i].found_slot then
-			osd_msg = osd_msg..o.slot_seperator..list_contents[#list_contents-i].found_slot
+		
+		if list_contents[#list_contents-i].found_slot then -- If a slot exists, then append keybind
+			osd_msg = osd_msg..o.slot_seperator..get_slot_keybind(tonumber(list_contents[#list_contents-i].found_slot))
 		end
 		
 		osd_msg = osd_msg..'\\h\\N\\N'..osd_msg_end
@@ -526,13 +540,13 @@ end
 --Removes keybind slot from the log
 function list_slot_remove()
 	local playing_path = filePath
-    slotKeypress = list_contents[#list_contents-list_cursor+1].found_slot
-    if not slotKeypress then
+    slotKeyIndex = tonumber(list_contents[#list_contents-list_cursor+1].found_slot)
+    if not slotKeyIndex then
         msg.info("Failed to remove")
         return
     end
     remove_slot_log_entry()
-    msg.info('Removed Keybind: '..slotKeypress)
+    msg.info('Removed Keybind: '..get_slot_keybind(slotKeyIndex))
 end
 
 -- Load file and remove binds
@@ -565,6 +579,7 @@ function display_list()
     bind_keys(o.list_select_keybind, "list-select", list_select)
     bind_keys(o.list_delete_keybind, "list-delete", list_delete)
     bind_keys(o.bookmark_slots_remove_keybind, "slot-remove", function() list_slot_remove() list_refresh() end)
+	bind_keys(o.list_filter_slots_keybind, "list-filter-slots", list_filter_slots)
     bind_keys(o.list_close_keybind, "list-close", unbind)
     if o.quickselect_0to9_keybind and o.list_show_amount <= 10 then --1.0# Only show 0-9 keybinds if enabled
         mp.add_forced_key_binding("1", "recent-1", function() load(list_start+1) end)
@@ -578,6 +593,10 @@ function display_list()
         mp.add_forced_key_binding("9", "recent-9", function() load(list_start+9) end)
         mp.add_forced_key_binding("0", "recent-0", function() load(list_start+10) end)
     end
+end
+
+function list_filter_slots()
+--eisa HERE
 end
 
 function bookmark_save()
@@ -650,6 +669,7 @@ end)
 bind_keys(o.bookmark_list_keybind, 'bookmark-list', display_list)
 bind_keys(o.bookmark_save_keybind, 'bookmark-save', bookmark_save)
 bind_keys(o.bookmark_fileonly_keybind, 'bookmark-fileonly', bookmark_fileonly_save)
-for keybind in o.bookmark_slots_keybind:gmatch('[^%s]+') do --1.01#Finally a way to find my keypress, simply make a loop for all the keybinds, then send the keybind to the function
-	mp.add_forced_key_binding(keybind, 'slot-'..esc_string(keybind), function() add_load_slot(keybind) end)
+
+for i=1, #o.bookmark_slots_add_load_keybind do --1.02#Finally a way to find my keypress, simply make a loop for all the keybinds, then send the keybind to the function
+	mp.add_forced_key_binding(o.bookmark_slots_add_load_keybind[i], 'slot-'..i, function() add_load_slot(i) end)
 end
