@@ -6,6 +6,9 @@ local o = {
     -- Script Settings
     auto_run_idle = false, --Runs automatically when idle and no video is loaded --idle
 	bookmark_loads_last_idle = true, --When attempting to bookmark, if there is no file, it will instead jump to your last bookmarked item
+	slots_empty_auto_create = true, --If the keybind slot is empty, this enables quick bookmarking and adding to slot, Otherwise keybinds are assigned from the bookmark list.
+	slots_empty_fileonly = true, --When auto creating slot, it will not save position.
+	slots_auto_resume = true, --When loading a slot, it will auto resume to the bookmarked time.
     show_paths = false, --Show file paths instead of media-title
     resume_offset = -0.65, --change to 0 so that bookmark resumes from the exact position, or decrease the value so that it gives you a little preview before loading the resume point
     osd_messages = true, --true is for displaying osd messages when actions occur. Change to false will disable all osd messages generated from this script
@@ -14,7 +17,8 @@ local o = {
     log_path = mp.find_config_file('.'):match('@?(.*/)'), --Change to debug.getinfo(1).source:match('@?(.*/)') for placing it in the same directory of script, OR change to mp.find_config_file('.'):match('@?(.*/)') for mpv portable_config directory OR specify the desired path in quotes, e.g.: 'C:\Users\Eisa01\Desktop\'
     log_file = 'mpvBookmark.log', --name+extension of the file that will be used to store the log data	
 	date_format = '%d/%m/%y %X', --Date format in the log (see lua date formatting), e.g.:'%d/%m/%y %X' or '%d/%b/%y %X'
-    bookmark_time_text = 'time=', --The text that is stored for the video time inside log file, you can also leave it blank
+    bookmark_time_text = 'time=', --The text that is stored for the video time inside log file. It can also be left blank
+	keybind_slot_text = 'slot=',
     file_title_logging = 'protocols', --Change between 'all', 'protocols, 'none'. This option will store the media title in log file, it is useful for websites / protocols because title cannot be parsed from links alone	
     protocols = { --add below (after a comma) any protocol you want its title to be stored in the log file. This is valid only for (file_title_logging = 'protocols')
         'https?://' ,'magnet:', 'rtmp:'
@@ -35,15 +39,18 @@ local o = {
     show_item_number = true, --Show the number of each bookmark item before displaying its name and values.
     slice_longfilenames = false, --Change to true or false. Slices long filenames per the amount specified below
     slice_longfilenames_amount = 55, --Amount for slicing long filenames
-    time_seperator=' 🕒 ', --The seperator that will be used after title / filename for bookmarked time 
+    time_seperator=' 🕒 ', --Time seperator that will be used after title / filename for bookmarked time
+	slot_seperator=' ⌨ ', --Slot seperator that will be used after the bookmarked time
     list_show_amount = 10, --Change maximum number to show items at once
     list_sliced_prefix = '...\\h\\N\\N', --The text that indicates there are more items above. \\h\\N\\N is for new line.
     list_sliced_suffix = '...', --The text that indicates there are more items below.
-	list_cursor_middle_loader = true, --False for more items to show u must reach the end. Change to true so that new items show after reaching the middle of list.
+	list_middle_loader = true, --False for more items to show u must reach the end. Change to true so that new items show after reaching the middle of list.
     -- Keybind Settings: to bind multiple keys separate them by a space, e.g.:'ctrl+b ctrl+x'
     bookmark_list_keybind = 'b B', --Keybind that will be used to display the bookmark list
     bookmark_save_keybind = 'ctrl+b ctrl+B', --Keybind that will be used to save the video and its time to bookmark file
 	bookmark_fileonly_keybind = 'alt+b alt+B', --Keybind that will be used to save the video without time to bookmark file
+	bookmark_slots_keybind = 'alt+1 alt+2 alt+3 alt+4 alt+5 alt+6 alt+7 alt+8 alt+9',-- alt+2 alt+3 alt+4 alt+5 alt+6 alt+7 alt+8 alt+9 alt+0', --Keybind that will be used to bind a bookmark to a key. e.g.: Press alt+1 on a bookmark slot to assign it, press while list is hidden to load. A new slot is automatically created for each keybind.
+	bookmark_slots_remove_keybind = 'alt+-', --Keybind that is used to remove the highlighted bookmark slot keybind from a bookmark entry
     list_move_up_keybind = 'UP WHEEL_UP', --Keybind that will be used to navigate up on the bookmark list
     list_move_down_keybind = 'DOWN WHEEL_DOWN', --Keybind that will be used to navigate down on the bookmark list
     list_page_up_keybind = 'PGUP LEFT', --Keybind that will be used to go to the first item for the page shown on the bookmark list
@@ -77,6 +84,8 @@ local list_drawn = false
 
 local filePath, fileTitle, seekTime
 
+local slotKeypress = ''
+
 function starts_protocol (tab, val)
     for index, value in ipairs(tab) do
         if (val:find(value) == 1) then
@@ -107,7 +116,7 @@ function bind_keys(keys, name, func, opts)
     mp.add_forced_key_binding(keys, name, func, opts)
     return
     end
-    local i = 1
+    local i = 0
     for key in keys:gmatch("[^%s]+") do
     local prefix = i == 1 and '' or i
     mp.add_forced_key_binding(key, name..prefix, func, opts)
@@ -120,7 +129,7 @@ function unbind_keys(keys, name)
     mp.remove_key_binding(name)
     return
     end
-    local i = 1
+    local i = 0
     for key in keys:gmatch("[^%s]+") do
     local prefix = i == 1 and '' or i
     mp.remove_key_binding(name..prefix)
@@ -149,8 +158,12 @@ function list_page_up()
 end
 
 function list_page_down()
-	if o.list_cursor_middle_loader then
-		select(o.list_show_amount + list_start - list_cursor) --1.0# Move to the last shown entry
+	if o.list_middle_loader then
+		if #list_contents < o.list_show_amount then --1.01# If it is less than the show amount go to the last item
+			select(#list_contents-list_cursor)
+		else --1.01# Otherwise proceed like normal
+			select(o.list_show_amount + list_start - list_cursor) --1.0# Move to the last shown entry
+		end
 	else
 		if o.list_show_amount > list_cursor then--1.0# At the begining move to 10
 			select(o.list_show_amount - list_cursor)
@@ -232,7 +245,7 @@ function unbind()
 		mp.remove_key_binding("recent-8")
 		mp.remove_key_binding("recent-9")
 		mp.remove_key_binding("recent-0")
-	end
+	end	
     mp.set_osd_ass(0, 0, "")
     list_drawn = false
     list_cursor = 1
@@ -252,53 +265,158 @@ end
 
 function read_log_table()
     return read_log(function(line)
-        local p, t, d, n, e
-        if line:match("^.-\"(.-)\"") then --#1.0 If there is a title, then match the parameters after title
-            n, p, t = line:match("^.-\"(.-)\" | (.*) | (.*)$") --#1.0 Get the name, path, and time
+        local p, t, s, d, n, e
+        if line:match('^.-\"(.-)\"') then --#1.0 If there is a title, then match the parameters after title
+            n, p = line:match('^.-\"(.-)\" | (.*)') --#1.0 Get the name, and path
         else
-            p, t = line:match("[(.*)%]]%s(.*) | (.*)$") --1.0# Get the content thats square brackets and until time reached
-            d, n, e = p:match("^(.-)([^\\/]-)%.([^\\/%.]-)%.?$")--1.0# Finds directory, name, and extension (I only need name). I might need rest in the future
+            p = line:match('[(.*)%]]%s(.*) | '..esc_string(o.bookmark_time_text)..'(.*)') --1.0# Get the content thats square brackets and until time reached			
+            d, n, e = p:match('^(.-)([^\\/]-)%.([^\\/%.]-)%.?$')--1.0# Finds directory, name, and extension (I only need name). I might need rest in the future
         end
-        return {found_path = p, found_time = t, found_name = n}
+		t = line:match(' | '..esc_string(o.bookmark_time_text)..'(%d*%.?%d*)(.*)$') --Get the time, also the rest in the next sequence, this is perfect as it works also if bookmark_time_text left blank
+		s = line:match(' | .* | '..esc_string(o.keybind_slot_text)..'(.*)$')
+        return {found_path = p, found_time = t, found_name = n, found_slot = s}
     end)
+end
+
+function get_list_contents()
+	list_contents = read_log_table() --Gets list content and show error message if empty
+	if not list_contents or not list_contents[1] then
+		msg.info("Bookmark file is empty")
+		if o.osd_messages == true then
+			mp.osd_message("Bookmark Empty")
+		end
+		return
+	end
 end
 
 -- Write path to log on file end
 -- removing duplicates along the way
-function write_log(delete, file_only)
+function write_log(logged_time, keybind_slot)
     if not filePath then return end
-    if not delete then --1.0#When using delete, get the time of the choice selected, otherwise seekTime will be updated when logging
-        seekTime = (mp.get_property_number('time-pos') or 0)
-    end
-	if file_only then --1.0# Set time to 0 if saving time is not required
-		seekTime = 0
+
+	if logged_time then --If updating an entry or something, like adding keybind_slot then do not update seekTime 
+		seekTime = logged_time
+	else
+		seekTime = (mp.get_property_number('time-pos') or 0)
 	end
+	
 	if seekTime < 0 then seekTime = 0 end --Handle if time became negative or something
+	delete_log_entry() --1.01#Call delete before adding, to remove duplicate entries (we need to use flag to round it, causes problems now, maybe in future, this is needed for keybind_slot also so it doesnt create it as duplicate)
+	f = io.open(bookmark_log, "a+")
+	if o.file_title_logging == 'all' then
+		f:write(("[%s] \"%s\" | %s | %s"):format(os.date(o.date_format), fileTitle, filePath, o.bookmark_time_text..tostring(seekTime)))
+	elseif o.file_title_logging == 'protocols' and (starts_protocol(o.protocols, filePath)) then
+		f:write(("[%s] \"%s\" | %s | %s"):format(os.date(o.date_format), fileTitle, filePath, o.bookmark_time_text..tostring(seekTime)))
+	elseif o.file_title_logging == 'protocols' and not (starts_protocol(o.protocols, filePath)) then
+		f:write(("[%s] %s | %s"):format(os.date(o.date_format), filePath, o.bookmark_time_text..tostring(seekTime)))
+	else
+		f:write(("[%s] %s | %s"):format(os.date(o.date_format), filePath, o.bookmark_time_text..tostring(seekTime)))
+	end
+	if keybind_slot then
+		f:write(' | '..o.keybind_slot_text..slotKeypress)
+	end
+	f:write('\n')
+    f:close()
+end
+
+function delete_log_entry()
     local content = read_log(function(line)
-        if line:find(esc_string(filePath)..'(.*)'..esc_string(o.bookmark_time_text)..math.floor(seekTime)) then --1.0# if it finds the filePath and the time, then do not bookmark it so we avoid duplicates
-            return nil
+        if line:find(esc_string(filePath)..'(.*)'..esc_string(o.bookmark_time_text)..seekTime) then --1.0# if it finds the filePath and the time, then do not bookmark it so we avoid duplicates (goes through the list and deletes duplicates by returning them as nil instead of line)
+			return nil
         else
             return line
         end
     end)
+	
     f = io.open(bookmark_log, "w+")
     if content then
         for i=1, #content do
             f:write(("%s\n"):format(content[i]))
         end
     end
-    if not delete then
-        if o.file_title_logging == 'all' then
-            f:write(("[%s] \"%s\" | %s | %s\n"):format(os.date(o.date_format), fileTitle, filePath, o.bookmark_time_text..tostring(seekTime)))
-        elseif o.file_title_logging == 'protocols' and (starts_protocol(o.protocols, filePath)) then
-            f:write(("[%s] \"%s\" | %s | %s\n"):format(os.date(o.date_format), fileTitle, filePath, o.bookmark_time_text..tostring(seekTime)))
-        elseif o.file_title_logging == 'protocols' and not (starts_protocol(o.protocols, filePath)) then
-            f:write(("[%s] %s | %s\n"):format(os.date(o.date_format), filePath, o.bookmark_time_text..tostring(seekTime)))
+	f:close()
+end
+
+function remove_slot_log_entry()
+    local content = read_log(function(line)
+        if line:match(' | .* | '..esc_string(o.keybind_slot_text)..esc_string(slotKeypress)) then --1.0# if it finds the current keypress, then remove it from everywhere it found it.
+			return line:match('(.* | '..esc_string(o.bookmark_time_text)..'%d*%.?%d*)(.*)$')--Get everything until time, the rest put it in the next sequence
         else
-            f:write(("[%s] %s | %s\n"):format(os.date(o.date_format), filePath, o.bookmark_time_text..tostring(seekTime)))
+            return line
+        end
+    end)
+	
+    f = io.open(bookmark_log, "w+")
+    if content then
+        for i=1, #content do
+            f:write(("%s\n"):format(content[i]))
         end
     end
-    f:close()
+	f:close()
+end
+
+function add_load_slot(keybind)
+	if not keybind then return end --1.01# just in case something happened, only proceed if keybind was passed
+	slotKeypress = keybind --1.01# receive the keybind so that we get the current pressed keybind that will be added to the log
+	if list_drawn then
+		local playing_path = filePath
+		filePath = list_contents[#list_contents-list_cursor+1].found_path
+		seekTime = tonumber(list_contents[#list_contents-list_cursor+1].found_time)
+		if not filePath and not seekTime then
+			msg.info("Failed to delete")
+			return
+		end
+		remove_slot_log_entry() --Deletes old slot enty from log
+		write_log(seekTime, true)
+		list_refresh()
+		list_move_first()
+		msg.info("Added keybind slot\""..filePath.."\" | "..format_time(seekTime))
+		filePath = playing_path
+    else
+		local slot_taken --Need to create it so I can do a different action when keybind slot is not taken
+		get_list_contents() --Get the contents of list
+		for i=1, #list_contents do -- 1.01# Loop through and list_contents
+            if list_contents[i].found_slot == slotKeypress then --1.01# If the pressed key is found then update the global variables
+				filePath = list_contents[i].found_path
+				seekTime = tonumber(list_contents[i].found_time)
+				slot_taken = true
+				break --break loop if found, no need to continue
+			else
+				slot_taken = false
+			end
+        end
+		if slot_taken then
+			mp.commandv('loadfile', filePath) --Load the updated global variable
+			if o.slots_auto_resume then --1.0# to only resume when a file is selected and option is enabled in user settings
+				selected = true
+			end
+		else
+			print('I will add bookmark here')
+			if o.slots_empty_auto_create then -- Add bookmark point
+				if filePath ~= nil then
+					if o.slots_empty_fileonly then
+						write_log(0, true)
+					else
+						write_log(false, true)
+					end
+					if o.osd_messages == true then
+						mp.osd_message('Bookmarked & Added Keybind:\n'..fileTitle..o.time_seperator..format_time(seekTime)..o.slot_seperator..slotKeypress)
+					end
+					msg.info('Bookmarked the below & added keybind:\n'..fileTitle..o.time_seperator..format_time(seekTime))
+				else
+					if o.osd_messages == true then
+						mp.osd_message('Failed to Bookmark & Auto Create Keybind\nNo Video Found')
+					end
+					msg.info("Failed to bookmark & auto create keybind, no video found")
+				end
+			else
+				if o.osd_messages == true then
+					mp.osd_message('No Bookmark Assigned to Keybind Yet')
+				end
+				msg.info("No bookmark has been assigned to keybind yet")
+			end
+		end
+	end
 end
 
 -- Display list on OSD and terminal
@@ -317,7 +435,7 @@ function draw_list()
     
     local osd_key = ''--1.0#Parameters for optional stuff so that if the optional value is not defined, it wont append osd_key
 
-    if o.list_cursor_middle_loader then --1.0# To start showing items from middle
+    if o.list_middle_loader then --1.0# To start showing items from middle
 		list_start = list_cursor - math.floor(o.list_show_amount/2)
 	else --1.0# Else it will start showing after reaching the bottom
 		list_start = list_cursor - o.list_show_amount
@@ -339,7 +457,6 @@ function draw_list()
     for i=list_start,list_start+o.list_show_amount-1,1 do
         if i == #list_contents then break end
         --1.0#My Stuff before outputting text
-        local parsed_logtime = string.match(list_contents[#list_contents-i].found_time, esc_string(o.bookmark_time_text)..'(.*)')--1.0# To parse time from log file to numbers using its variable
         if o.show_paths then
             p = list_contents[#list_contents-i].found_path or list_contents[#list_contents-i].found_name or ""
         else
@@ -361,18 +478,21 @@ function draw_list()
         end
         --1.0# End of my Stuff before outputting text
         if i+1 == list_cursor then
-			if tonumber(parsed_logtime) > 0 then
-				osd_msg = osd_msg..osd_highlight..osd_key..osd_index..p..o.time_seperator..format_time(parsed_logtime)..'\\h\\N\\N'..osd_msg_end
-			else 
-				osd_msg = osd_msg..osd_highlight..osd_key..osd_index..p..'\\h\\N\\N'..osd_msg_end
-			end
+			osd_msg = osd_msg..osd_highlight..osd_key..osd_index..p
         else
-			if tonumber(parsed_logtime) > 0 then
-				osd_msg = osd_msg..osd_text..osd_key..osd_index..p..o.time_seperator..format_time(parsed_logtime)..'\\h\\N\\N'..osd_msg_end
-			else
-				osd_msg = osd_msg..osd_text..osd_key..osd_index..p..'\\h\\N\\N'..osd_msg_end
-			end
+			osd_msg = osd_msg..osd_text..osd_key..osd_index..p
         end
+		
+		--Append time and slot if available
+		if tonumber(list_contents[#list_contents-i].found_time) > 0 then
+			osd_msg = osd_msg..o.time_seperator..format_time(list_contents[#list_contents-i].found_time)
+		end
+		if list_contents[#list_contents-i].found_slot then
+			osd_msg = osd_msg..o.slot_seperator..list_contents[#list_contents-i].found_slot
+		end
+		
+		osd_msg = osd_msg..'\\h\\N\\N'..osd_msg_end
+		
         if i == list_start+o.list_show_amount-1 and not showall and not showrest then
             osd_msg = osd_msg..o.list_sliced_suffix
         end
@@ -393,22 +513,32 @@ end
 function delete()
     local playing_path = filePath
     filePath = list_contents[#list_contents-list_cursor+1].found_path
-    local parsed_logtime = string.match(list_contents[#list_contents-list_cursor+1].found_time, esc_string(o.bookmark_time_text)..'(.*)')--1.0# To parse time from log file to numbers using its variable
-    seekTime = tonumber(parsed_logtime)
+    seekTime = tonumber(list_contents[#list_contents-list_cursor+1].found_time)
     if not filePath and not seekTime then
         msg.info("Failed to delete")
         return
     end
-    write_log(true, false)
+    delete_log_entry()
     msg.info("Deleted \""..filePath.."\" | "..format_time(seekTime))
     filePath = playing_path
+end
+
+--Removes keybind slot from the log
+function list_slot_remove()
+	local playing_path = filePath
+    slotKeypress = list_contents[#list_contents-list_cursor+1].found_slot
+    if not slotKeypress then
+        msg.info("Failed to remove")
+        return
+    end
+    remove_slot_log_entry()
+    msg.info('Removed Keybind: '..slotKeypress)
 end
 
 -- Load file and remove binds
 function load(list_cursor)
     unbind()
-    local parsed_logtime = string.match(list_contents[#list_contents-list_cursor+1].found_time, esc_string(o.bookmark_time_text)..'(.*)')--1.0# To parse time from log file to numbers using its variable
-    seekTime = tonumber(parsed_logtime) + o.resume_offset
+    seekTime = tonumber(list_contents[#list_contents-list_cursor+1].found_time) + o.resume_offset
     if (seekTime < 0) then
         seekTime = 0
     end
@@ -422,15 +552,8 @@ function display_list()
         unbind()
         return
     end
-    list_contents = read_log_table()
-    if not list_contents or not list_contents[1] then
-		msg.info("Bookmark file is empty")
-		if o.osd_messages == true then
-			mp.osd_message("Bookmark Empty")
-		end
-        return
-    end
-    draw_list()
+	get_list_contents()
+	draw_list()
     list_drawn = true
 
     bind_keys(o.list_move_up_keybind, "move-up", list_move_up, 'repeatable')
@@ -441,6 +564,7 @@ function display_list()
     bind_keys(o.list_page_down_keybind, "page-down", list_page_down, 'repeatable')
     bind_keys(o.list_select_keybind, "list-select", list_select)
     bind_keys(o.list_delete_keybind, "list-delete", list_delete)
+    bind_keys(o.bookmark_slots_remove_keybind, "slot-remove", function() list_slot_remove() list_refresh() end)
     bind_keys(o.list_close_keybind, "list-close", unbind)
     if o.quickselect_0to9_keybind and o.list_show_amount <= 10 then --1.0# Only show 0-9 keybinds if enabled
         mp.add_forced_key_binding("1", "recent-1", function() load(list_start+1) end)
@@ -467,19 +591,12 @@ function bookmark_save()
 		end
         msg.info('Added the below to bookmarks\n'..fileTitle..o.time_seperator..format_time(seekTime))
     elseif filePath == nil and o.bookmark_loads_last_idle then
-		    list_contents = read_log_table()
-			if not list_contents or not list_contents[1] then
-				msg.info("Bookmark file is empty")
-				if o.osd_messages == true then
-					mp.osd_message("Bookmark Empty")
-				end
-				return
-			end
-			load(1)
-			if o.osd_messages == true then
-				mp.osd_message('Loaded Last Bookmark File:\n'..list_contents[#list_contents].found_name..o.time_seperator..format_time(seekTime))
-			end
-			msg.info('Loaded the last bookmarked file shown below into mpv:\n'..list_contents[#list_contents].found_name..o.time_seperator..format_time(seekTime))
+		get_list_contents()
+		load(1)
+		if o.osd_messages == true then
+			mp.osd_message('Loaded Last Bookmark File:\n'..list_contents[#list_contents].found_name..o.time_seperator..format_time(seekTime))
+		end
+		msg.info('Loaded the last bookmarked file shown below into mpv:\n'..list_contents[#list_contents].found_name..o.time_seperator..format_time(seekTime))
 	else
         if o.osd_messages == true then
             mp.osd_message('Failed to Bookmark\nNo Video Found')
@@ -490,7 +607,7 @@ end
 
 function bookmark_fileonly_save()
     if filePath ~= nil then
-        write_log(false, true)
+        write_log(0, false)
 		if list_drawn then
 			list_refresh()
 		end
@@ -499,14 +616,7 @@ function bookmark_fileonly_save()
 		end
         msg.info('Added the below to bookmarks\n'..fileTitle)
 	elseif filePath == nil and o.bookmark_loads_last_idle then
-		list_contents = read_log_table()
-		if not list_contents or not list_contents[1] then
-			msg.info("Bookmark file is empty")
-			if o.osd_messages == true then
-				mp.osd_message("Bookmark Empty")
-			end
-			return
-		end
+		get_list_contents()
 		load(1)
 		if o.osd_messages == true then
 			mp.osd_message('Loaded Last Bookmark File:\n'..list_contents[#list_contents].found_name..o.time_seperator..format_time(seekTime))
@@ -535,6 +645,11 @@ mp.register_event("file-loaded", function()
     end
 end)
 
+
+
 bind_keys(o.bookmark_list_keybind, 'bookmark-list', display_list)
 bind_keys(o.bookmark_save_keybind, 'bookmark-save', bookmark_save)
 bind_keys(o.bookmark_fileonly_keybind, 'bookmark-fileonly', bookmark_fileonly_save)
+for keybind in o.bookmark_slots_keybind:gmatch('[^%s]+') do --1.01#Finally a way to find my keypress, simply make a loop for all the keybinds, then send the keybind to the function
+	mp.add_forced_key_binding(keybind, 'slot-'..esc_string(keybind), function() add_load_slot(keybind) end)
+end
