@@ -380,6 +380,7 @@ function write_log_slot_entry()
 	list_refresh()
 	list_move_first()
 	msg.info('Added Keybind:\n'..fileTitle..o.time_seperator..format_time(seekTime)..o.slot_seperator..get_slot_keybind(slotKeyIndex))
+	filePath, fileTitle = get_path() --Revert filePath and fileTitle to current playing (fixes bug that bookmarks doesnt know whether to load or add bokmark)
 end
 
 function add_load_slot(key_index)
@@ -389,7 +390,7 @@ function add_load_slot(key_index)
 	if list_drawn then
 		write_log_slot_entry()
     else
-		local slot_taken --Need to create it so I can do a different action when keybind slot is not taken
+		local slot_taken = false --Need to create it so I can do a different action when keybind slot is not taken
 		get_list_contents() --Get the contents of list
 		for i=1, #list_contents do -- 1.01# Loop through and list_contents
             if tonumber(list_contents[i].found_slot) == slotKeyIndex then --1.02# If the pressed key_index is found then update the global variables
@@ -398,8 +399,6 @@ function add_load_slot(key_index)
 				seekTime = tonumber(list_contents[i].found_time)
 				slot_taken = true
 				break --break loop if found, no need to continue
-			else
-				slot_taken = false
 			end
         end
 		if slot_taken then
@@ -437,7 +436,6 @@ function add_load_slot(key_index)
 			end
 		end
 	end
-	filePath, fileTitle = get_path() --Revert filePath and fileTitle to current playing
 	slotKeyIndex = 0 --revert slotKeyIndex
 end
 
@@ -465,7 +463,6 @@ function quicksave_slot(key_index)
 			msg.info("Failed to bookmark & auto create keybind, no video found")
 		end
 	end
-	filePath, fileTitle = get_path() --Revert filePath and fileTitle to current playing
 	slotKeyIndex = 0 --revert slotKeyIndex
 end
 
