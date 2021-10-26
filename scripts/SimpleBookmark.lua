@@ -6,7 +6,8 @@ local o = {
     -- Script Settings
     auto_run_idle = false, --Runs automatically when idle and no video is loaded --idle
 	bookmark_loads_last_idle = true, --When attempting to bookmark, if there is no file, it will instead jump to your last bookmarked item
-	slots_empty_auto_create = false, --If the keybind slot is empty, this enables quick bookmarking and adding to slot, Otherwise keybinds are assigned from the bookmark list.
+	slots_quicksave_fileonly = true, --When quick saving a bookmark to keybind slot, it will not save position
+	slots_empty_auto_create = false, --If the keybind slot is empty, this enables quick bookmarking and adding to slot, Otherwise keybinds are assigned from the bookmark list or via quicksave.
 	slots_empty_fileonly = true, --When auto creating slot, it will not save position.
 	slots_auto_resume = true, --When loading a slot, it will auto resume to the bookmarked time.
     show_paths = false, --Show file paths instead of media-title
@@ -45,7 +46,7 @@ local o = {
     list_sliced_prefix = '...\\h\\N\\N', --The text that indicates there are more items above. \\h\\N\\N is for new line.
     list_sliced_suffix = '...', --The text that indicates there are more items below.
 	list_middle_loader = true, --False for more items to show u must reach the end. Change to true so that new items show after reaching the middle of list.
-    -- Keybind Settings: to bind multiple keys separate them by a space, e.g.:'ctrl+b ctrl+x'
+    -- Keybind Settings
     bookmark_list_keybind ={ 'b', 'B'}, --Keybind that will be used to display the bookmark list
     bookmark_save_keybind ={ 'ctrl+b', 'ctrl+B' }, --Keybind that will be used to save the video and its time to bookmark file
 	bookmark_fileonly_keybind ={ 'alt+b', 'alt+B' }, --Keybind that will be used to save the video without time to bookmark file
@@ -278,7 +279,7 @@ function read_log_table()
     return read_log(function(line)
         local p, t, s, d, n, e
         if line:match('^.-\"(.-)\"') then --#1.0 If there is a title, then match the parameters after title
-            n, p = line:match('^.-\"(.-)\" | (.*)') --#1.0 Get the name, and path
+            n, p = line:match('^.-\"(.-)\" | (.*) | '..esc_string(o.bookmark_time_text)..'(.*)') --#1.02 Get the name, and path updated to support slots
         else
             p = line:match('[(.*)%]]%s(.*) | '..esc_string(o.bookmark_time_text)..'(.*)') --1.0# Get the content thats square brackets and until time reached			
             d, n, e = p:match('^(.-)([^\\/]-)%.([^\\/%.]-)%.?$')--1.0# Finds directory, name, and extension (I only need name). I might need rest in the future
@@ -366,30 +367,34 @@ function remove_slot_log_entry()
 	f:close()
 end
 
+function write_log_slot_entry()
+	filePath = list_contents[#list_contents-list_cursor+1].found_path
+	fileTitle = list_contents[#list_contents-list_cursor+1].found_name --1.02# to fix the title issue when it is logged
+	seekTime = tonumber(list_contents[#list_contents-list_cursor+1].found_time)
+	if not filePath or not fileTitle or not seekTime then
+		msg.info("Failed to delete")
+		return
+	end
+	remove_slot_log_entry() --Deletes old slot enty from log
+	write_log(seekTime, true)
+	list_refresh()
+	list_move_first()
+	msg.info('Added Keybind:\n'..fileTitle..o.time_seperator..format_time(seekTime)..o.slot_seperator..get_slot_keybind(slotKeyIndex))
+end
+
 function add_load_slot(key_index)
 	if not key_index then return end --1.01# just in case something happened, only proceed if keybind was passed
 	slotKeyIndex = key_index --1.02# receive the keyindex so that we get the current pressed key that will be added to the log
 
 	if list_drawn then
-		local playing_path = filePath
-		filePath = list_contents[#list_contents-list_cursor+1].found_path
-		seekTime = tonumber(list_contents[#list_contents-list_cursor+1].found_time)
-		if not filePath and not seekTime then
-			msg.info("Failed to delete")
-			return
-		end
-		remove_slot_log_entry() --Deletes old slot enty from log
-		write_log(seekTime, true)
-		list_refresh()
-		list_move_first()
-		msg.info("Added keybind slot\""..filePath.."\" | "..format_time(seekTime))
-		filePath = playing_path
+		write_log_slot_entry()
     else
 		local slot_taken --Need to create it so I can do a different action when keybind slot is not taken
 		get_list_contents() --Get the contents of list
 		for i=1, #list_contents do -- 1.01# Loop through and list_contents
             if tonumber(list_contents[i].found_slot) == slotKeyIndex then --1.02# If the pressed key_index is found then update the global variables
 				filePath = list_contents[i].found_path
+				fileTitle = list_contents[#list_contents-list_cursor+1].found_name				
 				seekTime = tonumber(list_contents[i].found_time)
 				slot_taken = true
 				break --break loop if found, no need to continue
@@ -402,6 +407,10 @@ function add_load_slot(key_index)
 			if o.slots_auto_resume then --1.0# to only resume when a file is selected and option is enabled in user settings
 				selected = true
 			end
+			if o.osd_messages == true then
+				mp.osd_message('Loaded slot:'..o.slot_seperator..get_slot_keybind(slotKeyIndex)..'\n'..fileTitle..o.time_seperator..format_time(seekTime))
+			end
+			msg.info('Loaded slot:'..o.slot_seperator..get_slot_keybind(slotKeyIndex)..'\n'..fileTitle..o.time_seperator..format_time(seekTime))
 		else
 			if o.slots_empty_auto_create then -- Add bookmark point
 				if filePath ~= nil then
@@ -413,7 +422,7 @@ function add_load_slot(key_index)
 					if o.osd_messages == true then
 						mp.osd_message('Bookmarked & Added Keybind:\n'..fileTitle..o.time_seperator..format_time(seekTime)..o.slot_seperator..get_slot_keybind(slotKeyIndex))
 					end
-					msg.info('Bookmarked the below & added keybind:\n'..fileTitle..o.time_seperator..format_time(seekTime))
+					msg.info('Bookmarked the below & added keybind:\n'..fileTitle..o.time_seperator..format_time(seekTime)..o.slot_seperator..get_slot_keybind(slotKeyIndex))
 				else
 					if o.osd_messages == true then
 						mp.osd_message('Failed to Bookmark & Auto Create Keybind\nNo Video Found')
@@ -422,13 +431,41 @@ function add_load_slot(key_index)
 				end
 			else
 				if o.osd_messages == true then
-					mp.osd_message('No Bookmark Assigned to Keybind Yet')
+					mp.osd_message('No Bookmark Slot For'..o.slot_seperator..get_slot_keybind(slotKeyIndex)..' Yet')
 				end
-				msg.info("No bookmark has been assigned to keybind yet")
+				msg.info('No bookmark slot has been assigned for'..o.slot_seperator..get_slot_keybind(slotKeyIndex)..' keybind yet')
 			end
 		end
 	end
-	
+	filePath, fileTitle = get_path() --Revert filePath and fileTitle to current playing
+	slotKeyIndex = 0 --revert slotKeyIndex
+end
+
+function quicksave_slot(key_index)
+	if not key_index then return end --1.01# just in case something happened, only proceed if keybind was passed
+	slotKeyIndex = key_index --1.02# receive the keyindex so that we get the current pressed key that will be added to the log
+
+	if list_drawn then
+		write_log_slot_entry()
+    else
+		if filePath ~= nil then
+			if o.slots_quicksave_fileonly then
+				write_log(0, true)
+			else
+				write_log(false, true)
+			end
+			if o.osd_messages == true then
+				mp.osd_message('Bookmarked & Added Keybind:\n'..fileTitle..o.time_seperator..format_time(seekTime)..o.slot_seperator..get_slot_keybind(slotKeyIndex))
+			end
+			msg.info('Bookmarked the below & added keybind:\n'..fileTitle..o.time_seperator..format_time(seekTime)..o.slot_seperator..get_slot_keybind(slotKeyIndex))
+		else
+			if o.osd_messages == true then
+				mp.osd_message('Failed to Bookmark & Auto Create Keybind\nNo Video Found')
+			end
+			msg.info("Failed to bookmark & auto create keybind, no video found")
+		end
+	end
+	filePath, fileTitle = get_path() --Revert filePath and fileTitle to current playing
 	slotKeyIndex = 0 --revert slotKeyIndex
 end
 
@@ -525,8 +562,8 @@ end
 
 -- Delete selected entry from the log
 function delete()
-    local playing_path = filePath
     filePath = list_contents[#list_contents-list_cursor+1].found_path
+	fileTitle = list_contents[#list_contents-list_cursor+1].found_name
     seekTime = tonumber(list_contents[#list_contents-list_cursor+1].found_time)
     if not filePath and not seekTime then
         msg.info("Failed to delete")
@@ -534,12 +571,11 @@ function delete()
     end
     delete_log_entry()
     msg.info("Deleted \""..filePath.."\" | "..format_time(seekTime))
-    filePath = playing_path
+    filePath, fileTitle = get_path()
 end
 
 --Removes keybind slot from the log
 function list_slot_remove()
-	local playing_path = filePath
     slotKeyIndex = tonumber(list_contents[#list_contents-list_cursor+1].found_slot)
     if not slotKeyIndex then
         msg.info("Failed to remove")
@@ -672,4 +708,8 @@ bind_keys(o.bookmark_fileonly_keybind, 'bookmark-fileonly', bookmark_fileonly_sa
 
 for i=1, #o.bookmark_slots_add_load_keybind do --1.02#Finally a way to find my keypress, simply make a loop for all the keybinds, then send the keybind to the function
 	mp.add_forced_key_binding(o.bookmark_slots_add_load_keybind[i], 'slot-'..i, function() add_load_slot(i) end)
+end
+
+for i=1, #o.bookmark_slots_add_load_keybind do --1.02#Same as the above but to force keybinding a slot
+	mp.add_forced_key_binding(o.bookmark_slots_quicksave_keybind[i], 'slot-save-'..i, function() quicksave_slot(i) end)
 end
