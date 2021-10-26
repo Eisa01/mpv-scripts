@@ -710,6 +710,6 @@ for i=1, #o.bookmark_slots_add_load_keybind do --1.02#Finally a way to find my k
 	mp.add_forced_key_binding(o.bookmark_slots_add_load_keybind[i], 'slot-'..i, function() add_load_slot(i) end)
 end
 
-for i=1, #o.bookmark_slots_add_load_keybind do --1.02#Same as the above but to force keybinding a slot
+for i=1, #o.bookmark_slots_quicksave_keybind do --1.02#Same as the above but to force keybinding a slot
 	mp.add_forced_key_binding(o.bookmark_slots_quicksave_keybind[i], 'slot-save-'..i, function() quicksave_slot(i) end)
 end
