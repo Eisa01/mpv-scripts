@@ -18,8 +18,8 @@ local o = {
     log_path = mp.find_config_file('.'):match('@?(.*/)'), --Change to debug.getinfo(1).source:match('@?(.*/)') for placing it in the same directory of script, OR change to mp.find_config_file('.'):match('@?(.*/)') for mpv portable_config directory OR specify the desired path in quotes, e.g.: 'C:\Users\Eisa01\Desktop\'
     log_file = 'mpvBookmark.log', --name+extension of the file that will be used to store the log data	
 	date_format = '%d/%m/%y %X', --Date format in the log (see lua date formatting), e.g.:'%d/%m/%y %X' or '%d/%b/%y %X'
-    bookmark_time_text = 'time=', --The text that is stored for the video time inside log file. It can also be left blank
-	keybind_slot_text = 'slot=',
+    bookmark_time_text = 'time=', --The text that is stored for the video time inside log file. It can also be left blank.
+	keybind_slot_text = 'slot=', --The text that is stored for the keybind slot inside log file. It can also be left blank.
     file_title_logging = 'protocols', --Change between 'all', 'protocols, 'none'. This option will store the media title in log file, it is useful for websites / protocols because title cannot be parsed from links alone	
     protocols = { --add below (after a comma) any protocol you want its title to be stored in the log file. This is valid only for (file_title_logging = 'protocols')
         'https?://' ,'magnet:', 'rtmp:'
@@ -34,6 +34,7 @@ local o = {
     highlight_scale = 50, --Font size for highlighted text in bookmark list
     highlight_border = 0.7 , --Black border size for highlighted text in bookmark list
     header_text = '🔖 Bookmarks [%cursor/%total]', --Text to be shown as header for the bookmark list. %cursor shows the position of highlighted file. %total shows the total amount of bookmarked items.
+	header_filter_text = ' (filtered: %filter)', --Text to be shown when applying filter after the header_text, %filter shows the filter name
     header_color = 'ffffaa', --Header color in BGR hexadecimal
     header_scale = 55, --Header text size for the bookmark list
     header_border = 0.8, --Black border size for the Header of bookmark list
@@ -45,15 +46,16 @@ local o = {
     list_show_amount = 10, --Change maximum number to show items at once
     list_sliced_prefix = '...\\h\\N\\N', --The text that indicates there are more items above. \\h\\N\\N is for new line.
     list_sliced_suffix = '...', --The text that indicates there are more items below.
-	list_middle_loader = true, --False for more items to show u must reach the end. Change to true so that new items show after reaching the middle of list.
+	list_middle_loader = true, --False for more items to show, then u must reach the end. Change to true so that new items show after reaching the middle of list.
     -- Keybind Settings
     bookmark_list_keybind ={ 'b', 'B'}, --Keybind that will be used to display the bookmark list
     bookmark_save_keybind ={ 'ctrl+b', 'ctrl+B' }, --Keybind that will be used to save the video and its time to bookmark file
 	bookmark_fileonly_keybind ={ 'alt+b', 'alt+B' }, --Keybind that will be used to save the video without time to bookmark file
 	bookmark_slots_add_load_keybind={ 'alt+1', 'alt+2', 'alt+3', 'alt+4', 'alt+5', 'alt+6', 'alt+7', 'alt+8', 'alt+9' },--Keybind that will be used to bind a bookmark to a key. e.g.: Press alt+1 on a bookmark slot to assign it, press while list is hidden to load. A new slot is automatically created for each keybind.
 	bookmark_slots_remove_keybind ={ 'alt+-', 'alt+_' }, --Keybind that is used to remove the highlighted bookmark slot keybind from a bookmark entry
-	bookmark_slots_quicksave_keybind ={ 'alt+!', 'alt+@', 'alt+#', 'alt+$', 'alt+%', 'alt+^', 'alt+&', 'alt+*', 'alt+)' }, --ِTo save keybind to a slot without opening the bookmark list, to load these bookmarks it uses bookmark_slots_add_load_keybind (default is the same keybind as above but with shift)
+	bookmark_slots_quicksave_keybind ={ 'alt+!', 'alt+@', 'alt+#', 'alt+$', 'alt+%', 'alt+^', 'alt+&', 'alt+*', 'alt+)' }, --ِTo save keybind to a slot without opening the bookmark list, to load these bookmarks it uses bookmark_slots_add_load_keybind
 	list_filter_slots_keybind ={ 's', 'S'}, --Keybind to filter out the bookmarked slots
+	slots_filter_outside_list = true, --Keybind to work even when outside bookmark list, this immediately opens the bookmark list and filters the keybind slots without having to open bookmark list first.
 	--list_sort_slots_keybind = 's S', --Keybind to sort by the bookmarked slots first (confused between this and above or both)
     list_move_up_keybind ={ 'UP', 'WHEEL_UP' }, --Keybind that will be used to navigate up on the bookmark list
     list_move_down_keybind ={ 'DOWN', 'WHEEL_DOWN' }, --Keybind that will be used to navigate down on the bookmark list
@@ -85,8 +87,9 @@ local list_contents = {}
 local list_start = 0
 local list_cursor = 1
 local list_drawn = false
+local list_drawn_count = 0
 
-local filePath, fileTitle, seekTime
+local filePath, fileTitle, seekTime, filterName
 
 local slotKeyIndex = 0
 
@@ -113,6 +116,12 @@ function parse_header(string)
                 :gsub("%%cursor", list_cursor)
                 -- undo name escape
                 :gsub("%%%%", "%%")
+end
+
+function parse_header_filter(string)
+	return string:gsub("%%filter", filterName)
+			-- undo name escape
+			:gsub("%%%%", "%%")
 end
 
 function bind_keys(keys, name, func, opts)
@@ -246,6 +255,9 @@ function unbind()
     unbind_keys(o.list_select_keybind, "list-select")
     unbind_keys(o.list_delete_keybind, "list-delete")
     unbind_keys(o.list_close_keybind, "list-close")
+	if not o.slots_filter_outside_list then --1.03# only enable going to slots-list from outside the list, if enabled in settings
+		unbind_keys(o.list_filter_slots_keybind, 'slots-list')
+	end
 	if o.quickselect_0to9_keybind and o.list_show_amount <= 10 then
 		mp.remove_key_binding("recent-1")
 		mp.remove_key_binding("recent-2")
@@ -262,6 +274,8 @@ function unbind()
     list_drawn = false
     list_cursor = 1
     list_start = 0
+	filterName = nil
+	list_drawn_count = 0
 end
 
 function read_log(func)
@@ -291,15 +305,25 @@ function read_log_table()
 end
 
 function get_list_contents()
-	list_contents = read_log_table() --Gets list content and show error message if empty
-	if not list_contents or not list_contents[1] then
-		msg.info("Bookmark file is empty")
-		if o.osd_messages == true then
-			mp.osd_message("Bookmark Empty")
+		list_contents = read_log_table() --Gets list content and show error message if empty
+		if not list_contents or not list_contents[1] then
+			msg.info("Bookmark file is empty")
+			if o.osd_messages == true then
+				mp.osd_message("Bookmark Empty")
+			end
+			return
 		end
-		return
-	end
-end
+		
+	if filterName == 'slots' then
+		local filtered_table = {} -- create a new empty table
+		for i=1, #list_contents do -- 1.01# Loop through list_contents, and if there is slot, then 
+            if list_contents[i].found_slot then
+				table.insert(filtered_table, list_contents[i])
+			end
+		end
+		list_contents = filtered_table
+	end	
+end 
 
 -- Write path to log on file end
 -- removing duplicates along the way
@@ -377,7 +401,7 @@ function write_log_slot_entry()
 	end
 	remove_slot_log_entry() --Deletes old slot enty from log
 	write_log(seekTime, true)
-	list_refresh()
+	get_list_contents()
 	list_move_first()
 	msg.info('Added Keybind:\n'..fileTitle..o.time_seperator..format_time(seekTime)..o.slot_seperator..get_slot_keybind(slotKeyIndex))
 	filePath, fileTitle = get_path() --Revert filePath and fileTitle to current playing (fixes bug that bookmarks doesnt know whether to load or add bokmark)
@@ -477,7 +501,13 @@ function draw_list()
     local osd_msg_end = "{\\1c&HFFFFFF}"
 	
     if o.header_text ~= '' then --1.0# 
-        osd_msg = osd_msg..osd_header..parse_header(o.header_text).."\\h\\N\\N"..osd_msg_end
+        osd_msg = osd_msg..osd_header..parse_header(o.header_text)
+		
+		if filterName and o.header_filter_text ~= '' then
+			osd_msg = osd_msg..parse_header_filter(o.header_filter_text)
+		end
+		
+		osd_msg = osd_msg.."\\h\\N\\N"..osd_msg_end
     end
     
     local osd_key = ''--1.0#Parameters for optional stuff so that if the optional value is not defined, it wont append osd_key
@@ -548,15 +578,6 @@ function draw_list()
     mp.set_osd_ass(0, 0, osd_msg)
 end
 
--- Handle up/down keys
-function select(pos)    
-    local list_cursor_temp = list_cursor + pos --1.0#Gets the cursor position
-    if list_cursor_temp > 0 and list_cursor_temp <= #list_contents then 
-        list_cursor = list_cursor_temp
-    end
-    draw_list()
-end
-
 -- Delete selected entry from the log
 function delete()
     filePath = list_contents[#list_contents-list_cursor+1].found_path
@@ -582,6 +603,15 @@ function list_slot_remove()
     msg.info('Removed Keybind: '..get_slot_keybind(slotKeyIndex))
 end
 
+-- Handle up/down keys
+function select(pos)    
+    local list_cursor_temp = list_cursor + pos --1.0#Gets the cursor position
+    if list_cursor_temp > 0 and list_cursor_temp <= #list_contents then 
+        list_cursor = list_cursor_temp
+    end
+    draw_list()
+end
+
 -- Load file and remove binds
 function load(list_cursor)
     unbind()
@@ -593,50 +623,12 @@ function load(list_cursor)
     selected = true --1.0# to only resume when a file is selected
 end
 
--- Display list and add keybinds
-function display_list()
-    if list_drawn then
-        unbind()
-        return
-    end
-	get_list_contents()
-	draw_list()
-    list_drawn = true
-
-    bind_keys(o.list_move_up_keybind, "move-up", list_move_up, 'repeatable')
-    bind_keys(o.list_move_down_keybind, "move-down", list_move_down, 'repeatable')
-    bind_keys(o.list_move_first_keybind, "move-first", list_move_first, 'repeatable')
-    bind_keys(o.list_move_last_keybind, "move-last", list_move_last, 'repeatable')
-	bind_keys(o.list_page_up_keybind, "page-up", list_page_up, 'repeatable')
-    bind_keys(o.list_page_down_keybind, "page-down", list_page_down, 'repeatable')
-    bind_keys(o.list_select_keybind, "list-select", list_select)
-    bind_keys(o.list_delete_keybind, "list-delete", list_delete)
-    bind_keys(o.bookmark_slots_remove_keybind, "slot-remove", function() list_slot_remove() list_refresh() end)
-	bind_keys(o.list_filter_slots_keybind, "list-filter-slots", list_filter_slots)
-    bind_keys(o.list_close_keybind, "list-close", unbind)
-    if o.quickselect_0to9_keybind and o.list_show_amount <= 10 then --1.0# Only show 0-9 keybinds if enabled
-        mp.add_forced_key_binding("1", "recent-1", function() load(list_start+1) end)
-        mp.add_forced_key_binding("2", "recent-2", function() load(list_start+2) end)
-        mp.add_forced_key_binding("3", "recent-3", function() load(list_start+3) end)
-        mp.add_forced_key_binding("4", "recent-4", function() load(list_start+4) end)
-        mp.add_forced_key_binding("5", "recent-5", function() load(list_start+5) end)
-        mp.add_forced_key_binding("6", "recent-6", function() load(list_start+6) end)
-        mp.add_forced_key_binding("7", "recent-7", function() load(list_start+7) end)
-        mp.add_forced_key_binding("8", "recent-8", function() load(list_start+8) end)
-        mp.add_forced_key_binding("9", "recent-9", function() load(list_start+9) end)
-        mp.add_forced_key_binding("0", "recent-0", function() load(list_start+10) end)
-    end
-end
-
-function list_filter_slots()
---eisa HERE
-end
-
 function bookmark_save()
     if filePath ~= nil then
         write_log(false, false)
 		if list_drawn then
-			list_refresh()
+			get_list_contents()
+			select(0)
 		end
 		if o.osd_messages == true then
 			mp.osd_message('Bookmarked:\n'..fileTitle..o.time_seperator..format_time(seekTime))
@@ -661,7 +653,8 @@ function bookmark_fileonly_save()
     if filePath ~= nil then
         write_log(0, false)
 		if list_drawn then
-			list_refresh()
+			get_list_contents()
+			select(0)
 		end
 		if o.osd_messages == true then
 			mp.osd_message('Bookmarked File Only:\n'..fileTitle)
@@ -682,6 +675,85 @@ function bookmark_fileonly_save()
     end
 end
 
+local bookmark_first = false
+local filter_first = false
+-- Display list and add keybinds
+function display_list(filter)
+	list_drawn_count = list_drawn_count + 1
+	filterName = filter --Update global variable of filterName, it will remain nil, if filter is not passed
+	
+	if list_drawn_count == 1 and not filter then
+		print('accessed_bookmark')
+		bookmark_first = true
+	end
+	
+	if list_drawn_count == 1 and filter then
+		print('accessed filter')
+		filter_first = true
+	end
+	
+	if list_drawn_count == 2 and not filter and bookmark_first then
+		print('need to leave bookmark')
+		bookmark_first = false
+		unbind()
+		return
+	end
+	
+	if list_drawn_count == 2 and filter and filter_first then
+		print('need to leave bookmark through filter')
+		filter_first = false
+		unbind()
+		return
+	end
+	
+	if list_drawn_count == 3 and bookmark_first then --On the third press return to list
+		print('on third press return to list')
+		bookmark_first = false 
+		list_drawn_count = 0
+		display_list()
+		return
+	end
+	
+	if list_drawn_count == 3 and filter_first then --On the third press return to list
+		print('on third press need to leave bookmark if we entered through filter first')
+		filter_first = false
+		unbind()
+		return
+	end
+	
+	
+	get_list_contents()
+	draw_list()
+    list_drawn = true
+	
+    bind_keys(o.list_move_up_keybind, "move-up", list_move_up, 'repeatable')
+    bind_keys(o.list_move_down_keybind, "move-down", list_move_down, 'repeatable')
+    bind_keys(o.list_move_first_keybind, "move-first", list_move_first, 'repeatable')
+    bind_keys(o.list_move_last_keybind, "move-last", list_move_last, 'repeatable')
+	bind_keys(o.list_page_up_keybind, "page-up", list_page_up, 'repeatable')
+    bind_keys(o.list_page_down_keybind, "page-down", list_page_down, 'repeatable')
+    bind_keys(o.list_select_keybind, "list-select", list_select)
+    bind_keys(o.list_delete_keybind, "list-delete", list_delete)
+    bind_keys(o.bookmark_slots_remove_keybind, "slot-remove", function() list_slot_remove() list_refresh() end)
+    bind_keys(o.list_close_keybind, "list-close", unbind)
+	
+	if not o.slots_filter_outside_list then --1.03# only enable going to slots-list from outside the list, if enabled in settings
+		bind_keys(o.list_filter_slots_keybind, 'slots-list', function() display_list('slots') end)
+	end
+    if o.quickselect_0to9_keybind and o.list_show_amount <= 10 then --1.0# Only show 0-9 keybinds if enabled
+        mp.add_forced_key_binding("1", "recent-1", function() load(list_start+1) end)
+        mp.add_forced_key_binding("2", "recent-2", function() load(list_start+2) end)
+        mp.add_forced_key_binding("3", "recent-3", function() load(list_start+3) end)
+        mp.add_forced_key_binding("4", "recent-4", function() load(list_start+4) end)
+        mp.add_forced_key_binding("5", "recent-5", function() load(list_start+5) end)
+        mp.add_forced_key_binding("6", "recent-6", function() load(list_start+6) end)
+        mp.add_forced_key_binding("7", "recent-7", function() load(list_start+7) end)
+        mp.add_forced_key_binding("8", "recent-8", function() load(list_start+8) end)
+        mp.add_forced_key_binding("9", "recent-9", function() load(list_start+9) end)
+        mp.add_forced_key_binding("0", "recent-0", function() load(list_start+10) end)
+    end
+end
+
 if o.auto_run_idle then
     mp.observe_property("idle-active", "bool", function(_, v)
         if v then display_list() end
@@ -698,10 +770,13 @@ mp.register_event("file-loaded", function()
 end)
 
 
-
 bind_keys(o.bookmark_list_keybind, 'bookmark-list', display_list)
 bind_keys(o.bookmark_save_keybind, 'bookmark-save', bookmark_save)
 bind_keys(o.bookmark_fileonly_keybind, 'bookmark-fileonly', bookmark_fileonly_save)
+
+if o.slots_filter_outside_list then --1.03# only enable going to slots-list from outside the list, if enabled in settings
+	bind_keys(o.list_filter_slots_keybind, 'slots-list', function() display_list('slots') end)
+end
 
 for i=1, #o.bookmark_slots_add_load_keybind do --1.02#Finally a way to find my keypress, simply make a loop for all the keybinds, then send the keybind to the function
 	mp.add_forced_key_binding(o.bookmark_slots_add_load_keybind[i], 'slot-'..i, function() add_load_slot(i) end)
