@@ -685,46 +685,46 @@ function display_list(filter)
 	
 	if list_drawn_count == 1 and not filter then
 		print('accessed_bookmark')
-		bookmark_first = true
+		list_bookmark_first = true
 	end
 	
 	if list_drawn_count == 1 and filter then
 		print('accessed filter')
-		filter_first = true
+		list_filter_first = true
 	end
 	
-	if list_drawn_count == 2 and not filter and bookmark_first then
+	if list_drawn_count == 2 and not filter and list_bookmark_first then
 		print('need to leave bookmark')
-		bookmark_first = false
+		list_bookmark_first = false
 		unbind()
 		return
 	end
 	
-	if list_drawn_count == 2 and filter and filter_first then
+	if list_drawn_count == 2 and filter and list_filter_first then
 		print('need to leave bookmark through filter')
-		filter_first = false
+		list_filter_first = false
 		unbind()
 		return
 	end
 	
-	if list_drawn_count == 3 and bookmark_first then --On the third press return to list bookmark list if we access through bookmark first
+	if list_drawn_count == 3 and list_bookmark_first then --On the third press return to list bookmark list if we access through bookmark first
 		print('on third press return to list')
-		bookmark_first = false 
+		list_bookmark_first = false 
 		list_drawn_count = 0
 		display_list()
 		return
 	end
 	
-	if list_drawn_count == 3 and filter_first and not filter then --On the third press return to list
+	if list_drawn_count == 3 and list_filter_first and not filter then --On the third press return to list
 		print('on third press need to leave bookmark if we entered through filter first and didnt pass a filter next')
-		filter_first = false
+		list_filter_first = false
 		unbind()
 		return
 	end
 	
-	if list_drawn_count == 3 and filter_first and filter then --On the third press return to filter list list if we accessed through filter first
+	if list_drawn_count == 3 and list_filter_first and filter then --On the third press return to filter list list if we accessed through filter first
 		print('on third press return to filtered list')
-		filter_first = false
+		list_filter_first = false
 		list_drawn_count = 0
 		display_list(filter)
 		return
