@@ -4,8 +4,8 @@ local o = {
 --Changes are recommended to be made in the script-opts directory. It can also be made here although not recommended.
 
     -- Script Settings
-    auto_run_idle = false, --Runs automatically when idle and no video is loaded --idle
-	bookmark_loads_last_idle = true, --When attempting to bookmark, if there is no file, it will instead jump to your last bookmarked item
+    auto_run_idle = false, --Runs automatically when opening mpv and there is no video / file loaded. 
+	bookmark_loads_last_idle = true, --When attempting to bookmark, if there is no video / file loaded, it will instead jump to your last bookmarked item
 	slots_quicksave_fileonly = true, --When quick saving a bookmark to keybind slot, it will not save position
 	slots_empty_auto_create = false, --If the keybind slot is empty, this enables quick bookmarking and adding to slot, Otherwise keybinds are assigned from the bookmark list or via quicksave.
 	slots_empty_fileonly = true, --When auto creating slot, it will not save position.
@@ -193,7 +193,7 @@ end
 
 function list_delete()
     delete()
-    list_contents = read_log_table()
+    get_list_contents()
     if not list_contents or not list_contents[1] then
         unbind()
         return
@@ -202,17 +202,6 @@ function list_delete()
 		select(0)
 	else
 		select(-1)
-	end
-end
-
-function list_refresh()
-	if list_drawn then
-		list_contents = read_log_table()
-		if not list_contents or not list_contents[1] then
-			unbind()
-			return
-		end
-		select(0)
 	end
 end
 
@@ -279,6 +268,8 @@ function unbind()
     list_start = 0
 	filterName = nil
 	list_drawn_count = 0
+	list_bookmark_first = false
+	list_filter_first = false	
 end
 
 function read_log(func)
@@ -308,15 +299,7 @@ function read_log_table()
 end
 
 function get_list_contents()
-		list_contents = read_log_table() --Gets list content and show error message if empty
-		if not list_contents or not list_contents[1] then
-			msg.info("Bookmark file is empty")
-			if o.osd_messages == true then
-				mp.osd_message("Bookmark Empty")
-			end
-			return
-		end
-		
+	list_contents = read_log_table() --Gets list content and show error message if empty	
 	if filterName == 'slots' then
 		local filtered_table = {} -- create a new empty table
 		for i=1, #list_contents do -- 1.01# Loop through list_contents, and if there is slot, then 
@@ -325,7 +308,24 @@ function get_list_contents()
 			end
 		end
 		list_contents = filtered_table
-	end	
+	end
+	
+	if not list_contents or not list_contents[1] then
+	
+		local msg_text
+		if filterName then
+			msg_text = filterName.." in Bookmark Empty"
+		else 
+			msg_text = "Bookmark Empty"
+		end
+		
+		msg.info(msg_text)
+		if o.osd_messages == true then
+			mp.osd_message(msg_text)
+		end
+		
+		return
+	end
 end 
 
 -- Write path to log on file end
@@ -607,7 +607,12 @@ function list_slot_remove()
 end
 
 -- Handle up/down keys
-function select(pos)    
+function select(pos)
+	if not list_contents or not list_contents[1] then --If there is no content, then dont do select
+        unbind()
+        return
+    end
+	
     local list_cursor_temp = list_cursor + pos --1.0#Gets the cursor position
     if list_cursor_temp > 0 and list_cursor_temp <= #list_contents then 
         list_cursor = list_cursor_temp
@@ -684,31 +689,24 @@ function display_list(filter)
 	filterName = filter --Update global variable of filterName, it will remain nil, if filter is not passed
 	
 	if list_drawn_count == 1 and not filter then
-		print('accessed_bookmark')
 		list_bookmark_first = true
 	end
 	
 	if list_drawn_count == 1 and filter then
-		print('accessed filter')
 		list_filter_first = true
 	end
 	
 	if list_drawn_count == 2 and not filter and list_bookmark_first then
-		print('need to leave bookmark')
-		list_bookmark_first = false
 		unbind()
 		return
 	end
 	
 	if list_drawn_count == 2 and filter and list_filter_first then
-		print('need to leave bookmark through filter')
-		list_filter_first = false
 		unbind()
 		return
 	end
 	
 	if list_drawn_count == 3 and list_bookmark_first then --On the third press return to list bookmark list if we access through bookmark first
-		print('on third press return to list')
 		list_bookmark_first = false 
 		list_drawn_count = 0
 		display_list()
@@ -716,14 +714,11 @@ function display_list(filter)
 	end
 	
 	if list_drawn_count == 3 and list_filter_first and not filter then --On the third press return to list
-		print('on third press need to leave bookmark if we entered through filter first and didnt pass a filter next')
-		list_filter_first = false
 		unbind()
 		return
 	end
 	
 	if list_drawn_count == 3 and list_filter_first and filter then --On the third press return to filter list list if we accessed through filter first
-		print('on third press return to filtered list')
 		list_filter_first = false
 		list_drawn_count = 0
 		display_list(filter)
@@ -732,6 +727,11 @@ function display_list(filter)
 	
 	
 	get_list_contents()
+	if not list_contents or not list_contents[1] then
+        unbind()
+        return
+    end
+	
 	draw_list()
     list_drawn = true
 	
@@ -743,7 +743,7 @@ function display_list(filter)
     bind_keys(o.list_page_down_keybind, "page-down", list_page_down, 'repeatable')
     bind_keys(o.list_select_keybind, "list-select", list_select)
     bind_keys(o.list_delete_keybind, "list-delete", list_delete)
-    bind_keys(o.bookmark_slots_remove_keybind, "slot-remove", function() list_slot_remove() list_refresh() end)
+    bind_keys(o.bookmark_slots_remove_keybind, "slot-remove", function() list_slot_remove() get_list_contents() select(0) end)
     bind_keys(o.list_close_keybind, "list-close", unbind)
 	
 	if not o.slots_filter_outside_list then --1.03# only enable going to slots-list from outside the list, if enabled in settings
