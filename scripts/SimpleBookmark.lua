@@ -87,7 +87,10 @@ local list_contents = {}
 local list_start = 0
 local list_cursor = 1
 local list_drawn = false
+
 local list_drawn_count = 0
+local list_bookmark_first = false
+local list_filter_first = false
 
 local filePath, fileTitle, seekTime, filterName
 
@@ -675,8 +678,6 @@ function bookmark_fileonly_save()
     end
 end
 
-local bookmark_first = false
-local filter_first = false
 -- Display list and add keybinds
 function display_list(filter)
 	list_drawn_count = list_drawn_count + 1
@@ -706,7 +707,7 @@ function display_list(filter)
 		return
 	end
 	
-	if list_drawn_count == 3 and bookmark_first then --On the third press return to list
+	if list_drawn_count == 3 and bookmark_first then --On the third press return to list bookmark list if we access through bookmark first
 		print('on third press return to list')
 		bookmark_first = false 
 		list_drawn_count = 0
@@ -714,10 +715,18 @@ function display_list(filter)
 		return
 	end
 	
-	if list_drawn_count == 3 and filter_first then --On the third press return to list
-		print('on third press need to leave bookmark if we entered through filter first')
+	if list_drawn_count == 3 and filter_first and not filter then --On the third press return to list
+		print('on third press need to leave bookmark if we entered through filter first and didnt pass a filter next')
 		filter_first = false
 		unbind()
+		return
+	end
+	
+	if list_drawn_count == 3 and filter_first and filter then --On the third press return to filter list list if we accessed through filter first
+		print('on third press return to filtered list')
+		filter_first = false
+		list_drawn_count = 0
+		display_list(filter)
 		return
 	end
 	
