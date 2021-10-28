@@ -91,6 +91,8 @@ local list_drawn = false
 local list_drawn_count = 0
 local list_bookmark_first = false
 local list_filter_first = false
+local first_list_cursor = 1
+local second_list_cursor = 1
 
 local filePath, fileTitle, seekTime, filterName
 
@@ -270,6 +272,8 @@ function unbind()
 	list_drawn_count = 0
 	list_bookmark_first = false
 	list_filter_first = false	
+	first_list_cursor = 1
+	second_list_cursor = 1
 end
 
 function read_log(func)
@@ -696,6 +700,16 @@ function display_list(filter)
 		list_filter_first = true
 	end
 	
+	if list_drawn_count == 2 then --To handle cursor
+		first_list_cursor = list_cursor --If it is the second press, then first_list_cursor need to be saved
+		if second_list_cursor then list_cursor = second_list_cursor end --Also we need to go back to the second_list_cursor if its available
+	end
+	
+	if list_drawn_count == 3 then -- To handle cursor
+		second_list_cursor = list_cursor -- If it is the third press, then the second_list_cursor need to be saved
+		if first_list_cursor then list_cursor = first_list_cursor end  -- Also we need to go back to the first_list_cursor if its available
+	end
+	
 	if list_drawn_count == 2 and not filter and list_bookmark_first then
 		unbind()
 		return
@@ -713,11 +727,6 @@ function display_list(filter)
 		return
 	end
 	
-	if list_drawn_count == 3 and list_filter_first and not filter then --On the third press return to list
-		unbind()
-		return
-	end
-	
 	if list_drawn_count == 3 and list_filter_first and filter then --On the third press return to filter list list if we accessed through filter first
 		list_filter_first = false
 		list_drawn_count = 0
@@ -725,12 +734,19 @@ function display_list(filter)
 		return
 	end
 	
+	if list_drawn_count == 3 and list_filter_first and not filter then --On the third press return to list
+		unbind()
+		return
+	end
 	
 	get_list_contents()
 	if not list_contents or not list_contents[1] then
         unbind()
         return
     end
+	
+	if list_cursor > #list_contents then list_cursor = 1 end --If the cursor 
+
 	
 	draw_list()
     list_drawn = true
