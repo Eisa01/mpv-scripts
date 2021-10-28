@@ -4,7 +4,7 @@ local o = {
 --Changes are recommended to be made in the script-opts directory. It can also be made here although not recommended.
 
     -- Script Settings
-    auto_run_idle = false, --Runs automatically when opening mpv and there is no video / file loaded. 
+    auto_run_list_idle = 'none', --Runs automatically when opening mpv and there is no video / file loaded. You can choose between filters, such as, 'all' to display all the bookmarks, or 'slots' to display the bookmarks filtered with slots. Or 'none' to keep it disabled.
 	bookmark_loads_last_idle = true, --When attempting to bookmark, if there is no video / file loaded, it will instead jump to your last bookmarked item
 	slots_quicksave_fileonly = true, --When quick saving a bookmark to keybind slot, it will not save position
 	slots_empty_auto_create = false, --If the keybind slot is empty, this enables quick bookmarking and adding to slot, Otherwise keybinds are assigned from the bookmark list or via quicksave.
@@ -249,6 +249,7 @@ function unbind()
     unbind_keys(o.list_select_keybind, "list-select")
     unbind_keys(o.list_delete_keybind, "list-delete")
     unbind_keys(o.list_close_keybind, "list-close")
+	unbind_keys(o.bookmark_slots_remove_keybind, "slot-remove")
 	if not o.slots_filter_outside_list then --1.03# only enable going to slots-list from outside the list, if enabled in settings
 		unbind_keys(o.list_filter_slots_keybind, 'slots-list')
 	end
@@ -345,6 +346,9 @@ function write_log(logged_time, keybind_slot)
 	
 	if seekTime < 0 then seekTime = 0 end --Handle if time became negative or something
 	delete_log_entry() --1.01#Call delete before adding, to remove duplicate entries (we need to use flag to round it, causes problems now, maybe in future, this is needed for keybind_slot also so it doesnt create it as duplicate)
+	if keybind_slot then
+		remove_slot_log_entry() --1.03# Calls slot delete before adding, to remove duplicate entries of slots if available, Fixed duplicable keybind when saving through quicksave
+	end
 	f = io.open(bookmark_log, "a+")
 	if o.file_title_logging == 'all' then
 		f:write(("[%s] \"%s\" | %s | %s"):format(os.date(o.date_format), fileTitle, filePath, o.bookmark_time_text..tostring(seekTime)))
@@ -406,7 +410,6 @@ function write_log_slot_entry()
 		msg.info("Failed to delete")
 		return
 	end
-	remove_slot_log_entry() --Deletes old slot enty from log
 	write_log(seekTime, true)
 	get_list_contents()
 	list_move_first()
@@ -601,6 +604,7 @@ end
 
 --Removes keybind slot from the log
 function list_slot_remove()
+	if not list_drawn then return end --Only works if the list is drawn
     slotKeyIndex = tonumber(list_contents[#list_contents-list_cursor+1].found_slot)
     if not slotKeyIndex then
         msg.info("Failed to remove")
@@ -740,12 +744,11 @@ function display_list(filter)
 	end
 	
 	get_list_contents()
-	if not list_contents or not list_contents[1] then
+	if not list_contents or not list_contents[1] then --If the list is empty then do not proceed
         unbind()
         return
     end
-	
-	if list_cursor > #list_contents then list_cursor = 1 end --If the cursor 
+	if list_cursor > #list_contents then list_cursor = 1 end --If the cursor index is more than contents of the list, then start from 1
 
 	
 	draw_list()
@@ -759,7 +762,7 @@ function display_list(filter)
     bind_keys(o.list_page_down_keybind, "page-down", list_page_down, 'repeatable')
     bind_keys(o.list_select_keybind, "list-select", list_select)
     bind_keys(o.list_delete_keybind, "list-delete", list_delete)
-    bind_keys(o.bookmark_slots_remove_keybind, "slot-remove", function() list_slot_remove() get_list_contents() select(0) end)
+    bind_keys(o.bookmark_slots_remove_keybind, "slot-remove", function() list_slot_remove() get_list_contents() if list_cursor ~= #list_contents+1 then select(0) else select(-1) end end)
     bind_keys(o.list_close_keybind, "list-close", unbind)
 	
 	if not o.slots_filter_outside_list then --1.03# only enable going to slots-list from outside the list, if enabled in settings
@@ -779,9 +782,10 @@ function display_list(filter)
     end
 end
 
-if o.auto_run_idle then
+if o.auto_run_list_idle == 'slots' or o.auto_run_list_idle == 'all' then
+	if o.auto_run_list_idle == 'all' then o.auto_run_list_idle = nil end
     mp.observe_property("idle-active", "bool", function(_, v)
-        if v then display_list() end
+        if v then display_list(o.auto_run_list_idle) end
     end)
 end
 
