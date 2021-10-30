@@ -56,14 +56,6 @@ local o = {
         bookmark_slots_add_load_keybind = {'alt+1', 'alt+2', 'alt+3', 'alt+4', 'alt+5', 'alt+6', 'alt+7', 'alt+8', 'alt+9'}, --Keybind that will be used to bind a bookmark to a key. e.g.: Press alt+1 on a bookmark slot to assign it when list is open, press while list is hidden to load. (A new slot is automatically created for each keybind. e.g: ..'alt+9, alt+0'. Where alt+0 creates a new 10th slot.)
         bookmark_slots_remove_keybind = {'alt+-', 'alt+_'}, --Keybind that is used to remove the highlighted bookmark slot keybind from a bookmark entry when the bookmark list is open.
         bookmark_slots_quicksave_keybind = {'alt+!', 'alt+@', 'alt+#', 'alt+$', 'alt+%', 'alt+^', 'alt+&', 'alt+*', 'alt+)'}, --To save keybind to a slot without opening the bookmark list, to load these bookmarks it uses bookmark_slots_add_load_keybind
-        next_filter_sequence_keybind = {'RIGHT'},
-        previous_filter_sequence_keybind ={'LEFT'},
-        list_filter_slots_keybind = {'s', 'S'}, --Keybind to filter out the bookmarked slots
-        slots_filter_outside_list = true, --False to access keybind only if bookmark list is open. true for Keybind to access filtered bookmark list immediately without needing to open bookmark list first. 
-        list_filter_fileonly_keybind = {'f', 'F'}, --Keybind to filter out the bookmarked slots
-        fileonly_filter_outside_list = false, --False to access keybind only if bookmark list is open. true for Keybind to access filtered bookmark list immediately without needing to open bookmark list first. 
-        list_filter_timeonly_keybind = {'t', 'T'}, --Keybind to filter out the bookmarked slots
-        timeonly_filter_outside_list = false, --False to access keybind only if bookmark list is open. true for Keybind to access filtered bookmark list immediately without needing to open bookmark list first. 
         list_move_up_keybind = {'UP', 'WHEEL_UP'}, --Keybind that will be used to navigate up on the bookmark list
         list_move_down_keybind = {'DOWN', 'WHEEL_DOWN'}, --Keybind that will be used to navigate down on the bookmark list
         list_page_up_keybind = {'PGUP'}, --Keybind that will be used to go to the first item for the page shown on the bookmark list
@@ -74,6 +66,16 @@ local o = {
         list_close_keybind = {'ESC', 'MBTN_RIGHT'}, --Keybind that will be used to close the bookmark list
         list_delete_keybind = {'DEL'}, --Keybind that will be used to delete the highlighted entry from the bookmark list
         quickselect_0to9_keybind = true, --Keybind entries from 0 to 9 for quick selection when list is open (list_show_amount = 10 is maximum for this feature to work)
+        
+        -----Filter Keybind Settings-----
+        next_filter_sequence_keybind = {'RIGHT'},
+        previous_filter_sequence_keybind ={'LEFT'},
+        list_filter_slots_keybind = {'s', 'S'}, --Keybind to filter out the bookmarked slots
+        slots_filter_outside_list = true, --False to access keybind only if bookmark list is open. true for Keybind to access filtered bookmark list immediately without needing to open bookmark list first. 
+        list_filter_fileonly_keybind = {'f', 'F'}, --Keybind to filter out the bookmarked slots
+        fileonly_filter_outside_list = false, --False to access keybind only if bookmark list is open. true for Keybind to access filtered bookmark list immediately without needing to open bookmark list first. 
+        list_filter_timeonly_keybind = {'t', 'T'}, --Keybind to filter out the bookmarked slots
+        timeonly_filter_outside_list = false, --False to access keybind only if bookmark list is open. true for Keybind to access filtered bookmark list immediately without needing to open bookmark list first. 
 
 ---------------------------END OF USER CUSTOMIZATION SETTINGS---------------------------
 }
@@ -306,11 +308,13 @@ function read_log_table()
     end)
 end
 
-function get_list_contents()
+function get_list_contents(filter)
+	if not filter then filter = filterName end --If no filter is passed then use the global filterName variable
+	
     list_contents = read_log_table()
     local filtered_table = {}
     
-    if filterName == 'slots' then
+    if filter == 'slots' then
         for i = 1, #list_contents do
             if list_contents[i].found_slot then
                 table.insert(filtered_table, list_contents[i])
@@ -318,7 +322,7 @@ function get_list_contents()
         end
         list_contents = filtered_table
     end
-    if filterName == 'fileonly' then
+    if filter == 'fileonly' then
         for i = 1, #list_contents do
             if tonumber(list_contents[i].found_time) == 0 then
                 table.insert(filtered_table, list_contents[i])
@@ -326,7 +330,7 @@ function get_list_contents()
         end
         list_contents = filtered_table
     end
-    if filterName == 'timeonly' then
+    if filter == 'timeonly' then
         for i = 1, #list_contents do
             if tonumber(list_contents[i].found_time) > 0 then
                 table.insert(filtered_table, list_contents[i])
@@ -339,8 +343,8 @@ function get_list_contents()
     if not list_contents or not list_contents[1] then
         
         local msg_text
-        if filterName ~= '' then
-            msg_text = filterName .. " in Bookmark Empty"
+        if filter ~= '' then
+            msg_text = filter .. " in Bookmark Empty"
         else
             msg_text = "Bookmark Empty"
         end
@@ -648,25 +652,40 @@ function select_filter_sequence(pos)
 	for i=1, #o.filters_and_sequence do
 		if filterName == o.filters_and_sequence[i] then --Get the current position from the filters array, and based on position move next or back
 			curr_pos = i
-			break
 		end
 	end
+	--Code to ignore the empty filters and proceed to the next available filter
+	if curr_pos and pos >-1 then --If giving a positive number, then the position need to step up
+		for i=curr_pos, #o.filters_and_sequence do
+			get_list_contents(o.filters_and_sequence[i+pos]) --Check if the target position list is empty starting from current position until the end of filter list
+			if list_contents[1] then -- If it found target position then we can set it for target_pos and break loop, otherwise target_pos will remain nile
+				target_pos = i+pos
+				break
+			end
+		end
+	elseif curr_pos and pos < 0 then --If giving a negative number, then the position will need to be decreased
+		for i=curr_pos, 0, -1 do
+			get_list_contents(o.filters_and_sequence[i+pos]) --Check if the target position list is empty starting from current position until the end of filter list
+			if list_contents[1] then -- If it found target position then we can set it for target_pos and break loop, otherwise target_pos will remain nile
+				target_pos = i+pos
+				break
+			end
+		end
+	end
+	--End of ignore the empty filters
 	
-	if curr_pos then --If it found then attempt to move depending on position
-		target_pos = curr_pos+pos
-
-		if not o.loop_through_filters then --Makes 
-			if target_pos > #o.filters_and_sequence then return end --If target attempts to exceed the filter count then stop
-			if target_pos < 1 then return end --If target attempts to be less than the count then stop
-		else
-			if target_pos > #o.filters_and_sequence then target_pos = 1 end -- If target attempts to exceed then start from the begining
-			if target_pos < 1 then target_pos = #o.filters_and_sequence end -- If targets attempts to be less than the count then start from the end
+	--Code to handle reaching the end, either to loop or to stop
+		if target_pos then 
+			if not o.loop_through_filters then --Makes 
+				if target_pos > #o.filters_and_sequence then return end --If target attempts to exceed the filter count then stop
+				if target_pos < 1 then return end --If target attempts to be less than the count then stop
+			else
+				if target_pos > #o.filters_and_sequence then target_pos = 1 end -- If target attempts to exceed then start from the begining
+				if target_pos < 1 then target_pos = #o.filters_and_sequence end -- If targets attempts to be less than the count then start from the end
+			end
+			display_list(o.filters_and_sequence[target_pos])
 		end
-		
-		display_list(o.filters_and_sequence[target_pos])
-	else
-		return --If it didnt find then exit (should be proceed to the next available slot)
-	end
+	--End of handle reaching the end
 end
 
 function list_filter_next()
@@ -751,8 +770,6 @@ function get_list_keybinds()
     bind_keys(o.list_close_keybind, 'list-close', unbind)
 	bind_keys(o.next_filter_sequence_keybind, 'list-filter-next', list_filter_next)
 	bind_keys(o.previous_filter_sequence_keybind, 'list-filter-previous', list_filter_previous)
-
-	--bind_keys(o.previous_filter_sequence, 'list-filter-previous', select_filter_sequence(-1))
 	
     if not o.slots_filter_outside_list then
         bind_keys(o.list_filter_slots_keybind, 'slots-list', function()display_list('slots') end)
