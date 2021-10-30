@@ -13,8 +13,8 @@ local o = {
         show_paths = false, --Show file paths instead of media-title
         resume_offset = -0.65, --change to 0 so that bookmark resumes from the exact position, or decrease the value so that it gives you a little preview before loading the resume point
         osd_messages = true, --true is for displaying osd messages when actions occur. Change to false will disable all osd messages generated from this script
-        filters_and_sequence = {'','slots', 'fileonly', 'timeonly'},
-        loop_through_filters = true,
+		filters_and_sequence = {'all', 'slots', 'protocols', 'fileonly', 'titleonly', 'timeonly'},--Eisa write + add keybinds for new filters
+		loop_through_filters = true,
         
         -----Logging Settings-----
         log_path = mp.find_config_file('.'):match('@?(.*/)'), --Change to debug.getinfo(1).source:match('@?(.*/)') for placing it in the same directory of script, OR change to mp.find_config_file('.'):match('@?(.*/)') for mpv portable_config directory OR specify the desired path in quotes, e.g.: 'C:\Users\Eisa01\Desktop\'
@@ -67,9 +67,9 @@ local o = {
         list_delete_keybind = {'DEL'}, --Keybind that will be used to delete the highlighted entry from the bookmark list
         quickselect_0to9_keybind = true, --Keybind entries from 0 to 9 for quick selection when list is open (list_show_amount = 10 is maximum for this feature to work)
         
-        -----Filter Keybind Settings-----
-        next_filter_sequence_keybind = {'RIGHT'},
-        previous_filter_sequence_keybind ={'LEFT'},
+		-----Filter Keybind Settings-----
+		next_filter_sequence_keybind = {'RIGHT'},
+		previous_filter_sequence_keybind ={'LEFT'},
         list_filter_slots_keybind = {'s', 'S'}, --Keybind to filter out the bookmarked slots
         slots_filter_outside_list = true, --False to access keybind only if bookmark list is open. true for Keybind to access filtered bookmark list immediately without needing to open bookmark list first. 
         list_filter_fileonly_keybind = {'f', 'F'}, --Keybind to filter out the bookmarked slots
@@ -97,7 +97,7 @@ local list_cursor = 1
 local list_drawn = false
 local list_pages = {}
 local filePath, fileTitle, seekTime
-local filterName = ''
+local filterName = 'all'
 
 local slotKeyIndex = 0
 
@@ -216,8 +216,10 @@ end
 
 function get_path()
     local path = mp.get_property('path')
-    local title = mp.get_property('media-title'):gsub("\"", "")
+	if not path then return end	--only proceed with function if it was able to get path, means a file is loaded (fixes idle crashes when assigning keybind)
     
+	local title = mp.get_property('media-title'):gsub("\"", "")
+	
     if starts_protocol(o.protocols, path) and o.prefer_filename_over_title == 'protocols' then
         title = mp.get_property('filename'):gsub("\"", "")
     elseif not starts_protocol(o.protocols, path) and o.prefer_filename_over_title == 'local' then
@@ -226,7 +228,6 @@ function get_path()
         title = mp.get_property('filename'):gsub("\"", "")
     end
     
-    if not path then return end
     return path, title
 end
 
@@ -278,7 +279,7 @@ function unbind()
     list_drawn = false
     list_cursor = 1
     list_start = 0
-    filterName = ''
+    filterName = 'all'
     list_pages = {}
 end
 
@@ -295,16 +296,18 @@ end
 
 function read_log_table()
     return read_log(function(line)
-        local p, t, s, d, n, e
+        local tt, pt, p, t, s, d, n, e
         if line:match('^.-\"(.-)\"') then --#1.0 If there is a title, then match the parameters after title
+			tt = line:match('^.-\"(.-)\"') --To get the title of the file
             n, p = line:match('^.-\"(.-)\" | (.*) | ' .. esc_string(o.bookmark_time_text) .. '(.*)')
         else
             p = line:match('[(.*)%]]%s(.*) | ' .. esc_string(o.bookmark_time_text) .. '(.*)')
             d, n, e = p:match('^(.-)([^\\/]-)%.([^\\/%.]-)%.?$')
         end
+		pt = starts_protocol(o.protocols, p)
         t = line:match(' | ' .. esc_string(o.bookmark_time_text) .. '(%d*%.?%d*)(.*)$')
         s = line:match(' | .* | ' .. esc_string(o.keybind_slot_text) .. '(.*)$')
-        return {found_path = p, found_time = t, found_name = n, found_slot = s}
+        return {found_path = p, found_time = t, found_name = n, found_slot = s, found_title = tt, found_protocol = pt}
     end)
 end
 
@@ -338,12 +341,29 @@ function get_list_contents(filter)
         end
         list_contents = filtered_table
     end
-    
+	if filter == 'titleonly' then
+		for i = 1, #list_contents do
+            if list_contents[i].found_title then
+                table.insert(filtered_table, list_contents[i])
+            end
+        end
+        list_contents = filtered_table
+    end
+	
+	if filter == 'protocols' then
+		for i = 1, #list_contents do
+            if list_contents[i].found_protocol then
+                table.insert(filtered_table, list_contents[i])
+            end
+        end
+        list_contents = filtered_table
+    end
+	
     
     if not list_contents or not list_contents[1] then
         
         local msg_text
-        if filter ~= '' then
+        if filter ~= 'all' then
             msg_text = filter .. " in Bookmark Empty"
         else
             msg_text = "Bookmark Empty"
@@ -523,8 +543,10 @@ function quicksave_slot(key_index)
 end
 
 function draw_list()
-    local key = 0
     local osd_msg = ''
+	local osd_index = ''	
+	local osd_key = ''
+	local key = 0
     local osd_text = string.format("{\\fscx%f}{\\fscy%f}{\\bord%f}{\\1c&H%s}", o.text_scale, o.text_scale, o.text_border, o.text_color)
     local osd_highlight = string.format("{\\fscx%f}{\\fscy%f}{\\bord%f}{\\1c&H%s}", o.highlight_scale, o.highlight_scale, o.highlight_border, o.highlight_color)
     local osd_header = string.format("{\\fscx%f}{\\fscy%f}{\\bord%f}{\\1c&H%s}", o.header_scale, o.header_scale, o.header_border, o.header_color)
@@ -533,14 +555,12 @@ function draw_list()
     if o.header_text ~= '' then
         osd_msg = osd_msg .. osd_header .. parse_header(o.header_text)
         
-        if filterName ~= '' and o.header_filter_text ~= '' then
+        if filterName ~= 'all' and o.header_filter_text ~= '' then
             osd_msg = osd_msg .. parse_header_filter(o.header_filter_text)
         end
         
         osd_msg = osd_msg .. "\\h\\N\\N" .. osd_msg_end
     end
-    
-    local osd_key = ''
     
     if o.list_middle_loader then
         list_start = list_cursor - math.floor(o.list_show_amount / 2)
@@ -599,10 +619,11 @@ function draw_list()
         end
         
         osd_msg = osd_msg .. '\\h\\N\\N' .. osd_msg_end
-        
+
         if i == list_start + o.list_show_amount - 1 and not showall and not showrest then
             osd_msg = osd_msg .. o.list_sliced_suffix
         end
+		
     end
     mp.set_osd_ass(0, 0, osd_msg)
 end
@@ -796,8 +817,7 @@ function get_list_keybinds()
 end
 
 function display_list(filter)
-    if not filter then filter = '' end
-	if filter == 'all' then filter = '' end
+    if not filter then filter = 'all' end
     local prev_filter = filterName --Get previous filterName
 
 	filterName = filter --Now update filterName to get passed one
@@ -807,7 +827,7 @@ function display_list(filter)
     table.insert(list_pages, {filter, list_cursor})
 	
     if #list_pages > 1 then
-        if list_pages[#list_pages - 1][1] == filter and filter == '' and o.bookmark_list_keybind_twice_exits then
+        if list_pages[#list_pages - 1][1] == filter and filter == 'all' and o.bookmark_list_keybind_twice_exits then
             trigger_close_list = true
         elseif list_pages[#list_pages - 1][1] == filter and list_pages[1][1] == filter then
             trigger_close_list = true
@@ -845,8 +865,9 @@ function display_list(filter)
     if not list_contents or not list_contents[1] then
         if not list_drawn then --Only if list is not drawn then unbind
 			unbind()
+		else --Only if list is drawn then go to previous filter
+			display_list(prev_filter) --Remain in the same page
 		end
-		display_list(prev_filter) --Remain in the same page
 		return
     end
     
@@ -855,7 +876,12 @@ function display_list(filter)
     get_list_keybinds()
 end
 
-if o.auto_run_list_idle == 'slots' or o.auto_run_list_idle == 'fileonly' or o.auto_run_list_idle == 'timeonly' or o.auto_run_list_idle == 'all' then
+if o.auto_run_list_idle == 'all'
+	or o.auto_run_list_idle == 'slots' 
+	or o.auto_run_list_idle == 'protocols'
+	or o.auto_run_list_idle == 'fileonly'
+	or o.auto_run_list_idle == 'titleonly'
+	or o.auto_run_list_idle == 'timeonly' then
     mp.observe_property("idle-active", "bool", function(_, v)
         if v then display_list(o.auto_run_list_idle) end
     end)
