@@ -13,6 +13,8 @@ local o = {
         show_paths = false, --Show file paths instead of media-title
         resume_offset = -0.65, --change to 0 so that bookmark resumes from the exact position, or decrease the value so that it gives you a little preview before loading the resume point
         osd_messages = true, --true is for displaying osd messages when actions occur. Change to false will disable all osd messages generated from this script
+        filters_and_sequence = {'','slots', 'fileonly', 'timeonly'},
+        loop_through_filters = true,
         
         -----Logging Settings-----
         log_path = mp.find_config_file('.'):match('@?(.*/)'), --Change to debug.getinfo(1).source:match('@?(.*/)') for placing it in the same directory of script, OR change to mp.find_config_file('.'):match('@?(.*/)') for mpv portable_config directory OR specify the desired path in quotes, e.g.: 'C:\Users\Eisa01\Desktop\'
@@ -54,6 +56,8 @@ local o = {
         bookmark_slots_add_load_keybind = {'alt+1', 'alt+2', 'alt+3', 'alt+4', 'alt+5', 'alt+6', 'alt+7', 'alt+8', 'alt+9'}, --Keybind that will be used to bind a bookmark to a key. e.g.: Press alt+1 on a bookmark slot to assign it when list is open, press while list is hidden to load. (A new slot is automatically created for each keybind. e.g: ..'alt+9, alt+0'. Where alt+0 creates a new 10th slot.)
         bookmark_slots_remove_keybind = {'alt+-', 'alt+_'}, --Keybind that is used to remove the highlighted bookmark slot keybind from a bookmark entry when the bookmark list is open.
         bookmark_slots_quicksave_keybind = {'alt+!', 'alt+@', 'alt+#', 'alt+$', 'alt+%', 'alt+^', 'alt+&', 'alt+*', 'alt+)'}, --To save keybind to a slot without opening the bookmark list, to load these bookmarks it uses bookmark_slots_add_load_keybind
+        next_filter_sequence_keybind = {'RIGHT'},
+        previous_filter_sequence_keybind ={'LEFT'},
         list_filter_slots_keybind = {'s', 'S'}, --Keybind to filter out the bookmarked slots
         slots_filter_outside_list = true, --False to access keybind only if bookmark list is open. true for Keybind to access filtered bookmark list immediately without needing to open bookmark list first. 
         list_filter_fileonly_keybind = {'f', 'F'}, --Keybind to filter out the bookmarked slots
@@ -62,8 +66,8 @@ local o = {
         timeonly_filter_outside_list = false, --False to access keybind only if bookmark list is open. true for Keybind to access filtered bookmark list immediately without needing to open bookmark list first. 
         list_move_up_keybind = {'UP', 'WHEEL_UP'}, --Keybind that will be used to navigate up on the bookmark list
         list_move_down_keybind = {'DOWN', 'WHEEL_DOWN'}, --Keybind that will be used to navigate down on the bookmark list
-        list_page_up_keybind = {'PGUP', 'LEFT'}, --Keybind that will be used to go to the first item for the page shown on the bookmark list
-        list_page_down_keybind = {'PGDWN', 'RIGHT'}, --Keybind that will be used to go to the last item for the page shown on the bookmark list
+        list_page_up_keybind = {'PGUP'}, --Keybind that will be used to go to the first item for the page shown on the bookmark list
+        list_page_down_keybind = {'PGDWN'}, --Keybind that will be used to go to the last item for the page shown on the bookmark list
         list_move_first_keybind = {'HOME'}, --Keybind that will be used to navigate to the first item on the bookmark list
         list_move_last_keybind = {'END'}, --Keybind that will be used to navigate to the last item on the bookmark list
         list_select_keybind = {'ENTER', 'MBTN_MID'}, --Keybind that will be used to load highlighted entry from the bookmark list
@@ -341,7 +345,7 @@ function get_list_contents()
             msg_text = "Bookmark Empty"
         end
         msg.info(msg_text)
-        if o.osd_messages == true then
+        if o.osd_messages == true and not list_drawn then
             mp.osd_message(msg_text)
         end
         
@@ -636,6 +640,42 @@ function select(pos)
     draw_list()
 end
 
+function select_filter_sequence(pos)
+	if not list_drawn then return end
+	local curr_pos
+	local target_pos
+	
+	for i=1, #o.filters_and_sequence do
+		if filterName == o.filters_and_sequence[i] then --Get the current position from the filters array, and based on position move next or back
+			curr_pos = i
+			break
+		end
+	end
+	
+	if curr_pos then --If it found then attempt to move depending on position
+		target_pos = curr_pos+pos
+
+		if not o.loop_through_filters then --Makes 
+			if target_pos > #o.filters_and_sequence then return end --If target attempts to exceed the filter count then stop
+			if target_pos < 1 then return end --If target attempts to be less than the count then stop
+		else
+			if target_pos > #o.filters_and_sequence then target_pos = 1 end -- If target attempts to exceed then start from the begining
+			if target_pos < 1 then target_pos = #o.filters_and_sequence end -- If targets attempts to be less than the count then start from the end
+		end
+		
+		display_list(o.filters_and_sequence[target_pos])
+	else
+		return --If it didnt find then exit (should be proceed to the next available slot)
+	end
+end
+
+function list_filter_next()
+	select_filter_sequence(1)
+end
+function list_filter_previous()
+	select_filter_sequence(-1)
+end
+
 function load(list_cursor)
     unbind()
     seekTime = tonumber(list_contents[#list_contents - list_cursor + 1].found_time) + o.resume_offset
@@ -699,17 +739,21 @@ function bookmark_fileonly_save()
 end
 
 function get_list_keybinds()
-    bind_keys(o.list_move_up_keybind, "move-up", list_move_up, 'repeatable')
-    bind_keys(o.list_move_down_keybind, "move-down", list_move_down, 'repeatable')
-    bind_keys(o.list_move_first_keybind, "move-first", list_move_first, 'repeatable')
-    bind_keys(o.list_move_last_keybind, "move-last", list_move_last, 'repeatable')
-    bind_keys(o.list_page_up_keybind, "page-up", list_page_up, 'repeatable')
-    bind_keys(o.list_page_down_keybind, "page-down", list_page_down, 'repeatable')
-    bind_keys(o.list_select_keybind, "list-select", list_select)
-    bind_keys(o.list_delete_keybind, "list-delete", list_delete)
-    bind_keys(o.bookmark_slots_remove_keybind, "slot-remove", function()list_slot_remove()get_list_contents() if list_cursor ~= #list_contents + 1 then select(0) else select(-1) end end)
-    bind_keys(o.list_close_keybind, "list-close", unbind)
-    
+    bind_keys(o.list_move_up_keybind, 'move-up', list_move_up, 'repeatable')
+    bind_keys(o.list_move_down_keybind, 'move-down', list_move_down, 'repeatable')
+    bind_keys(o.list_move_first_keybind, 'move-first', list_move_first, 'repeatable')
+    bind_keys(o.list_move_last_keybind, 'move-last', list_move_last, 'repeatable')
+    bind_keys(o.list_page_up_keybind, 'page-up', list_page_up, 'repeatable')
+    bind_keys(o.list_page_down_keybind, 'page-down', list_page_down, 'repeatable')
+    bind_keys(o.list_select_keybind, 'list-select', list_select)
+    bind_keys(o.list_delete_keybind, 'list-delete', list_delete)
+    bind_keys(o.bookmark_slots_remove_keybind, 'slot-remove', function()list_slot_remove()get_list_contents() if list_cursor ~= #list_contents + 1 then select(0) else select(-1) end end)
+    bind_keys(o.list_close_keybind, 'list-close', unbind)
+	bind_keys(o.next_filter_sequence_keybind, 'list-filter-next', list_filter_next)
+	bind_keys(o.previous_filter_sequence_keybind, 'list-filter-previous', list_filter_previous)
+
+	--bind_keys(o.previous_filter_sequence, 'list-filter-previous', select_filter_sequence(-1))
+	
     if not o.slots_filter_outside_list then
         bind_keys(o.list_filter_slots_keybind, 'slots-list', function()display_list('slots') end)
     end
@@ -736,12 +780,15 @@ end
 
 function display_list(filter)
     if not filter then filter = '' end
-    filterName = filter
+	if filter == 'all' then filter = '' end
+    local prev_filter = filterName --Get previous filterName
+
+	filterName = filter --Now update filterName to get passed one
     local trigger_close_list = false
     local trigger_initial_list = false
     local page_change_event = false
     table.insert(list_pages, {filter, list_cursor})
-    
+	
     if #list_pages > 1 then
         if list_pages[#list_pages - 1][1] == filter and filter == '' and o.bookmark_list_keybind_twice_exits then
             trigger_close_list = true
@@ -771,11 +818,19 @@ function display_list(filter)
         display_list(list_pages[1][1])
         return
     end
+	
+	if trigger_close_list then
+		unbind()
+		return
+	end
     
     get_list_contents()
-    if not list_contents or not list_contents[1] or trigger_close_list then
-        unbind()
-        return
+    if not list_contents or not list_contents[1] then
+        if not list_drawn then --Only if list is not drawn then unbind
+			unbind()
+		end
+		display_list(prev_filter) --Remain in the same page
+		return
     end
     
     draw_list()
@@ -784,7 +839,6 @@ function display_list(filter)
 end
 
 if o.auto_run_list_idle == 'slots' or o.auto_run_list_idle == 'fileonly' or o.auto_run_list_idle == 'timeonly' or o.auto_run_list_idle == 'all' then
-    if o.auto_run_list_idle == 'all' then o.auto_run_list_idle = '' end
     mp.observe_property("idle-active", "bool", function(_, v)
         if v then display_list(o.auto_run_list_idle) end
     end)
