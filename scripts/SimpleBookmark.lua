@@ -13,9 +13,15 @@ local o = {
         show_paths = false, --Show file paths instead of media-title
         resume_offset = -0.65, --change to 0 so that bookmark resumes from the exact position, or decrease the value so that it gives you a little preview before loading the resume point
         osd_messages = true, --true is for displaying osd messages when actions occur. Change to false will disable all osd messages generated from this script
-		filters_and_sequence = {'all', 'slots', 'protocols', 'fileonly', 'titleonly', 'timeonly'},--Eisa write + add keybinds for new filters
-		loop_through_filters = true,
-        
+		loop_through_list = false, --true is for going up on the first item loops towards the last item and vise-versa. false disables this behavior.
+		
+		-----Filter Settings------
+		filters_and_sequence = {'all', 'slots', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'keywords'}, --Jump to the following filters and in the shown sequence when navigating via left and right keys. You can change the sequence and delete filters that are not needed.
+		keywords_filter_list = {'youtube.com', 'mp4', 'naruto'}, --Create a filter out of your desired 'keywords', e.g.: youtube.com will filter out the videos from youtube. You can also insert a portion of filename or title, or extension or a full path / portion of a path.
+		sort_slots_filter = 'keybind-asc', --sorts the slots filter. 'none' for default ordering. 'keybind-asc' is only for slots, it uses A to Z approach but for keybinds. 'keybind-desc' is the same but for Z to A approach.
+		sort_fileonly_filter = 'alphanum-asc', --sorts the fileonly filter. 'none' is for default ordering. 'alphanum-asc' is for A to Z approach with filename and episode number lower first. 'alphanum-desc' is for its Z to A approach.
+		loop_through_filters = true, --true is for bypassing the last filter to go to first filter when navigating through filters using arrow keys, and vice-versa. false disables this behavior.
+		
         -----Logging Settings-----
         log_path = mp.find_config_file('.'):match('@?(.*/)'), --Change to debug.getinfo(1).source:match('@?(.*/)') for placing it in the same directory of script, OR change to mp.find_config_file('.'):match('@?(.*/)') for mpv portable_config directory OR specify the desired path in quotes, e.g.: 'C:\Users\Eisa01\Desktop\'
         log_file = 'mpvBookmark.log', --name+extension of the file that will be used to store the log data
@@ -23,7 +29,7 @@ local o = {
         bookmark_time_text = 'time=', --The text that is stored for the video time inside log file. It can also be left blank.
         keybind_slot_text = 'slot=', --The text that is stored for the keybind slot inside log file. It can also be left blank.
         file_title_logging = 'protocols', --Change between 'all', 'protocols, 'none'. This option will store the media title in log file, it is useful for websites / protocols because title cannot be parsed from links alone
-        protocols = {'https?://', 'magnet:', 'rtmp:'}, --add below (after a comma) any protocol you want its title to be stored in the log file. This is valid only for (file_title_logging = 'protocols')
+        protocols = {'https?://', 'magnet:', 'rtmp:'}, --add below (after a comma) any protocol you want its title to be stored in the log file. This is valid only for (file_title_logging = 'protocols' or file_title_logging = 'all')
         prefer_filename_over_title = 'local', --Prefers to use filename over filetitle. Select between 'local', 'protocols', 'all', and 'none'. 'local' prefer filenames for videos that are not protocols. 'protocols' will prefer filenames for protocols only. 'all' will prefer filename over filetitle for both protocols and not protocols videos. 'none' will always use filetitle instead of filename
         
         -----Boorkmark Menu Settings-----
@@ -68,14 +74,14 @@ local o = {
         quickselect_0to9_keybind = true, --Keybind entries from 0 to 9 for quick selection when list is open (list_show_amount = 10 is maximum for this feature to work)
         
 		-----Filter Keybind Settings-----
-		next_filter_sequence_keybind = {'RIGHT'},
-		previous_filter_sequence_keybind ={'LEFT'},
+		next_filter_sequence_keybind = {'RIGHT', 'MBTN_FORWARD'}, --Keybind that will be used to go to the next available filter based on the configured sequence
+		previous_filter_sequence_keybind ={'LEFT', 'MBTN_BACK'}, --Keybind that will be used to go to the previous available filter based on the configured sequence
         list_filter_slots_keybind = {'s', 'S'}, --Keybind to filter out the bookmarked slots
         slots_filter_outside_list = true, --False to access keybind only if bookmark list is open. true for Keybind to access filtered bookmark list immediately without needing to open bookmark list first. 
-        list_filter_fileonly_keybind = {'f', 'F'}, --Keybind to filter out the bookmarked slots
+        list_filter_fileonly_keybind = {'f', 'F'}, --Keybind to filter out the bookmarked videos without time
         fileonly_filter_outside_list = false, --False to access keybind only if bookmark list is open. true for Keybind to access filtered bookmark list immediately without needing to open bookmark list first. 
-        list_filter_timeonly_keybind = {'t', 'T'}, --Keybind to filter out the bookmarked slots
-        timeonly_filter_outside_list = false, --False to access keybind only if bookmark list is open. true for Keybind to access filtered bookmark list immediately without needing to open bookmark list first. 
+        list_filter_timeonly_keybind = {''}, --Keybind to filter out the bookmarked videos with time (default is empty since you can easily access by navigating via arrow keys) 
+        timeonly_filter_outside_list = true, --False to access keybind only if bookmark list is open. true for Keybind to access filtered bookmark list immediately without needing to open bookmark list first. 
 
 ---------------------------END OF USER CUSTOMIZATION SETTINGS---------------------------
 }
@@ -110,6 +116,35 @@ function starts_protocol(tab, val)
     return false
 end
 
+function contain_value (tab, val)
+    for index, value in ipairs(tab) do
+        if value.match(string.lower(val), string.lower(value)) then --if the value we will input has the specified keywords then catch it
+            return true
+        end
+    end
+
+    return false
+end
+
+function list_sort(tab, sort, property) --function to sort the list, taking the table, sort method, and the property needed
+			
+	if sort == 'keybind-asc' and filterName == 'slots' then --Add sorting for slots based on keybind slot
+		table.sort(tab, function(a, b) return a[property] > b[property] end); --sorts founded_slot inside each table item by asc order
+	elseif sort == 'keybind-desc' and filterName == 'slots' then
+		table.sort(tab, function(a, b) return a[property] < b[property] end); --sorts founded_slot inside each table item by asc order
+	elseif sort == 'alphanum-asc' or sort == 'alphanum-desc' then
+		local function padnum(d) local dec, n = string.match(d, "(%.?)0*(.+)")
+		return #dec > 0 and ("%.12f"):format(d) or ("%s%03d%s"):format(dec, #n, n) end
+		if sort == 'alphanum-asc' then --if sort is ascending lower first
+			table.sort(tab, function(a,b) return tostring(a[property]):gsub("%.?%d+",padnum)..("%3d"):format(#b) > tostring(b[property]):gsub("%.?%d+",padnum)..("%3d"):format(#a) end)
+		elseif sort == 'alphanum-desc' then --if sort is descending higher first
+			table.sort(tab, function(a,b) return tostring(a[property]):gsub("%.?%d+",padnum)..("%3d"):format(#b) < tostring(b[property]):gsub("%.?%d+",padnum)..("%3d"):format(#a) end)
+		end
+	end
+	
+  return tab
+end
+
 function format_time(duration)
     local total_seconds = math.floor(duration)
     local hours = (math.floor(total_seconds / 3600))
@@ -118,6 +153,7 @@ function format_time(duration)
     local seconds = (total_seconds % 60)
     return string.format("%02d:%02d:%02d", hours, minutes, seconds)
 end
+
 
 function parse_header(string)
     return string:gsub("%%total", #list_contents)
@@ -296,7 +332,7 @@ end
 
 function read_log_table()
     return read_log(function(line)
-        local tt, pt, p, t, s, d, n, e
+        local tt, pt, p, t, s, d, n, e, l
         if line:match('^.-\"(.-)\"') then --#1.0 If there is a title, then match the parameters after title
 			tt = line:match('^.-\"(.-)\"') --To get the title of the file
             n, p = line:match('^.-\"(.-)\" | (.*) | ' .. esc_string(o.bookmark_time_text) .. '(.*)')
@@ -307,7 +343,8 @@ function read_log_table()
 		pt = starts_protocol(o.protocols, p)
         t = line:match(' | ' .. esc_string(o.bookmark_time_text) .. '(%d*%.?%d*)(.*)$')
         s = line:match(' | .* | ' .. esc_string(o.keybind_slot_text) .. '(.*)$')
-        return {found_path = p, found_time = t, found_name = n, found_slot = s, found_title = tt, found_protocol = pt}
+		l = line
+        return {found_path = p, found_time = t, found_name = n, found_slot = s, found_title = tt, found_protocol = pt, found_line = l}
     end)
 end
 
@@ -323,6 +360,11 @@ function get_list_contents(filter)
                 table.insert(filtered_table, list_contents[i])
             end
         end
+		
+		if o.sort_slots_filter ~= 'none' or o.sort_slots_filter ~= '' then --add sorting for slots if it was defined
+			list_sort(filtered_table, o.sort_slots_filter, 'found_slot')
+		end
+		
         list_contents = filtered_table
     end
     if filter == 'fileonly' then
@@ -331,6 +373,11 @@ function get_list_contents(filter)
                 table.insert(filtered_table, list_contents[i])
             end
         end
+		
+		if o.sort_fileonly_filter ~= 'none' or o.sort_fileonly_filter ~= '' then --add sorting if it was defined
+			list_sort(filtered_table, o.sort_fileonly_filter, 'found_path')
+		end
+		
         list_contents = filtered_table
     end
     if filter == 'timeonly' then
@@ -359,6 +406,14 @@ function get_list_contents(filter)
         list_contents = filtered_table
     end
 	
+	if filter == 'keywords' then --Keywords filter based on the user defined keywords
+		for i = 1, #list_contents do
+            if contain_value(o.keywords_filter_list, list_contents[i].found_line) then --used found_line as there could be title or full path
+                table.insert(filtered_table, list_contents[i])
+            end
+        end
+        list_contents = filtered_table
+    end
     
     if not list_contents or not list_contents[1] then
         
@@ -662,6 +717,15 @@ function select(pos)
     if list_cursor_temp > 0 and list_cursor_temp <= #list_contents then
         list_cursor = list_cursor_temp
     end
+	
+	if o.loop_through_list then --If loop through filters is enabled, then do the following
+		if list_cursor_temp > #list_contents then --If we are attempting to bypass the amount of list_contents then go to the first item
+			list_cursor = 1
+		elseif list_cursor_temp < 1 then --If we are attempting to go less than the first item, then go to list_contents amount which is the last item
+			list_cursor = #list_contents
+		end
+	end
+	
     draw_list()
 end
 
