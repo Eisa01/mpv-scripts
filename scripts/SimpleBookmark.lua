@@ -14,12 +14,18 @@ local o = {
         resume_offset = -0.65, --change to 0 so that bookmark resumes from the exact position, or decrease the value so that it gives you a little preview before loading the resume point
         osd_messages = true, --true is for displaying osd messages when actions occur. Change to false will disable all osd messages generated from this script
 		loop_through_list = false, --true is for going up on the first item loops towards the last item and vise-versa. false disables this behavior.
+		list_default_sort = 'added-asc', --the default sorting method for the bookmark list. select between 'added-asc', 'added-desc', 'alphanum-asc', 'alphanum-desc'
+		--filter method description: 'added-asc' is for the newest added bookmark to show first, 'added-desc' for the newest added to show last. 'alphanum-asc' is for A to Z approach with filename and episode number lower first. 'alphanum-desc' is for its Z to A approach.
 		
 		-----Filter Settings------
 		filters_and_sequence = {'all', 'slots', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'keywords'}, --Jump to the following filters and in the shown sequence when navigating via left and right keys. You can change the sequence and delete filters that are not needed.
 		keywords_filter_list = {'youtube.com', 'mp4', 'naruto'}, --Create a filter out of your desired 'keywords', e.g.: youtube.com will filter out the videos from youtube. You can also insert a portion of filename or title, or extension or a full path / portion of a path.
-		sort_slots_filter = 'keybind-asc', --sorts the slots filter. 'none' for default ordering. 'keybind-asc' is only for slots, it uses A to Z approach but for keybinds. 'keybind-desc' is the same but for Z to A approach.
-		sort_fileonly_filter = 'alphanum-asc', --sorts the fileonly filter. 'none' is for default ordering. 'alphanum-asc' is for A to Z approach with filename and episode number lower first. 'alphanum-desc' is for its Z to A approach.
+		sort_slots_filter = 'keybind-asc', --Sorts the slots filter. Select between 'none', 'keybind-asc', keybind-desc', 'added-asc', 'added-desc', 'alphanum-asc', 'alphanum-desc'. description: 'none' is for default ordering. 'keybind-asc' is only for slots, it uses A to Z approach but for keybinds. 'keybind-desc' is the same but for Z to A approach.
+		sort_fileonly_filter = 'alphanum-asc', --Sorts the fileonly filter. Select between 'none', 'keybind-asc', keybind-desc', 'added-asc', 'added-desc', 'alphanum-asc', 'alphanum-desc'.
+		sort_protocols_filter = 'none',
+		sort_titleonly_filter = 'none',
+		sort_timeonly_filter = 'none',
+		sort_keywords_filter = 'none',
 		loop_through_filters = true, --true is for bypassing the last filter to go to first filter when navigating through filters using arrow keys, and vice-versa. false disables this behavior.
 		
         -----Logging Settings-----
@@ -81,7 +87,13 @@ local o = {
         list_filter_fileonly_keybind = {'f', 'F'}, --Keybind to filter out the bookmarked videos without time
         fileonly_filter_outside_list = false, --False to access keybind only if bookmark list is open. true for Keybind to access filtered bookmark list immediately without needing to open bookmark list first. 
         list_filter_timeonly_keybind = {''}, --Keybind to filter out the bookmarked videos with time (default is empty since you can easily access by navigating via arrow keys) 
-        timeonly_filter_outside_list = true, --False to access keybind only if bookmark list is open. true for Keybind to access filtered bookmark list immediately without needing to open bookmark list first. 
+        timeonly_filter_outside_list = false, --False to access keybind only if bookmark list is open. true for Keybind to access filtered bookmark list immediately without needing to open bookmark list first.
+		list_filter_protocols_keybind = {''},
+		protocols_filter_outside_list = false,
+		list_filter_titleonly_keybind = {''},
+		titleonly_filter_outside_list = false,
+		list_filter_keywords_keybind = {''},
+		keywords_filter_outside_list = false,
 
 ---------------------------END OF USER CUSTOMIZATION SETTINGS---------------------------
 }
@@ -126,19 +138,21 @@ function contain_value (tab, val)
     return false
 end
 
-function list_sort(tab, sort, property) --function to sort the list, taking the table, sort method, and the property needed
-			
-	if sort == 'keybind-asc' and filterName == 'slots' then --Add sorting for slots based on keybind slot
-		table.sort(tab, function(a, b) return a[property] > b[property] end); --sorts founded_slot inside each table item by asc order
+function list_sort(tab, sort) --function to sort the list, taking the table, and sort method
+	
+	if sort == 'added-desc' then
+		table.sort(tab, function(a, b) return a['found_line'] > b['found_line'] end)
+	elseif sort == 'keybind-asc' and filterName == 'slots' then --Add sorting for slots based on keybind slot
+		table.sort(tab, function(a, b) return a['found_slot'] > b['found_slot'] end); --sorts founded_slot inside each table item by asc order
 	elseif sort == 'keybind-desc' and filterName == 'slots' then
-		table.sort(tab, function(a, b) return a[property] < b[property] end); --sorts founded_slot inside each table item by asc order
+		table.sort(tab, function(a, b) return a['found_slot'] < b['found_slot'] end); --sorts founded_slot inside each table item by asc order
 	elseif sort == 'alphanum-asc' or sort == 'alphanum-desc' then
 		local function padnum(d) local dec, n = string.match(d, "(%.?)0*(.+)")
 		return #dec > 0 and ("%.12f"):format(d) or ("%s%03d%s"):format(dec, #n, n) end
 		if sort == 'alphanum-asc' then --if sort is ascending lower first
-			table.sort(tab, function(a,b) return tostring(a[property]):gsub("%.?%d+",padnum)..("%3d"):format(#b) > tostring(b[property]):gsub("%.?%d+",padnum)..("%3d"):format(#a) end)
+			table.sort(tab, function(a,b) return tostring(a['found_path']):gsub("%.?%d+",padnum)..("%3d"):format(#b) > tostring(b['found_path']):gsub("%.?%d+",padnum)..("%3d"):format(#a) end)
 		elseif sort == 'alphanum-desc' then --if sort is descending higher first
-			table.sort(tab, function(a,b) return tostring(a[property]):gsub("%.?%d+",padnum)..("%3d"):format(#b) < tostring(b[property]):gsub("%.?%d+",padnum)..("%3d"):format(#a) end)
+			table.sort(tab, function(a,b) return tostring(a['found_path']):gsub("%.?%d+",padnum)..("%3d"):format(#b) < tostring(b['found_path']):gsub("%.?%d+",padnum)..("%3d"):format(#a) end)
 		end
 	end
 	
@@ -290,16 +304,8 @@ function unbind()
     unbind_keys(o.list_delete_keybind, "list-delete")
     unbind_keys(o.list_close_keybind, "list-close")
     unbind_keys(o.bookmark_slots_remove_keybind, "slot-remove")
-    if not o.slots_filter_outside_list then
-        unbind_keys(o.list_filter_slots_keybind, 'slots-list')
-    end
-    if not o.fileonly_filter_outside_list then
-        unbind_keys(o.list_filter_fileonly_keybind, 'fileonly-list')
-    end
-    if not o.timeonly_filter_outside_list then
-        unbind_keys(o.list_filter_timeonly_keybind, 'timeonly-list')
-    end
-    if o.quickselect_0to9_keybind and o.list_show_amount <= 10 then
+	
+    if not o.quickselect_0to9_keybind and o.list_show_amount <= 10 then
         mp.remove_key_binding("recent-1")
         mp.remove_key_binding("recent-2")
         mp.remove_key_binding("recent-3")
@@ -311,6 +317,26 @@ function unbind()
         mp.remove_key_binding("recent-9")
         mp.remove_key_binding("recent-0")
     end
+	
+	if not o.slots_filter_outside_list then
+        unbind_keys(o.list_filter_slots_keybind, 'slots-list')
+    end
+    if not o.fileonly_filter_outside_list then
+        unbind_keys(o.list_filter_fileonly_keybind, 'fileonly-list')
+    end
+    if not o.timeonly_filter_outside_list then
+        unbind_keys(o.list_filter_timeonly_keybind, 'timeonly-list')
+    end
+	if not o.protocols_filter_outside_list then
+		unbind_keys(o.list_filter_protocols_keybind, 'protocols-list')
+	end
+	if not o.titleonly_filter_outside_list then
+		unbind_keys(o.list_filter_titleonly_keybind, 'titleonly-list')
+	end
+	if not o.keywords_filter_outside_list then
+		unbind_keys(o.list_filter_keywords_keybind, 'keywords-list')
+	end
+	
     mp.set_osd_ass(0, 0, "")
     list_drawn = false
     list_cursor = 1
@@ -332,7 +358,7 @@ end
 
 function read_log_table()
     return read_log(function(line)
-        local tt, pt, p, t, s, d, n, e, l
+        local tt, p, t, s, d, n, e, l
         if line:match('^.-\"(.-)\"') then --#1.0 If there is a title, then match the parameters after title
 			tt = line:match('^.-\"(.-)\"') --To get the title of the file
             n, p = line:match('^.-\"(.-)\" | (.*) | ' .. esc_string(o.bookmark_time_text) .. '(.*)')
@@ -340,11 +366,10 @@ function read_log_table()
             p = line:match('[(.*)%]]%s(.*) | ' .. esc_string(o.bookmark_time_text) .. '(.*)')
             d, n, e = p:match('^(.-)([^\\/]-)%.([^\\/%.]-)%.?$')
         end
-		pt = starts_protocol(o.protocols, p)
         t = line:match(' | ' .. esc_string(o.bookmark_time_text) .. '(%d*%.?%d*)(.*)$')
         s = line:match(' | .* | ' .. esc_string(o.keybind_slot_text) .. '(.*)$')
 		l = line
-        return {found_path = p, found_time = t, found_name = n, found_slot = s, found_title = tt, found_protocol = pt, found_line = l}
+        return {found_path = p, found_time = t, found_name = n, found_slot = s, found_title = tt, found_line = l}
     end)
 end
 
@@ -352,6 +377,10 @@ function get_list_contents(filter)
 	if not filter then filter = filterName end --If no filter is passed then use the global filterName variable
 	
     list_contents = read_log_table()
+	if o.list_default_sort ~= 'added-asc' or o.list_default_sort ~= 'none' or o.list_default_sort ~= '' then --If it was not added-asc, or empty or none. Then do sorting for it based on what is passed.
+		list_sort(list_contents, o.list_default_sort)
+	end
+	
     local filtered_table = {}
     
     if filter == 'slots' then
@@ -361,8 +390,8 @@ function get_list_contents(filter)
             end
         end
 		
-		if o.sort_slots_filter ~= 'none' or o.sort_slots_filter ~= '' then --add sorting for slots if it was defined
-			list_sort(filtered_table, o.sort_slots_filter, 'found_slot')
+		if o.sort_slots_filter ~= 'added-asc' or o.sort_slots_filter ~= 'none' or o.sort_slots_filter ~= '' then --add sorting for slots if it was defined
+			list_sort(filtered_table, o.sort_slots_filter)
 		end
 		
         list_contents = filtered_table
@@ -374,8 +403,8 @@ function get_list_contents(filter)
             end
         end
 		
-		if o.sort_fileonly_filter ~= 'none' or o.sort_fileonly_filter ~= '' then --add sorting if it was defined
-			list_sort(filtered_table, o.sort_fileonly_filter, 'found_path')
+		if o.sort_fileonly_filter ~= 'added-asc' or o.sort_fileonly_filter ~= 'none' or o.sort_fileonly_filter ~= '' then --add sorting if it was defined
+			list_sort(filtered_table, o.sort_fileonly_filter)
 		end
 		
         list_contents = filtered_table
@@ -386,6 +415,11 @@ function get_list_contents(filter)
                 table.insert(filtered_table, list_contents[i])
             end
         end
+		
+		if o.sort_timeonly_filter ~= 'added-asc' or o.sort_timeonly_filter ~= 'none' or o.sort_timeonly_filter ~= '' then --add sorting if it was defined
+			list_sort(filtered_table, o.sort_timeonly_filter)
+		end
+		
         list_contents = filtered_table
     end
 	if filter == 'titleonly' then
@@ -394,15 +428,25 @@ function get_list_contents(filter)
                 table.insert(filtered_table, list_contents[i])
             end
         end
+		
+		if o.sort_titleonly_filter ~= 'added-asc' or o.sort_titleonly_filter ~= 'none' or o.sort_titleonly_filter ~= '' then --add sorting if it was defined
+			list_sort(filtered_table, o.sort_titleonly_filter)
+		end
+		
         list_contents = filtered_table
     end
 	
 	if filter == 'protocols' then
 		for i = 1, #list_contents do
-            if list_contents[i].found_protocol then
+            if starts_protocol(o.protocols, list_contents[i].found_path) then --changed so filtering protocols is done here, instead of when reading table lines
                 table.insert(filtered_table, list_contents[i])
             end
         end
+		
+		if o.sort_protocols_filter ~= 'added-asc' or o.sort_protocols_filter ~= 'none' or o.sort_protocols_filter ~= '' then --add sorting if it was defined
+			list_sort(filtered_table, o.sort_protocols_filter)
+		end
+		
         list_contents = filtered_table
     end
 	
@@ -412,6 +456,11 @@ function get_list_contents(filter)
                 table.insert(filtered_table, list_contents[i])
             end
         end
+		
+		if o.sort_keywords_filter ~= 'added-asc' or o.sort_keywords_filter ~= 'none' or o.sort_keywords_filter ~= '' then --add sorting if it was defined
+			list_sort(filtered_table, o.sort_keywords_filter)
+		end
+		
         list_contents = filtered_table
     end
     
@@ -856,16 +905,6 @@ function get_list_keybinds()
 	bind_keys(o.next_filter_sequence_keybind, 'list-filter-next', list_filter_next)
 	bind_keys(o.previous_filter_sequence_keybind, 'list-filter-previous', list_filter_previous)
 	
-    if not o.slots_filter_outside_list then
-        bind_keys(o.list_filter_slots_keybind, 'slots-list', function()display_list('slots') end)
-    end
-    if not o.fileonly_filter_outside_list then
-        bind_keys(o.list_filter_fileonly_keybind, 'fileonly-list', function()display_list('fileonly') end)
-    end
-    if not o.timeonly_filter_outside_list then
-        bind_keys(o.list_filter_timeonly_keybind, 'timeonly-list', function()display_list('timeonly') end)
-    end
-    
     if o.quickselect_0to9_keybind and o.list_show_amount <= 10 then
         mp.add_forced_key_binding("1", "recent-1", function()load(list_start + 1) end)
         mp.add_forced_key_binding("2", "recent-2", function()load(list_start + 2) end)
@@ -878,6 +917,28 @@ function get_list_keybinds()
         mp.add_forced_key_binding("9", "recent-9", function()load(list_start + 9) end)
         mp.add_forced_key_binding("0", "recent-0", function()load(list_start + 10) end)
     end
+	
+	if not o.slots_filter_outside_list then
+        bind_keys(o.list_filter_slots_keybind, 'slots-list', function()display_list('slots') end)
+    end
+    if not o.fileonly_filter_outside_list then
+        bind_keys(o.list_filter_fileonly_keybind, 'fileonly-list', function()display_list('fileonly') end)
+    end
+    if not o.timeonly_filter_outside_list then
+        bind_keys(o.list_filter_timeonly_keybind, 'timeonly-list', function()display_list('timeonly') end)
+    end
+    if not o.timeonly_filter_outside_list then
+		bind_keys(o.list_filter_timeonly_keybind, 'timeonly-list', function()display_list('timeonly') end)
+	end
+	if not o.protocols_filter_outside_list then
+		bind_keys(o.list_filter_protocols_keybind, 'protocols-list', function()display_list('protocols') end)
+	end
+	if not o.titleonly_filter_outside_list then
+		bind_keys(o.list_filter_titleonly_keybind, 'titleonly-list', function()display_list('titleonly') end)
+	end
+	if not o.keywords_filter_outside_list then
+		bind_keys(o.list_filter_keywords_keybind, 'keywords-list', function()display_list('keywords') end)
+	end
 end
 
 function display_list(filter)
@@ -965,22 +1026,29 @@ bind_keys(o.bookmark_list_keybind, 'bookmark-list', display_list)
 bind_keys(o.bookmark_save_keybind, 'bookmark-save', bookmark_save)
 bind_keys(o.bookmark_fileonly_keybind, 'bookmark-fileonly', bookmark_fileonly_save)
 
-if o.slots_filter_outside_list then
-    bind_keys(o.list_filter_slots_keybind, 'slots-list', function()display_list('slots') end)
-end
-
-if o.fileonly_filter_outside_list then
-    bind_keys(o.list_filter_fileonly_keybind, 'fileonly-list', function()display_list('fileonly') end)
-end
-
-if o.timeonly_filter_outside_list then
-    bind_keys(o.list_filter_timeonly_keybind, 'timeonly-list', function()display_list('timeonly') end)
-end
-
 for i = 1, #o.bookmark_slots_add_load_keybind do
     mp.add_forced_key_binding(o.bookmark_slots_add_load_keybind[i], 'slot-' .. i, function()add_load_slot(i) end)
 end
 
 for i = 1, #o.bookmark_slots_quicksave_keybind do
     mp.add_forced_key_binding(o.bookmark_slots_quicksave_keybind[i], 'slot-save-' .. i, function()quicksave_slot(i) end)
+end
+
+if o.slots_filter_outside_list then
+    bind_keys(o.list_filter_slots_keybind, 'slots-list', function()display_list('slots') end)
+end
+if o.fileonly_filter_outside_list then
+    bind_keys(o.list_filter_fileonly_keybind, 'fileonly-list', function()display_list('fileonly') end)
+end
+if o.timeonly_filter_outside_list then
+    bind_keys(o.list_filter_timeonly_keybind, 'timeonly-list', function()display_list('timeonly') end)
+end
+if o.protocols_filter_outside_list then
+    bind_keys(o.list_filter_protocols_keybind, 'protocols-list', function()display_list('protocols') end)
+end
+if o.titleonly_filter_outside_list then
+    bind_keys(o.list_filter_titleonly_keybind, 'titleonly-list', function()display_list('titleonly') end)
+end
+if o.keywords_filter_outside_list then
+    bind_keys(o.list_filter_keywords_keybind, 'keywords-list', function()display_list('keywords') end)
 end
