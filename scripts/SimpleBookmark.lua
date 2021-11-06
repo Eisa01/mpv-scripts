@@ -4,7 +4,7 @@ local o = {
 --Changes are recommended to be made in the script-opts directory. It can also be made here although not recommended.
 
         -----Script Settings----
-        auto_run_list_idle = 'none', --Runs automatically when opening mpv and there is no video / file loaded. You can choose between filters, such as, 'all' to display all the bookmarks, or 'slots' to display the bookmarks filtered with slots, or 'fileonly' to display files saved without time. Or 'timeonly' to display files that have time only. Or 'none' to keep it disabled.
+        auto_run_list_idle = 'none', --Runs automatically when opening mpv and there is no video / file loaded. 'none' for disabled. Or choose between: 'all', 'slots', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'timeonly', 'keywords'.
         bookmark_loads_last_idle = true, --When attempting to bookmark, if there is no video / file loaded, it will instead jump to your last bookmarked item
         slots_quicksave_fileonly = true, --When quick saving a bookmark to keybind slot, it will not save position
         slots_empty_auto_create = false, --If the keybind slot is empty, this enables quick bookmarking and adding to slot, Otherwise keybinds are assigned from the bookmark list or via quicksave.
@@ -13,22 +13,24 @@ local o = {
         show_paths = false, --Show file paths instead of media-title
         resume_offset = -0.65, --change to 0 so that bookmark resumes from the exact position, or decrease the value so that it gives you a little preview before loading the resume point
         osd_messages = true, --true is for displaying osd messages when actions occur. Change to false will disable all osd messages generated from this script
-		loop_through_list = false, --true is for going up on the first item loops towards the last item and vise-versa. false disables this behavior.
-		list_default_sort = 'added-asc', --the default sorting method for the bookmark list. select between 'added-asc', 'added-desc', 'alphanum-asc', 'alphanum-desc'
-		mark_bookmark_as_chapter = false, --true is for marking the bookmarked time as a chapter. false disables mark as chapter behavior.
-		--filter method description: 'added-asc' is for the newest added bookmark to show first, 'added-desc' for the newest added to show last. 'alphanum-asc' is for A to Z approach with filename and episode number lower first. 'alphanum-desc' is for its Z to A approach.
-		
-		-----Filter Settings------
-		filters_and_sequence = {'all', 'slots', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'keywords'}, --Jump to the following filters and in the shown sequence when navigating via left and right keys. You can change the sequence and delete filters that are not needed.
-		keywords_filter_list = {'youtube.com', 'mp4', 'naruto', 'c:\\users\\eisa01\\desktop'}, --Create a filter out of your desired 'keywords', e.g.: youtube.com will filter out the videos from youtube. You can also insert a portion of filename or title, or extension or a full path / portion of a path.
-		sort_slots_filter = 'keybind-asc', --Sorts the slots filter. Select between 'none', 'keybind-asc', keybind-desc', 'added-asc', 'added-desc', 'alphanum-asc', 'alphanum-desc'. description: 'none' is for default ordering. 'keybind-asc' is only for slots, it uses A to Z approach but for keybinds. 'keybind-desc' is the same but for Z to A approach.
-		sort_fileonly_filter = 'alphanum-asc', --Sorts the filter. Select between 'none', 'added-asc', 'added-desc', 'alphanum-asc', 'alphanum-desc'.
-		sort_protocols_filter = 'none',
-		sort_titleonly_filter = 'none',
-		sort_timeonly_filter = 'none',
-		sort_keywords_filter = 'none',
-		loop_through_filters = true, --true is for bypassing the last filter to go to first filter when navigating through filters using arrow keys, and vice-versa. false disables this behavior.
-		
+        loop_through_list = false, --true is for going up on the first item loops towards the last item and vise-versa. false disables this behavior.
+        list_default_sort = 'added-asc', --the default sorting method for the bookmark list. select between 'added-asc', 'added-desc', 'alphanum-asc', 'alphanum-desc'
+        mark_bookmark_as_chapter = false, --true is for marking the bookmarked time as a chapter. false disables mark as chapter behavior.
+        --available filters: 'all' to display all the bookmarks. Or 'slots' to display the bookmarks filtered with slots. Or 'fileonly' to display files saved without time. Or 'timeonly' to display files that have time only. Or 'keywords' to display files with matching keywords specified in the configuration. Or 'playing' to show bookmarks for current playing file.
+        --available sort: 'added-asc' is for the newest added bookmark to show first. Or 'added-desc' for the newest added to show last. Or 'alphanum-asc' is for A to Z approach with filename and episode number lower first. Or 'alphanum-desc' is for its Z to A approach. Or 'keybind-asc', or 'keybind-desc' to sort based on keybinds which is execlusive to sort_slots_filter.
+        
+        -----Filter Settings------
+        filters_and_sequence = {'all', 'slots', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'playing', 'keywords'}, --Jump to the following filters and in the shown sequence when navigating via left and right keys. You can change the sequence and delete filters that are not needed.
+        keywords_filter_list = {'youtube.com', 'mp4', 'naruto', 'c:\\users\\eisa01\\desktop'}, --Create a filter out of your desired 'keywords', e.g.: youtube.com will filter out the videos from youtube. You can also insert a portion of filename or title, or extension or a full path / portion of a path.
+        sort_slots_filter = 'keybind-asc', --Sorts the slots filter. Select between 'none', 'keybind-asc', 'keybind-desc', 'added-asc', 'added-desc', 'alphanum-asc', 'alphanum-desc'. description: 'none' is for default ordering. 'keybind-asc' is only for slots, it uses A to Z approach but for keybinds. 'keybind-desc' is the same but for Z to A approach.
+        sort_fileonly_filter = 'alphanum-asc', --Sorts the filter. Select between 'none', 'added-asc', 'added-desc', 'alphanum-asc', 'alphanum-desc'.
+        sort_protocols_filter = 'none',
+        sort_titleonly_filter = 'none',
+        sort_timeonly_filter = 'none',
+        sort_keywords_filter = 'none',
+        sort_playing_filter = 'none',
+        loop_through_filters = true, --true is for bypassing the last filter to go to first filter when navigating through filters using arrow keys, and vice-versa. false disables this behavior.
+        
         -----Logging Settings-----
         log_path = mp.find_config_file('.'):match('@?(.*/)'), --Change to debug.getinfo(1).source:match('@?(.*/)') for placing it in the same directory of script, OR change to mp.find_config_file('.'):match('@?(.*/)') for mpv portable_config directory OR specify the desired path in quotes, e.g.: 'C:\Users\Eisa01\Desktop\'
         log_file = 'mpvBookmark.log', --name+extension of the file that will be used to store the log data
@@ -80,21 +82,23 @@ local o = {
         list_delete_keybind = {'DEL'}, --Keybind that will be used to delete the highlighted entry from the bookmark list
         quickselect_0to9_keybind = true, --Keybind entries from 0 to 9 for quick selection when list is open (list_show_amount = 10 is maximum for this feature to work)
         
-		-----Filter Keybind Settings-----
-		next_filter_sequence_keybind = {'RIGHT', 'MBTN_FORWARD'}, --Keybind that will be used to go to the next available filter based on the configured sequence
-		previous_filter_sequence_keybind ={'LEFT', 'MBTN_BACK'}, --Keybind that will be used to go to the previous available filter based on the configured sequence
+        -----Filter Keybind Settings-----
+        next_filter_sequence_keybind = {'RIGHT', 'MBTN_FORWARD'}, --Keybind that will be used to go to the next available filter based on the configured sequence
+        previous_filter_sequence_keybind = {'LEFT', 'MBTN_BACK'}, --Keybind that will be used to go to the previous available filter based on the configured sequence
         list_filter_slots_keybind = {'s', 'S'}, --Keybind to jump to this specific filter
-        slots_filter_outside_list = true, --False to access keybind only if bookmark list is open. true for Keybind to access filtered bookmark list immediately without needing to open bookmark list first. 
+        slots_filter_outside_list = true, --False to access keybind only if bookmark list is open. true for Keybind to access filtered bookmark list immediately without needing to open bookmark list first.
         list_filter_fileonly_keybind = {'f', 'F'},
         fileonly_filter_outside_list = false,
         list_filter_timeonly_keybind = {''},
         timeonly_filter_outside_list = false,
-		list_filter_protocols_keybind = {''},
-		protocols_filter_outside_list = false,
-		list_filter_titleonly_keybind = {''},
-		titleonly_filter_outside_list = false,
-		list_filter_keywords_keybind = {''},
-		keywords_filter_outside_list = false,
+        list_filter_protocols_keybind = {''},
+        protocols_filter_outside_list = false,
+        list_filter_titleonly_keybind = {''},
+        titleonly_filter_outside_list = false,
+        list_filter_keywords_keybind = {''},
+        keywords_filter_outside_list = false,
+        list_filter_playing_keybind = {''},
+        playing_filter_outside_list = false,
 
 ---------------------------END OF USER CUSTOMIZATION SETTINGS---------------------------
 }
@@ -109,7 +113,7 @@ local utils = require 'mp.utils'
 local msg = require 'mp.msg'
 
 local bookmark_log = o.log_path .. o.log_file
-local protocols = {'https?://', 'magnet:', 'rtmp:'} --protocols to check for the file is local or not when loading (for file_exists)
+local protocols = {'https?://', 'magnet:', 'rtmp:'}
 
 local selected = false
 local list_contents = {}
@@ -132,81 +136,81 @@ function starts_protocol(tab, val)
 end
 
 
-function contain_value (tab, val)
+function contain_value(tab, val)
     for index, value in ipairs(tab) do
         if value.match(string.lower(val), string.lower(value)) then
             return true
         end
     end
-
+    
     return false
 end
 
-local function has_value (tab, val)
+local function has_value(tab, val)
     for index, value in ipairs(tab) do
         if value == val then
             return true
         end
     end
-
+    
     return false
 end
 
 function file_exists(name)
-   local f=io.open(name,"r")
-   if f~=nil then io.close(f) return true else return false end
+    local f = io.open(name, "r")
+    if f ~= nil then io.close(f) return true else return false end
 end
 
 function mark_chapter()
-	if not o.mark_bookmark_as_chapter then return end
-	
+    if not o.mark_bookmark_as_chapter then return end
+    
     local all_chapters = mp.get_property_native("chapter-list")
     local chapter_index = 0
-	local chapters_time = {}
-		
-	get_list_contents()
-	for i = 1, #list_contents do
-		if list_contents[i].found_path == filePath and tonumber(list_contents[i].found_time) > 0 then
-			table.insert(chapters_time, tonumber(list_contents[i].found_time))
-		end
+    local chapters_time = {}
+    
+    get_list_contents()
+    for i = 1, #list_contents do
+        if list_contents[i].found_path == filePath and tonumber(list_contents[i].found_time) > 0 then
+            table.insert(chapters_time, tonumber(list_contents[i].found_time))
+        end
     end
-	if not chapters_time[1] then return end
-	
-	table.sort(chapters_time, function(a, b) return a < b end)
-	
-	for i = 1, #chapters_time do
-		chapter_index = chapter_index + 1
-		
-		all_chapters[chapter_index] = {
-			title = 'SimpleBookmark '..chapter_index,
-			time = chapters_time[i]
-		}
-	end
-	
-	table.sort(all_chapters, function(a, b) return a['time'] < b['time'] end)
-	
+    if not chapters_time[1] then return end
+    
+    table.sort(chapters_time, function(a, b) return a < b end)
+    
+    for i = 1, #chapters_time do
+        chapter_index = chapter_index + 1
+        
+        all_chapters[chapter_index] = {
+            title = 'SimpleBookmark ' .. chapter_index,
+            time = chapters_time[i]
+        }
+    end
+    
+    table.sort(all_chapters, function(a, b) return a['time'] < b['time'] end)
+    
     mp.set_property_native("chapter-list", all_chapters)
 end
 
 
 function list_sort(tab, sort)
-	if sort == 'added-desc' then
-		table.sort(tab, function(a, b) return a['found_line'] > b['found_line'] end)
-	elseif sort == 'keybind-asc' and filterName == 'slots' then
-		table.sort(tab, function(a, b) return a['found_slot'] > b['found_slot'] end)
-	elseif sort == 'keybind-desc' and filterName == 'slots' then
-		table.sort(tab, function(a, b) return a['found_slot'] < b['found_slot'] end)
-	elseif sort == 'alphanum-asc' or sort == 'alphanum-desc' then
-		local function padnum(d) local dec, n = string.match(d, "(%.?)0*(.+)")
-		return #dec > 0 and ("%.12f"):format(d) or ("%s%03d%s"):format(dec, #n, n) end
-		if sort == 'alphanum-asc' then
-			table.sort(tab, function(a,b) return tostring(a['found_path']):gsub("%.?%d+",padnum)..("%3d"):format(#b) > tostring(b['found_path']):gsub("%.?%d+",padnum)..("%3d"):format(#a) end)
-		elseif sort == 'alphanum-desc' then
-			table.sort(tab, function(a,b) return tostring(a['found_path']):gsub("%.?%d+",padnum)..("%3d"):format(#b) < tostring(b['found_path']):gsub("%.?%d+",padnum)..("%3d"):format(#a) end)
-		end
-	end
-	
-  return tab
+    if sort == 'added-desc' then
+        table.sort(tab, function(a, b) return a['found_line'] > b['found_line'] end)
+    elseif sort == 'keybind-asc' and filterName == 'slots' then
+        table.sort(tab, function(a, b) return a['found_slot'] > b['found_slot'] end)
+    elseif sort == 'keybind-desc' and filterName == 'slots' then
+        table.sort(tab, function(a, b) return a['found_slot'] < b['found_slot'] end)
+    elseif sort == 'alphanum-asc' or sort == 'alphanum-desc' then
+        local function padnum(d) local dec, n = string.match(d, "(%.?)0*(.+)")
+            return #dec > 0 and ("%.12f"):format(d) or ("%s%03d%s"):format(dec, #n, n) end
+        if sort == 'alphanum-asc' then
+            table.sort(tab, function(a, b) return tostring(a['found_path']):gsub("%.?%d+", padnum) .. ("%3d"):format(#b) > tostring(b['found_path']):gsub("%.?%d+", padnum) .. ("%3d"):format(#a) end)
+        elseif sort == 'alphanum-desc' then
+            table.sort(tab, function(a, b) return tostring(a['found_path']):gsub("%.?%d+", padnum) .. ("%3d"):format(#b) < tostring(b['found_path']):gsub("%.?%d+", padnum) .. ("%3d"):format(#a) end)
+        end
+    end
+    
+    return tab
 end
 
 function format_time(duration)
@@ -316,10 +320,10 @@ end
 
 function get_path()
     local path = mp.get_property('path')
-	if not path then return end
+    if not path then return end
     
-	local title = mp.get_property('media-title'):gsub("\"", "")
-	
+    local title = mp.get_property('media-title'):gsub("\"", "")
+    
     if starts_protocol(o.protocols, path) and o.prefer_filename_over_title == 'protocols' then
         title = mp.get_property('filename'):gsub("\"", "")
     elseif not starts_protocol(o.protocols, path) and o.prefer_filename_over_title == 'local' then
@@ -354,9 +358,9 @@ function unbind()
     unbind_keys(o.list_delete_keybind, "list-delete")
     unbind_keys(o.list_close_keybind, "list-close")
     unbind_keys(o.bookmark_slots_remove_keybind, "slot-remove")
-	unbind_keys(o.next_filter_sequence_keybind, 'list-filter-next')
-	unbind_keys(o.previous_filter_sequence_keybind, 'list-filter-previous')
-
+    unbind_keys(o.next_filter_sequence_keybind, 'list-filter-next')
+    unbind_keys(o.previous_filter_sequence_keybind, 'list-filter-previous')
+    
     if not o.quickselect_0to9_keybind and o.list_show_amount <= 10 then
         mp.remove_key_binding("recent-1")
         mp.remove_key_binding("recent-2")
@@ -369,8 +373,8 @@ function unbind()
         mp.remove_key_binding("recent-9")
         mp.remove_key_binding("recent-0")
     end
-	
-	if not o.slots_filter_outside_list then
+    
+    if not o.slots_filter_outside_list then
         unbind_keys(o.list_filter_slots_keybind, 'slots-list')
     end
     if not o.fileonly_filter_outside_list then
@@ -379,16 +383,19 @@ function unbind()
     if not o.timeonly_filter_outside_list then
         unbind_keys(o.list_filter_timeonly_keybind, 'timeonly-list')
     end
-	if not o.protocols_filter_outside_list then
-		unbind_keys(o.list_filter_protocols_keybind, 'protocols-list')
-	end
-	if not o.titleonly_filter_outside_list then
-		unbind_keys(o.list_filter_titleonly_keybind, 'titleonly-list')
-	end
-	if not o.keywords_filter_outside_list then
-		unbind_keys(o.list_filter_keywords_keybind, 'keywords-list')
-	end
-	
+    if not o.protocols_filter_outside_list then
+        unbind_keys(o.list_filter_protocols_keybind, 'protocols-list')
+    end
+    if not o.titleonly_filter_outside_list then
+        unbind_keys(o.list_filter_titleonly_keybind, 'titleonly-list')
+    end
+    if not o.keywords_filter_outside_list then
+        unbind_keys(o.list_filter_keywords_keybind, 'keywords-list')
+    end
+    if not o.playing_filter_outside_list then
+        unbind_keys(o.list_filter_playing_keybind, 'playing-list')
+    end
+    
     mp.set_osd_ass(0, 0, "")
     list_drawn = false
     list_cursor = 1
@@ -412,7 +419,7 @@ function read_log_table()
     return read_log(function(line)
         local tt, p, t, s, d, n, e, l
         if line:match('^.-\"(.-)\"') then
-			tt = line:match('^.-\"(.-)\"')
+            tt = line:match('^.-\"(.-)\"')
             n, p = line:match('^.-\"(.-)\" | (.*) | ' .. esc_string(o.bookmark_time_text) .. '(.*)')
         else
             p = line:match('[(.*)%]]%s(.*) | ' .. esc_string(o.bookmark_time_text) .. '(.*)')
@@ -420,19 +427,19 @@ function read_log_table()
         end
         t = line:match(' | ' .. esc_string(o.bookmark_time_text) .. '(%d*%.?%d*)(.*)$')
         s = line:match(' | .* | ' .. esc_string(o.keybind_slot_text) .. '(.*)$')
-		l = line
+        l = line
         return {found_path = p, found_time = t, found_name = n, found_slot = s, found_title = tt, found_line = l}
     end)
 end
 
 function get_list_contents(filter)
-	if not filter then filter = filterName end
-	
+    if not filter then filter = filterName end
+    
     list_contents = read_log_table()
-	if o.list_default_sort ~= 'added-asc' or o.list_default_sort ~= 'none' or o.list_default_sort ~= '' then
-		list_sort(list_contents, o.list_default_sort)
-	end
-	
+    if o.list_default_sort ~= 'added-asc' or o.list_default_sort ~= 'none' or o.list_default_sort ~= '' then
+        list_sort(list_contents, o.list_default_sort)
+    end
+    
     local filtered_table = {}
     
     if filter == 'slots' then
@@ -441,11 +448,11 @@ function get_list_contents(filter)
                 table.insert(filtered_table, list_contents[i])
             end
         end
-		
-		if o.sort_slots_filter ~= 'added-asc' or o.sort_slots_filter ~= 'none' or o.sort_slots_filter ~= '' then
-			list_sort(filtered_table, o.sort_slots_filter)
-		end
-		
+        
+        if o.sort_slots_filter ~= 'added-asc' or o.sort_slots_filter ~= 'none' or o.sort_slots_filter ~= '' then
+            list_sort(filtered_table, o.sort_slots_filter)
+        end
+        
         list_contents = filtered_table
     end
     if filter == 'fileonly' then
@@ -454,11 +461,11 @@ function get_list_contents(filter)
                 table.insert(filtered_table, list_contents[i])
             end
         end
-		
-		if o.sort_fileonly_filter ~= 'added-asc' or o.sort_fileonly_filter ~= 'none' or o.sort_fileonly_filter ~= '' then
-			list_sort(filtered_table, o.sort_fileonly_filter)
-		end
-		
+        
+        if o.sort_fileonly_filter ~= 'added-asc' or o.sort_fileonly_filter ~= 'none' or o.sort_fileonly_filter ~= '' then
+            list_sort(filtered_table, o.sort_fileonly_filter)
+        end
+        
         list_contents = filtered_table
     end
     if filter == 'timeonly' then
@@ -467,52 +474,66 @@ function get_list_contents(filter)
                 table.insert(filtered_table, list_contents[i])
             end
         end
-		
-		if o.sort_timeonly_filter ~= 'added-asc' or o.sort_timeonly_filter ~= 'none' or o.sort_timeonly_filter ~= '' then
-			list_sort(filtered_table, o.sort_timeonly_filter)
-		end
-		
+        
+        if o.sort_timeonly_filter ~= 'added-asc' or o.sort_timeonly_filter ~= 'none' or o.sort_timeonly_filter ~= '' then
+            list_sort(filtered_table, o.sort_timeonly_filter)
+        end
+        
         list_contents = filtered_table
     end
-	if filter == 'titleonly' then
-		for i = 1, #list_contents do
+    if filter == 'titleonly' then
+        for i = 1, #list_contents do
             if list_contents[i].found_title then
                 table.insert(filtered_table, list_contents[i])
             end
         end
-		
-		if o.sort_titleonly_filter ~= 'added-asc' or o.sort_titleonly_filter ~= 'none' or o.sort_titleonly_filter ~= '' then
-			list_sort(filtered_table, o.sort_titleonly_filter)
-		end
-		
+        
+        if o.sort_titleonly_filter ~= 'added-asc' or o.sort_titleonly_filter ~= 'none' or o.sort_titleonly_filter ~= '' then
+            list_sort(filtered_table, o.sort_titleonly_filter)
+        end
+        
         list_contents = filtered_table
     end
-	
-	if filter == 'protocols' then
-		for i = 1, #list_contents do
+    
+    if filter == 'protocols' then
+        for i = 1, #list_contents do
             if starts_protocol(o.protocols, list_contents[i].found_path) then
                 table.insert(filtered_table, list_contents[i])
             end
         end
-		
-		if o.sort_protocols_filter ~= 'added-asc' or o.sort_protocols_filter ~= 'none' or o.sort_protocols_filter ~= '' then
-			list_sort(filtered_table, o.sort_protocols_filter)
-		end
-		
+        
+        if o.sort_protocols_filter ~= 'added-asc' or o.sort_protocols_filter ~= 'none' or o.sort_protocols_filter ~= '' then
+            list_sort(filtered_table, o.sort_protocols_filter)
+        end
+        
         list_contents = filtered_table
     end
-	
-	if filter == 'keywords' then
-		for i = 1, #list_contents do
+    
+    if filter == 'keywords' then
+        for i = 1, #list_contents do
             if contain_value(o.keywords_filter_list, list_contents[i].found_line) then
                 table.insert(filtered_table, list_contents[i])
             end
         end
-		
-		if o.sort_keywords_filter ~= 'added-asc' or o.sort_keywords_filter ~= 'none' or o.sort_keywords_filter ~= '' then
-			list_sort(filtered_table, o.sort_keywords_filter)
-		end
-		
+        
+        if o.sort_keywords_filter ~= 'added-asc' or o.sort_keywords_filter ~= 'none' or o.sort_keywords_filter ~= '' then
+            list_sort(filtered_table, o.sort_keywords_filter)
+        end
+        
+        list_contents = filtered_table
+    end
+    
+    if filter == 'playing' then
+        for i = 1, #list_contents do
+            if list_contents[i].found_path == filePath then
+                table.insert(filtered_table, list_contents[i])
+            end
+        end
+        
+        if o.sort_playing_filter ~= 'added-asc' or o.sort_playing_filter ~= 'none' or o.sort_playing_filter ~= '' then
+            list_sort(filtered_table, o.sort_playing_filter)
+        end
+        
         list_contents = filtered_table
     end
     
@@ -520,7 +541,7 @@ function get_list_contents(filter)
         
         local msg_text
         if filter ~= 'all' then
-            msg_text = filter .. " in Bookmark Empty"
+            msg_text = filter .. " filter in Bookmark Empty"
         else
             msg_text = "Bookmark Empty"
         end
@@ -535,8 +556,8 @@ end
 
 function write_log(logged_time, keybind_slot)
     if not filePath then return end
-        
-	if logged_time then
+    
+    if logged_time then
         seekTime = logged_time
     else
         seekTime = (mp.get_property_number('time-pos') or 0)
@@ -634,15 +655,15 @@ function add_load_slot(key_index)
             end
         end
         if slot_taken then
-			if file_exists(filePath) or starts_protocol(protocols, filePath) then --if the file exists or if its a protocol then proceed to load the file, otherwise give an error
-				mp.commandv('loadfile', filePath)
-			else
-				if o.osd_messages == true then
-					mp.osd_message('File Doesn\'t Exist:\n' .. filePath)
-				end
-				msg.info('The file below doesn\'t seem to exist:\n'.. filePath)
-				return
-			end
+            if file_exists(filePath) or starts_protocol(protocols, filePath) then
+                mp.commandv('loadfile', filePath)
+            else
+                if o.osd_messages == true then
+                    mp.osd_message('File Doesn\'t Exist:\n' .. filePath)
+                end
+                msg.info('The file below doesn\'t seem to exist:\n' .. filePath)
+                return
+            end
             if o.slots_auto_resume then
                 selected = true
             end
@@ -708,9 +729,9 @@ end
 
 function draw_list()
     local osd_msg = ''
-	local osd_index = ''	
-	local osd_key = ''
-	local key = 0
+    local osd_index = ''
+    local osd_key = ''
+    local key = 0
     local osd_text = string.format("{\\fscx%f}{\\fscy%f}{\\bord%f}{\\1c&H%s}", o.text_scale, o.text_scale, o.text_border, o.text_color)
     local osd_highlight = string.format("{\\fscx%f}{\\fscy%f}{\\bord%f}{\\1c&H%s}", o.highlight_scale, o.highlight_scale, o.highlight_border, o.highlight_color)
     local osd_header = string.format("{\\fscx%f}{\\fscy%f}{\\bord%f}{\\1c&H%s}", o.header_scale, o.header_scale, o.header_border, o.header_color)
@@ -731,7 +752,7 @@ function draw_list()
     else
         list_start = list_cursor - o.list_show_amount
     end
-	
+    
     local showall = false
     local showrest = false
     if list_start < 0 then list_start = 0 end
@@ -784,11 +805,11 @@ function draw_list()
         end
         
         osd_msg = osd_msg .. '\\h\\N\\N' .. osd_msg_end
-
+        
         if i == list_start + o.list_show_amount - 1 and not showall and not showrest then
             osd_msg = osd_msg .. o.list_sliced_suffix
         end
-		
+    
     end
     mp.set_osd_ass(0, 0, osd_msg)
 end
@@ -827,64 +848,64 @@ function select(pos)
     if list_cursor_temp > 0 and list_cursor_temp <= #list_contents then
         list_cursor = list_cursor_temp
     end
-	
-	if o.loop_through_list then
-		if list_cursor_temp > #list_contents then
-			list_cursor = 1
-		elseif list_cursor_temp < 1 then
-			list_cursor = #list_contents
-		end
-	end
-	
+    
+    if o.loop_through_list then
+        if list_cursor_temp > #list_contents then
+            list_cursor = 1
+        elseif list_cursor_temp < 1 then
+            list_cursor = #list_contents
+        end
+    end
+    
     draw_list()
 end
 
 function select_filter_sequence(pos)
-	if not list_drawn then return end
-	local curr_pos
-	local target_pos
-	
-	for i=1, #o.filters_and_sequence do
-		if filterName == o.filters_and_sequence[i] then
-			curr_pos = i
-		end
-	end
-
-	if curr_pos and pos >-1 then
-		for i=curr_pos, #o.filters_and_sequence do
-			get_list_contents(o.filters_and_sequence[i+pos])
-			if list_contents[1] then
-				target_pos = i+pos
-				break
-			end
-		end
-	elseif curr_pos and pos < 0 then
-		for i=curr_pos, 0, -1 do
-			get_list_contents(o.filters_and_sequence[i+pos])
-			if list_contents[1] then
-				target_pos = i+pos
-				break
-			end
-		end
-	end
-	
-		if target_pos then 
-			if not o.loop_through_filters then
-				if target_pos > #o.filters_and_sequence then return end
-				if target_pos < 1 then return end
-			else
-				if target_pos > #o.filters_and_sequence then target_pos = 1 end
-				if target_pos < 1 then target_pos = #o.filters_and_sequence end
-			end
-			display_list(o.filters_and_sequence[target_pos])
-		end
+    if not list_drawn then return end
+    local curr_pos
+    local target_pos
+    
+    for i = 1, #o.filters_and_sequence do
+        if filterName == o.filters_and_sequence[i] then
+            curr_pos = i
+        end
+    end
+    
+    if curr_pos and pos > -1 then
+        for i = curr_pos, #o.filters_and_sequence do
+            get_list_contents(o.filters_and_sequence[i + pos])
+            if list_contents[1] then
+                target_pos = i + pos
+                break
+            end
+        end
+    elseif curr_pos and pos < 0 then
+        for i = curr_pos, 0, -1 do
+            get_list_contents(o.filters_and_sequence[i + pos])
+            if list_contents[1] then
+                target_pos = i + pos
+                break
+            end
+        end
+    end
+    
+    if target_pos then
+        if not o.loop_through_filters then
+            if target_pos > #o.filters_and_sequence then return end
+            if target_pos < 1 then return end
+        else
+            if target_pos > #o.filters_and_sequence then target_pos = 1 end
+            if target_pos < 1 then target_pos = #o.filters_and_sequence end
+        end
+        display_list(o.filters_and_sequence[target_pos])
+    end
 end
 
 function list_filter_next()
-	select_filter_sequence(1)
+    select_filter_sequence(1)
 end
 function list_filter_previous()
-	select_filter_sequence(-1)
+    select_filter_sequence(-1)
 end
 
 function load(list_cursor)
@@ -893,15 +914,15 @@ function load(list_cursor)
     if (seekTime < 0) then
         seekTime = 0
     end
-	if file_exists(list_contents[#list_contents - list_cursor + 1].found_path) or starts_protocol(protocols, list_contents[#list_contents - list_cursor + 1].found_path) then --if the file exists or if its a protocol then proceed to load the file, otherwise give an error
-		mp.commandv('loadfile', list_contents[#list_contents - list_cursor + 1].found_path)
-	else
-		if o.osd_messages == true then
+    if file_exists(list_contents[#list_contents - list_cursor + 1].found_path) or starts_protocol(protocols, list_contents[#list_contents - list_cursor + 1].found_path) then
+        mp.commandv('loadfile', list_contents[#list_contents - list_cursor + 1].found_path)
+    else
+        if o.osd_messages == true then
             mp.osd_message('File Doesn\'t Exist:\n' .. list_contents[#list_contents - list_cursor + 1].found_path)
         end
-		msg.info('The file below doesn\'t seem to exist:\n'.. list_contents[#list_contents - list_cursor + 1].found_path)
-		return
-	end 
+        msg.info('The file below doesn\'t seem to exist:\n' .. list_contents[#list_contents - list_cursor + 1].found_path)
+        return
+    end
     selected = true
 end
 
@@ -968,9 +989,9 @@ function get_list_keybinds()
     bind_keys(o.list_delete_keybind, 'list-delete', list_delete)
     bind_keys(o.bookmark_slots_remove_keybind, 'slot-remove', function()list_slot_remove()get_list_contents() if list_cursor ~= #list_contents + 1 then select(0) else select(-1) end end)
     bind_keys(o.list_close_keybind, 'list-close', unbind)
-	bind_keys(o.next_filter_sequence_keybind, 'list-filter-next', list_filter_next)
-	bind_keys(o.previous_filter_sequence_keybind, 'list-filter-previous', list_filter_previous)
-	
+    bind_keys(o.next_filter_sequence_keybind, 'list-filter-next', list_filter_next)
+    bind_keys(o.previous_filter_sequence_keybind, 'list-filter-previous', list_filter_previous)
+    
     if o.quickselect_0to9_keybind and o.list_show_amount <= 10 then
         mp.add_forced_key_binding("1", "recent-1", function()load(list_start + 1) end)
         mp.add_forced_key_binding("2", "recent-2", function()load(list_start + 2) end)
@@ -983,8 +1004,8 @@ function get_list_keybinds()
         mp.add_forced_key_binding("9", "recent-9", function()load(list_start + 9) end)
         mp.add_forced_key_binding("0", "recent-0", function()load(list_start + 10) end)
     end
-	
-	if not o.slots_filter_outside_list then
+    
+    if not o.slots_filter_outside_list then
         bind_keys(o.list_filter_slots_keybind, 'slots-list', function()display_list('slots') end)
     end
     if not o.fileonly_filter_outside_list then
@@ -994,34 +1015,37 @@ function get_list_keybinds()
         bind_keys(o.list_filter_timeonly_keybind, 'timeonly-list', function()display_list('timeonly') end)
     end
     if not o.timeonly_filter_outside_list then
-		bind_keys(o.list_filter_timeonly_keybind, 'timeonly-list', function()display_list('timeonly') end)
-	end
-	if not o.protocols_filter_outside_list then
-		bind_keys(o.list_filter_protocols_keybind, 'protocols-list', function()display_list('protocols') end)
-	end
-	if not o.titleonly_filter_outside_list then
-		bind_keys(o.list_filter_titleonly_keybind, 'titleonly-list', function()display_list('titleonly') end)
-	end
-	if not o.keywords_filter_outside_list then
-		bind_keys(o.list_filter_keywords_keybind, 'keywords-list', function()display_list('keywords') end)
-	end
+        bind_keys(o.list_filter_timeonly_keybind, 'timeonly-list', function()display_list('timeonly') end)
+    end
+    if not o.protocols_filter_outside_list then
+        bind_keys(o.list_filter_protocols_keybind, 'protocols-list', function()display_list('protocols') end)
+    end
+    if not o.titleonly_filter_outside_list then
+        bind_keys(o.list_filter_titleonly_keybind, 'titleonly-list', function()display_list('titleonly') end)
+    end
+    if not o.keywords_filter_outside_list then
+        bind_keys(o.list_filter_keywords_keybind, 'keywords-list', function()display_list('keywords') end)
+    end
+    if not o.playing_filter_outside_list then
+        bind_keys(o.list_filter_playing_keybind, 'playing-list', function()display_list('playing') end)
+    end
 end
 
 function display_list(filter)
     if not filter then filter = 'all' end
-	
-	if not has_value(o.filters_and_sequence, filter) then
-		table.insert(o.filters_and_sequence, filter) --Handle if the filter was not in the sequence, e.g.: user removed filter. It will automatically add it and proceed with the same sequence when navigating via arrow keys
-	end
-	
+    
+    if not has_value(o.filters_and_sequence, filter) then
+        table.insert(o.filters_and_sequence, filter)
+    end
+    
     local prev_filter = filterName
-
-	filterName = filter
+    
+    filterName = filter
     local trigger_close_list = false
     local trigger_initial_list = false
     local page_change_event = false
     table.insert(list_pages, {filter, list_cursor})
-	
+    
     if #list_pages > 1 then
         if list_pages[#list_pages - 1][1] == filter and filter == 'all' and o.bookmark_list_keybind_twice_exits then
             trigger_close_list = true
@@ -1051,20 +1075,20 @@ function display_list(filter)
         display_list(list_pages[1][1])
         return
     end
-	
-	if trigger_close_list then
-		unbind()
-		return
-	end
+    
+    if trigger_close_list then
+        unbind()
+        return
+    end
     
     get_list_contents()
     if not list_contents or not list_contents[1] then
         if not list_drawn then
-			unbind()
-		else
-			display_list(prev_filter)
-		end
-		return
+            unbind()
+        else
+            display_list(prev_filter)
+        end
+        return
     end
     
     draw_list()
@@ -1073,12 +1097,12 @@ function display_list(filter)
 end
 
 if o.auto_run_list_idle == 'all'
-	or o.auto_run_list_idle == 'slots' 
-	or o.auto_run_list_idle == 'protocols'
-	or o.auto_run_list_idle == 'fileonly'
-	or o.auto_run_list_idle == 'titleonly'
-	or o.auto_run_list_idle == 'timeonly'
-	or o.auto_run_list_idle == 'keywords' then
+    or o.auto_run_list_idle == 'slots'
+    or o.auto_run_list_idle == 'protocols'
+    or o.auto_run_list_idle == 'fileonly'
+    or o.auto_run_list_idle == 'titleonly'
+    or o.auto_run_list_idle == 'timeonly'
+    or o.auto_run_list_idle == 'keywords' then
     mp.observe_property("idle-active", "bool", function(_, v)
         if v then display_list(o.auto_run_list_idle) end
     end)
@@ -1087,7 +1111,7 @@ end
 mp.register_event('file-loaded', function()
     unbind()
     filePath, fileTitle = get_path()
-	mark_chapter()
+    mark_chapter()
     if (selected == true and seekTime ~= nil) then
         mp.commandv('seek', seekTime, 'absolute', 'exact')
         selected = false
@@ -1124,4 +1148,7 @@ if o.titleonly_filter_outside_list then
 end
 if o.keywords_filter_outside_list then
     bind_keys(o.list_filter_keywords_keybind, 'keywords-list', function()display_list('keywords') end)
+end
+if o.playing_filter_outside_list then
+    bind_keys(o.list_filter_playing_keybind, 'playing-list', function()display_list('playing') end)
 end
