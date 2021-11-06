@@ -15,13 +15,14 @@ local o = {
         osd_messages = true, --true is for displaying osd messages when actions occur. Change to false will disable all osd messages generated from this script
 		loop_through_list = false, --true is for going up on the first item loops towards the last item and vise-versa. false disables this behavior.
 		list_default_sort = 'added-asc', --the default sorting method for the bookmark list. select between 'added-asc', 'added-desc', 'alphanum-asc', 'alphanum-desc'
+		mark_bookmark_as_chapter = false, --true is for marking the bookmarked time as a chapter. false disables mark as chapter behavior.
 		--filter method description: 'added-asc' is for the newest added bookmark to show first, 'added-desc' for the newest added to show last. 'alphanum-asc' is for A to Z approach with filename and episode number lower first. 'alphanum-desc' is for its Z to A approach.
 		
 		-----Filter Settings------
 		filters_and_sequence = {'all', 'slots', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'keywords'}, --Jump to the following filters and in the shown sequence when navigating via left and right keys. You can change the sequence and delete filters that are not needed.
-		keywords_filter_list = {'youtube.com', 'mp4', 'naruto'}, --Create a filter out of your desired 'keywords', e.g.: youtube.com will filter out the videos from youtube. You can also insert a portion of filename or title, or extension or a full path / portion of a path.
+		keywords_filter_list = {'youtube.com', 'mp4', 'naruto', 'c:\\users\\eisa01\\desktop'}, --Create a filter out of your desired 'keywords', e.g.: youtube.com will filter out the videos from youtube. You can also insert a portion of filename or title, or extension or a full path / portion of a path.
 		sort_slots_filter = 'keybind-asc', --Sorts the slots filter. Select between 'none', 'keybind-asc', keybind-desc', 'added-asc', 'added-desc', 'alphanum-asc', 'alphanum-desc'. description: 'none' is for default ordering. 'keybind-asc' is only for slots, it uses A to Z approach but for keybinds. 'keybind-desc' is the same but for Z to A approach.
-		sort_fileonly_filter = 'alphanum-asc', --Sorts the fileonly filter. Select between 'none', 'keybind-asc', keybind-desc', 'added-asc', 'added-desc', 'alphanum-asc', 'alphanum-desc'.
+		sort_fileonly_filter = 'alphanum-asc', --Sorts the fileonly filter. Select between 'none', 'added-asc', 'added-desc', 'alphanum-asc', 'alphanum-desc'.
 		sort_protocols_filter = 'none',
 		sort_titleonly_filter = 'none',
 		sort_timeonly_filter = 'none',
@@ -58,7 +59,7 @@ local o = {
         list_show_amount = 10, --Change maximum number to show items at once
         list_sliced_prefix = '...\\h\\N\\N', --The text that indicates there are more items above. \\h\\N\\N is for new line.
         list_sliced_suffix = '...', --The text that indicates there are more items below.
-        list_middle_loader = true, --False for more items to show, then u must reach the end. Change to true so that new items show after reaching the middle of list.
+        list_middle_loader = true, --false is for more items to show, then u must reach the end. true is for new items to show after reaching the middle of list.
         bookmark_list_keybind_twice_exits = true, --Will exit the bookmark list when double tapping the bookmark list, even if the list was accessed through a different filter.
         
         -----Keybind Settings-----
@@ -82,12 +83,12 @@ local o = {
 		-----Filter Keybind Settings-----
 		next_filter_sequence_keybind = {'RIGHT', 'MBTN_FORWARD'}, --Keybind that will be used to go to the next available filter based on the configured sequence
 		previous_filter_sequence_keybind ={'LEFT', 'MBTN_BACK'}, --Keybind that will be used to go to the previous available filter based on the configured sequence
-        list_filter_slots_keybind = {'s', 'S'}, --Keybind to filter out the bookmarked slots
+        list_filter_slots_keybind = {'s', 'S'}, --Keybind to jump to this specific filter
         slots_filter_outside_list = true, --False to access keybind only if bookmark list is open. true for Keybind to access filtered bookmark list immediately without needing to open bookmark list first. 
-        list_filter_fileonly_keybind = {'f', 'F'}, --Keybind to filter out the bookmarked videos without time
-        fileonly_filter_outside_list = false, --False to access keybind only if bookmark list is open. true for Keybind to access filtered bookmark list immediately without needing to open bookmark list first. 
-        list_filter_timeonly_keybind = {''}, --Keybind to filter out the bookmarked videos with time (default is empty since you can easily access by navigating via arrow keys) 
-        timeonly_filter_outside_list = false, --False to access keybind only if bookmark list is open. true for Keybind to access filtered bookmark list immediately without needing to open bookmark list first.
+        list_filter_fileonly_keybind = {'f', 'F'},
+        fileonly_filter_outside_list = false,
+        list_filter_timeonly_keybind = {''},
+        timeonly_filter_outside_list = false,
 		list_filter_protocols_keybind = {''},
 		protocols_filter_outside_list = false,
 		list_filter_titleonly_keybind = {''},
@@ -137,15 +138,62 @@ function contain_value (tab, val)
 
     return false
 end
+function dump(o)
+   if type(o) == 'table' then
+      local s = '{ '
+      for k,v in pairs(o) do
+         if type(k) ~= 'number' then k = '"'..k..'"' end
+         s = s .. '['..k..'] = ' .. dump(v) .. ','
+      end
+      return s .. '} '
+   else
+      return tostring(o)
+   end
+end
+
+function mark_chapter() --Option to mark bookmarked time as chapter
+	if not o.mark_bookmark_as_chapter then return end --only if the option is enabled then proceed
+	
+    local all_chapters = mp.get_property_native("chapter-list")
+    local chapter_index = 0
+	local chapters_time = {}
+		
+	get_list_contents()
+	for i = 1, #list_contents do
+		if list_contents[i].found_path == filePath and tonumber(list_contents[i].found_time) > 0 then --If the played file found in log and there is time stored then added it to table
+			table.insert(chapters_time, tonumber(list_contents[i].found_time))
+		end
+    end
+	if not chapters_time[1] then return end --Only if there are chapters then proceed
+	
+	--Sort chapters from lowest bookmarked time, to highest bookmarked time
+	table.sort(chapters_time, function(a, b) return a < b end) --sorts so SimpleBookmark title is sequential
+	
+	for i = 1, #chapters_time do --For each chapter time found, mark it as a bookmark chapter
+		chapter_index = chapter_index + 1 --Increase the current chapter count
+		
+		all_chapters[chapter_index] = { --Put inside all chapters where current chapter is the title and time of current chapter time
+			title = 'SimpleBookmark '..chapter_index,
+			time = chapters_time[i]
+		}
+	end
+	
+	--Sort chapters from lowest bookmarked time, to highest bookmarked time
+	table.sort(all_chapters, function(a, b) return a['time'] < b['time'] end)
+	
+	--Update the chapters
+    mp.set_property_native("chapter-list", all_chapters)
+end
+
 
 function list_sort(tab, sort) --function to sort the list, taking the table, and sort method
 	
 	if sort == 'added-desc' then
 		table.sort(tab, function(a, b) return a['found_line'] > b['found_line'] end)
 	elseif sort == 'keybind-asc' and filterName == 'slots' then --Add sorting for slots based on keybind slot
-		table.sort(tab, function(a, b) return a['found_slot'] > b['found_slot'] end); --sorts founded_slot inside each table item by asc order
+		table.sort(tab, function(a, b) return a['found_slot'] > b['found_slot'] end) --sorts founded_slot inside each table item by asc order
 	elseif sort == 'keybind-desc' and filterName == 'slots' then
-		table.sort(tab, function(a, b) return a['found_slot'] < b['found_slot'] end); --sorts founded_slot inside each table item by asc order
+		table.sort(tab, function(a, b) return a['found_slot'] < b['found_slot'] end) --sorts founded_slot inside each table item by asc order
 	elseif sort == 'alphanum-asc' or sort == 'alphanum-desc' then
 		local function padnum(d) local dec, n = string.match(d, "(%.?)0*(.+)")
 		return #dec > 0 and ("%.12f"):format(d) or ("%s%03d%s"):format(dec, #n, n) end
@@ -304,7 +352,9 @@ function unbind()
     unbind_keys(o.list_delete_keybind, "list-delete")
     unbind_keys(o.list_close_keybind, "list-close")
     unbind_keys(o.bookmark_slots_remove_keybind, "slot-remove")
-	
+	unbind_keys(o.next_filter_sequence_keybind, 'list-filter-next')
+	unbind_keys(o.previous_filter_sequence_keybind, 'list-filter-previous')
+
     if not o.quickselect_0to9_keybind and o.list_show_amount <= 10 then
         mp.remove_key_binding("recent-1")
         mp.remove_key_binding("recent-2")
@@ -483,8 +533,8 @@ end
 
 function write_log(logged_time, keybind_slot)
     if not filePath then return end
-    
-    if logged_time then
+        
+	if logged_time then
         seekTime = logged_time
     else
         seekTime = (mp.get_property_number('time-pos') or 0)
@@ -671,6 +721,7 @@ function draw_list()
     else
         list_start = list_cursor - o.list_show_amount
     end
+	
     local showall = false
     local showrest = false
     if list_start < 0 then list_start = 0 end
@@ -1012,9 +1063,14 @@ if o.auto_run_list_idle == 'all'
     end)
 end
 
-mp.register_event("file-loaded", function()
+mp.register_event('start-file', function()
+end)
+
+mp.register_event('file-loaded', function()
     unbind()
     filePath, fileTitle = get_path()
+	mark_chapter() --Marks the chapter if enabled
+	
     if (selected == true and seekTime ~= nil) then
         mp.commandv('seek', seekTime, 'absolute', 'exact')
         selected = false
