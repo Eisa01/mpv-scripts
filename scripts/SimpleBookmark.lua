@@ -16,6 +16,7 @@ local o = {
         loop_through_list = false, --true is for going up on the first item loops towards the last item and vise-versa. false disables this behavior.
         list_default_sort = 'added-asc', --the default sorting method for the bookmark list. select between 'added-asc', 'added-desc', 'alphanum-asc', 'alphanum-desc'
         mark_bookmark_as_chapter = false, --true is for marking the bookmarked time as a chapter. false disables mark as chapter behavior.
+		search_not_typing_smartly = true, --To smartly set the search as not typing (when search box is open) without needing to press ctrl+enter.
         --available filters: 'all' to display all the bookmarks. Or 'slots' to display the bookmarks filtered with slots. Or 'fileonly' to display files saved without time. Or 'timeonly' to display files that have time only. Or 'keywords' to display files with matching keywords specified in the configuration. Or 'playing' to show bookmarks for current playing file.
         --available sort: 'added-asc' is for the newest added bookmark to show first. Or 'added-desc' for the newest added to show last. Or 'alphanum-asc' is for A to Z approach with filename and episode number lower first. Or 'alphanum-desc' is for its Z to A approach. Or 'keybind-asc', or 'keybind-desc' to sort based on keybinds which is execlusive to sort_slots_filter.
         
@@ -29,6 +30,7 @@ local o = {
         sort_timeonly_filter = 'none',
         sort_keywords_filter = 'none',
         sort_playing_filter = 'none',
+		sort_search_filter = 'none',
         loop_through_filters = true, --true is for bypassing the last filter to go to first filter when navigating through filters using arrow keys, and vice-versa. false disables this behavior.
         
         -----Logging Settings-----
@@ -48,9 +50,14 @@ local o = {
         highlight_color = 'ffbf7f', --Highlight color in BGR hexadecimal
         highlight_scale = 50, --Font size for highlighted text in bookmark list
         highlight_border = 0.7, --Black border size for highlighted text in bookmark list
-        header_text = '🔖 Bookmarks [%cursor/%total]', --Text to be shown as header for the bookmark list. %cursor shows the position of highlighted file. %total shows the total amount of bookmarked items.
-        header_filter_text = ' (filtered: %filter)', --Text to be shown when applying filter after the header_text, %filter shows the filter name
+        header_text = '🔖 Bookmarks [%cursor/%total] %prefilter%filter%afterfilter%presearch%search%aftersearch', --Text to be shown as header for the bookmark list. %cursor: shows the position of highlighted file. %total: shows the total amount of bookmarked items. %filter: shows the filter name, %prefilter: user defined text before showing filter, %afterfilter: user defined text after showing filter, %search: shows the typed search, %presearch, %aftersearch: same concept of prefilter and afterfilter.
+        header_filter_pre_text = ' (filtered: ', --Text to be shown before filter in the header
+		header_filter_after_text = ')', --Text to be shown after filter in the header (since filter is inside the header, if you need to add a variable like %%search it will need double %%)
+		header_search_pre_text = '\\h\\N\\N(search=', --text to be shown before search in the header
+		header_search_after_text = '..)', --Text to be shown after search in the header
         header_color = 'ffffaa', --Header color in BGR hexadecimal
+		search_color_typing = '00bfff', --Search color when in typing mode
+		search_color_not_typing = 'ffffaa', --Search color when not in typing mode and it is active
         header_scale = 55, --Header text size for the bookmark list
         header_border = 0.8, --Black border size for the Header of bookmark list
         show_item_number = true, --Show the number of each bookmark item before displaying its name and values.
@@ -78,27 +85,29 @@ local o = {
         list_move_first_keybind = {'HOME'}, --Keybind that will be used to navigate to the first item on the bookmark list
         list_move_last_keybind = {'END'}, --Keybind that will be used to navigate to the last item on the bookmark list
         list_select_keybind = {'ENTER', 'MBTN_MID'}, --Keybind that will be used to load highlighted entry from the bookmark list
-        list_close_keybind = {'ESC', 'MBTN_RIGHT'}, --Keybind that will be used to close the bookmark list
+        list_close_keybind = {'ESC', 'MBTN_RIGHT'}, --Keybind that will be used to close the bookmark list (closes search first if it is open)
         list_delete_keybind = {'DEL'}, --Keybind that will be used to delete the highlighted entry from the bookmark list
+		list_search_activate_keybind = {'ctrl+f', 'ctrl+F'}, --Keybind that will be used to trigger search
+		list_search_not_typing_mode_keybind = {'CTRL+ENTER'}, --Keybind that will be used to exit typing mode of search while keeping search open
         quickselect_0to9_keybind = true, --Keybind entries from 0 to 9 for quick selection when list is open (list_show_amount = 10 is maximum for this feature to work)
         
         -----Filter Keybind Settings-----
         next_filter_sequence_keybind = {'RIGHT', 'MBTN_FORWARD'}, --Keybind that will be used to go to the next available filter based on the configured sequence
         previous_filter_sequence_keybind = {'LEFT', 'MBTN_BACK'}, --Keybind that will be used to go to the previous available filter based on the configured sequence
-        list_filter_slots_keybind = {'s', 'S'}, --Keybind to jump to this specific filter
-        slots_filter_outside_list = true, --False to access keybind only if bookmark list is open. true for Keybind to access filtered bookmark list immediately without needing to open bookmark list first.
-        list_filter_fileonly_keybind = {'f', 'F'},
-        fileonly_filter_outside_list = false,
-        list_filter_timeonly_keybind = {''},
-        timeonly_filter_outside_list = false,
-        list_filter_protocols_keybind = {''},
-        protocols_filter_outside_list = false,
-        list_filter_titleonly_keybind = {''},
-        titleonly_filter_outside_list = false,
-        list_filter_keywords_keybind = {''},
-        keywords_filter_outside_list = false,
-        list_filter_playing_keybind = {''},
-        playing_filter_outside_list = false,
+        slots_filter_inside_list_keybind = {'s', 'S'}, --Keybind to jump to this specific filter when list is open
+        slots_filter_outside_list_keybind = {'s', 'S'}, --Keybind to jump to this specific filter when list is closed
+        fileonly_filter_inside_list_keybind = {'f', 'F'},
+        fileonly_filter_outside_list_keybind = {''},
+        timeonly_filter_inside_list_keybind = {''},
+        timeonly_filter_outside_list_keybind = {''},
+        protocols_filter_inside_list_keybind = {''},
+        protocols_filter_outside_list_keybind = {''},
+        titleonly_filter_inside_list_keybind = {''},
+        titleonly_filter_outside_list_keybind = {''},
+        keywords_filter_inside_list_keybind = {''},
+        keywords_filter_outside_list_keybind = {''},
+        playing_filter_inside_list_keybind = {''},
+        playing_filter_outside_list_keybind = {''},
 
 ---------------------------END OF USER CUSTOMIZATION SETTINGS---------------------------
 }
@@ -114,6 +123,8 @@ local msg = require 'mp.msg'
 
 local bookmark_log = o.log_path .. o.log_file
 local protocols = {'https?://', 'magnet:', 'rtmp:'}
+local search_string = '' --To create the search string that will be passed to the filter
+local search_active = false --To specify whether search is active or typing or not
 
 local selected = false
 local list_contents = {}
@@ -222,18 +233,47 @@ function format_time(duration)
     return string.format("%02d:%02d:%02d", hours, minutes, seconds)
 end
 
-
 function parse_header(string)
-    return string:gsub("%%total", #list_contents)
+	local osd_header_color = string.format("{\\1c&H%s}", o.header_color)
+	local osd_search_color = osd_header_color --initiate the search color with default colors of headers, then change according to status
+	if search_active == 'typing' then
+		osd_search_color = string.format("{\\1c&H%s}", o.search_color_typing)
+	elseif search_active == 'not_typing' then
+		osd_search_color = string.format("{\\1c&H%s}", o.search_color_not_typing)
+	end
+    local osd_msg_end = "{\\1c&HFFFFFF}"
+    
+	string = string:gsub("%%total", #list_contents)
         :gsub("%%cursor", list_cursor)
-        -- undo name escape
-        :gsub("%%%%", "%%")
-end
 
-function parse_header_filter(string)
-    return string:gsub("%%filter", filterName)
-        -- undo name escape
-        :gsub("%%%%", "%%")
+	if filterName ~= 'all' then --If there is filter, then return all filter stuff
+		string = string:gsub("%%filter", filterName)
+		:gsub("%%prefilter", o.header_filter_pre_text)
+		:gsub("%%afterfilter", o.header_filter_after_text)
+	else -- otherwise just delete filter stuff
+		string = string:gsub("%%filter", '')
+		:gsub("%%prefilter", '')
+		:gsub("%%afterfilter", '')
+	end
+	
+	if search_active then --If there is search, then return all search stuff
+		--handle showing % in the osd, handle showing left curly brackets in the osd (MUST BE AFTER HANDLING backslash), handled \ with zero width space character​. FINALLY gsub the \ before the curly brackets fixes the issue of backslash ruining the curly brackets fix and any backslash action
+		local search_string_osd = search_string
+		if search_string_osd ~= '' then
+			search_string_osd = search_string:gsub('%%', '%%%%%%%%'):gsub('\\', '\\​'):gsub('{', '\\{')
+		end
+	
+		string = string:gsub("%%search", osd_search_color..search_string_osd..osd_header_color)
+		:gsub("%%presearch", o.header_search_pre_text)	
+		:gsub("%%aftersearch", o.header_search_after_text)
+	else -- otherwise just delete search
+		string = string:gsub("%%search", '')
+		:gsub("%%presearch", '')
+		:gsub("%%aftersearch", '')
+	end
+	-- undo name escape
+	string = string:gsub("%%%%", "%%")
+	return string
 end
 
 function bind_keys(keys, name, func, opts)
@@ -304,7 +344,7 @@ function list_delete()
     delete()
     get_list_contents()
     if not list_contents or not list_contents[1] then
-        unbind()
+        list_close_and_trash_collection()
         return
     end
     if list_cursor ~= #list_contents + 1 then
@@ -312,6 +352,16 @@ function list_delete()
     else
         select(-1)
     end
+end
+
+function slot_remove()
+	list_slot_remove() --remove from log
+	get_list_contents() --update list_contents
+	if list_cursor ~= #list_contents + 1 then --Set cursor position correctly
+		select(0) 
+	else 
+		select(-1) 
+	end
 end
 
 function esc_string(str)
@@ -347,8 +397,9 @@ function get_slot_keybind(keyindex)
     return keybind_return
 end
 
-function unbind()
-    unbind_keys(o.list_move_up_keybind, "move-up")
+function unbind_list_keys() --seperated unbind from list_close trash collection
+
+	unbind_keys(o.list_move_up_keybind, "move-up")
     unbind_keys(o.list_move_down_keybind, "move-down")
     unbind_keys(o.list_move_first_keybind, "move-first")
     unbind_keys(o.list_move_last_keybind, "move-last")
@@ -361,6 +412,23 @@ function unbind()
     unbind_keys(o.next_filter_sequence_keybind, 'list-filter-next')
     unbind_keys(o.previous_filter_sequence_keybind, 'list-filter-previous')
     
+	unbind_keys(o.slots_filter_inside_list_keybind, 'slots-list-inside')
+    unbind_keys(o.fileonly_filter_inside_list_keybind, 'fileonly-list-inside')
+    unbind_keys(o.timeonly_filter_inside_list_keybind, 'timeonly-list-inside')
+    unbind_keys(o.protocols_filter_inside_list_keybind, 'protocols-list-inside')
+    unbind_keys(o.titleonly_filter_inside_list_keybind, 'titleonly-list-inside')
+    unbind_keys(o.keywords_filter_inside_list_keybind, 'keywords-list-inside')
+    unbind_keys(o.playing_filter_inside_list_keybind, 'playing-list-inside')
+	
+	--rebind the outside_list keybinds
+	bind_keys(o.slots_filter_outside_list_keybind, 'slots-list-outside', function()display_list('slots') end)
+	bind_keys(o.fileonly_filter_outside_list_keybind, 'fileonly-list-outside', function()display_list('fileonly') end)
+	bind_keys(o.timeonly_filter_outside_list_keybind, 'timeonly-list-outside', function()display_list('timeonly') end)
+	bind_keys(o.protocols_filter_outside_list_keybind, 'protocols-list-outside', function()display_list('protocols') end)
+	bind_keys(o.titleonly_filter_outside_list_keybind, 'titleonly-list-outside', function()display_list('titleonly') end)
+	bind_keys(o.keywords_filter_outside_list_keybind, 'keywords-list-outside', function()display_list('keywords') end)
+	bind_keys(o.playing_filter_outside_list_keybind, 'playing-list-outside', function()display_list('playing') end)
+	
     if not o.quickselect_0to9_keybind and o.list_show_amount <= 10 then
         mp.remove_key_binding("recent-1")
         mp.remove_key_binding("recent-2")
@@ -373,35 +441,19 @@ function unbind()
         mp.remove_key_binding("recent-9")
         mp.remove_key_binding("recent-0")
     end
-    
-    if not o.slots_filter_outside_list then
-        unbind_keys(o.list_filter_slots_keybind, 'slots-list')
-    end
-    if not o.fileonly_filter_outside_list then
-        unbind_keys(o.list_filter_fileonly_keybind, 'fileonly-list')
-    end
-    if not o.timeonly_filter_outside_list then
-        unbind_keys(o.list_filter_timeonly_keybind, 'timeonly-list')
-    end
-    if not o.protocols_filter_outside_list then
-        unbind_keys(o.list_filter_protocols_keybind, 'protocols-list')
-    end
-    if not o.titleonly_filter_outside_list then
-        unbind_keys(o.list_filter_titleonly_keybind, 'titleonly-list')
-    end
-    if not o.keywords_filter_outside_list then
-        unbind_keys(o.list_filter_keywords_keybind, 'keywords-list')
-    end
-    if not o.playing_filter_outside_list then
-        unbind_keys(o.list_filter_playing_keybind, 'playing-list')
-    end
-    
+end
+
+function list_close_and_trash_collection()
+	unbind_list_keys()
+	unbind_search_keys()
     mp.set_osd_ass(0, 0, "")
     list_drawn = false
     list_cursor = 1
     list_start = 0
     filterName = 'all'
     list_pages = {}
+	search_string = ''
+	search_active = false
 end
 
 function read_log(func)
@@ -536,22 +588,314 @@ function get_list_contents(filter)
         
         list_contents = filtered_table
     end
-    
-    if not list_contents or not list_contents[1] then
-        
-        local msg_text
-        if filter ~= 'all' then
-            msg_text = filter .. " filter in Bookmark Empty"
-        else
-            msg_text = "Bookmark Empty"
-        end
-        msg.info(msg_text)
-        if o.osd_messages == true and not list_drawn then
-            mp.osd_message(msg_text)
+	
+	--if there is search, then filter the table again as per the search string
+	if search_active and search_string ~= '' then
+		filtered_table = {}	--empty the contents of currently filtered, then proceed to insert new stuff
+        for i = 1, #list_contents do
+            if string.lower(list_contents[i].found_line):match(esc_string(string.lower(search_string))) then --if the line contains anything from search string then insert it to table
+                table.insert(filtered_table, list_contents[i])
+            end
         end
         
-        return
+        if o.sort_search_filter ~= 'none' or o.sort_search_filter ~= '' then
+            list_sort(filtered_table, o.sort_search_filter)
+        end
+        
+		list_contents = filtered_table
     end
+    
+	if not search_active then --only if search is not active then return
+		if not list_contents or not list_contents[1] then
+			
+			local msg_text
+			if filter ~= 'all' then
+				msg_text = filter .. " filter in Bookmark Empty"
+			else
+				msg_text = "Bookmark Empty"
+			end
+			msg.info(msg_text)
+			if o.osd_messages == true and not list_drawn then
+				mp.osd_message(msg_text)
+			end
+			
+			return
+		end
+	end
+end
+
+
+function list_search_exit() --deactivate search mode to stop the typing
+	search_active = false
+	update_search_results() --Revert back to the original list and refresh to the new list and also remove the search field string
+	unbind_search_keys()
+	get_list_keybinds()
+end
+
+function list_search_not_typing_mode(auto_triggered)
+	if auto_triggered then
+		if search_string ~= '' and list_contents[1] then 
+			search_active = 'not_typing'
+		elseif not list_contents[1] then --If there are no results then keep on typing mode and do not proceed to setting it as not_typing
+			return
+		else
+			search_active = false
+		end
+	else
+		if search_string ~= '' then --If it is triggered by user, then when there is text proceed with not_typing, otherwise just close search
+			search_active = 'not_typing' 
+		else 
+			search_active = false
+		end
+	end
+	update_search_results() --Revert back to the original list and refresh to the new list and also remove the search field string
+	unbind_search_keys()
+	get_list_keybinds()
+end
+
+function list_search_activate() --activate search mode--EISA NAVIGATE OUTSIDE TO EXIT SEARCH, ctrl+f again to resume search
+	if not list_drawn then return end --only proceed if list is drawn
+	if search_active == 'typing' then list_search_exit() return end -- If the search is active and in typing mode, pressing activate again for search will cancel it
+	search_active = 'typing' --set search as active
+	update_search_results()  --Revert back to the search list and refresh to the new list and also show the search field string
+	bind_search_keys()
+end
+
+function update_search_results()
+	get_list_contents(filterName) --Refresh the list and also set the cursor in the same place or at the end if it exceeds
+	if list_cursor > #list_contents then  --If the results are higher than current fetched results, then go to last item
+		list_cursor = #list_contents
+		select(list_cursor)
+	elseif list_cursor == 0 and #list_contents > 0 then --If the cursor is on 0 and there are items, then go to the first item
+		select(1)
+	else --if not, remain in the same place
+		select(0)
+	end
+end
+
+function bind_search_keys() --to bind search keys when activating search
+	--bind letters (small)
+	mp.add_forced_key_binding('a', 'search_string_a', function() search_string = search_string..'a' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('b', 'search_string_b', function() search_string = search_string..'b' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('c', 'search_string_c', function() search_string = search_string..'c' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('d', 'search_string_d', function() search_string = search_string..'d' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('e', 'search_string_e', function() search_string = search_string..'e' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('f', 'search_string_f', function() search_string = search_string..'f' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('g', 'search_string_g', function() search_string = search_string..'g' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('h', 'search_string_h', function() search_string = search_string..'h' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('i', 'search_string_i', function() search_string = search_string..'i' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('j', 'search_string_j', function() search_string = search_string..'j' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('k', 'search_string_k', function() search_string = search_string..'k' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('l', 'search_string_l', function() search_string = search_string..'l' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('m', 'search_string_m', function() search_string = search_string..'m' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('n', 'search_string_n', function() search_string = search_string..'n' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('o', 'search_string_o', function() search_string = search_string..'o' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('p', 'search_string_p', function() search_string = search_string..'p' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('q', 'search_string_q', function() search_string = search_string..'q' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('r', 'search_string_r', function() search_string = search_string..'r' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('s', 'search_string_s', function() search_string = search_string..'s' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('t', 'search_string_t', function() search_string = search_string..'t' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('u', 'search_string_u', function() search_string = search_string..'u' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('v', 'search_string_v', function() search_string = search_string..'v' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('w', 'search_string_w', function() search_string = search_string..'w' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('x', 'search_string_x', function() search_string = search_string..'x' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('y', 'search_string_y', function() search_string = search_string..'y' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('z', 'search_string_z', function() search_string = search_string..'z' update_search_results() end, 'repeatable')
+	--bind letters (caps)
+	mp.add_forced_key_binding('A', 'search_string_A', function() search_string = search_string..'A' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('B', 'search_string_B', function() search_string = search_string..'B' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('C', 'search_string_C', function() search_string = search_string..'C' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('D', 'search_string_D', function() search_string = search_string..'D' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('E', 'search_string_E', function() search_string = search_string..'E' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('F', 'search_string_F', function() search_string = search_string..'F' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('G', 'search_string_G', function() search_string = search_string..'G' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('H', 'search_string_H', function() search_string = search_string..'H' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('I', 'search_string_I', function() search_string = search_string..'I' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('J', 'search_string_J', function() search_string = search_string..'J' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('K', 'search_string_K', function() search_string = search_string..'K' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('L', 'search_string_L', function() search_string = search_string..'L' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('M', 'search_string_M', function() search_string = search_string..'M' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('N', 'search_string_N', function() search_string = search_string..'N' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('O', 'search_string_O', function() search_string = search_string..'O' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('P', 'search_string_P', function() search_string = search_string..'P' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('Q', 'search_string_Q', function() search_string = search_string..'Q' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('R', 'search_string_R', function() search_string = search_string..'R' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('S', 'search_string_S', function() search_string = search_string..'S' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('T', 'search_string_T', function() search_string = search_string..'T' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('U', 'search_string_U', function() search_string = search_string..'U' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('V', 'search_string_V', function() search_string = search_string..'V' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('W', 'search_string_W', function() search_string = search_string..'W' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('X', 'search_string_X', function() search_string = search_string..'X' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('Y', 'search_string_Y', function() search_string = search_string..'Y' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('Z', 'search_string_Z', function() search_string = search_string..'Z' update_search_results() end, 'repeatable')
+	--bind numbers
+	mp.add_forced_key_binding('1', 'search_string_1', function() search_string = search_string..'1' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('2', 'search_string_2', function() search_string = search_string..'2' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('3', 'search_string_3', function() search_string = search_string..'3' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('4', 'search_string_4', function() search_string = search_string..'4' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('5', 'search_string_5', function() search_string = search_string..'5' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('6', 'search_string_6', function() search_string = search_string..'6' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('7', 'search_string_7', function() search_string = search_string..'7' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('8', 'search_string_8', function() search_string = search_string..'8' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('9', 'search_string_9', function() search_string = search_string..'9' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('0', 'search_string_0', function() search_string = search_string..'0' update_search_results() end, 'repeatable')
+	--bind special characters
+	mp.add_forced_key_binding('SPACE', 'search_string_space', function() search_string = search_string..' ' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('`', 'search_string_`', function() search_string = search_string..'`' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('~', 'search_string_~', function() search_string = search_string..'~' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('!', 'search_string_!', function() search_string = search_string..'!' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('@', 'search_string_@', function() search_string = search_string..'@' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('SHARP', 'search_string_sharp', function() search_string = search_string..'#' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('$', 'search_string_$', function() search_string = search_string..'$' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('%', 'search_string_percentage', function() search_string = search_string..'%' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('^', 'search_string_^', function() search_string = search_string..'^' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('&', 'search_string_&', function() search_string = search_string..'&' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('*', 'search_string_*', function() search_string = search_string..'*' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('(', 'search_string_(', function() search_string = search_string..'(' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding(')', 'search_string_)', function() search_string = search_string..')' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('-', 'search_string_-', function() search_string = search_string..'-' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('_', 'search_string__', function() search_string = search_string..'_' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('=', 'search_string_=', function() search_string = search_string..'=' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('+', 'search_string_+', function() search_string = search_string..'+' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('\\', 'search_string_\\', function() search_string = search_string..'\\' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('|', 'search_string_|', function() search_string = search_string..'|' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding(']', 'search_string_]', function() search_string = search_string..']' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('}', 'search_string_rightcurly', function() search_string = search_string..'}' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('[', 'search_string_[', function() search_string = search_string..'[' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('{', 'search_string_leftcurly', function() search_string = search_string..'{' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('\'', 'search_string_\'', function() search_string = search_string..'\'' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('\"', 'search_string_\"', function() search_string = search_string..'\"' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding(';', 'search_string_semicolon', function() search_string = search_string..';' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding(':', 'search_string_:', function() search_string = search_string..':' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('/', 'search_string_/', function() search_string = search_string..'/' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('?', 'search_string_?', function() search_string = search_string..'?' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('.', 'search_string_.', function() search_string = search_string..'.' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('>', 'search_string_>', function() search_string = search_string..'>' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding(',', 'search_string_,', function() search_string = search_string..',' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('<', 'search_string_<', function() search_string = search_string..'<' update_search_results() end, 'repeatable')
+	--bind other search functions
+	mp.add_forced_key_binding('bs', 'search_string_del', function() search_string = search_string:sub(1, -2) update_search_results() end, 'repeatable')
+	bind_keys(o.list_close_keybind, 'search_exit', function() list_search_exit() end)
+	bind_keys(o.list_search_not_typing_mode_keybind, 'search_string_not_typing', function()list_search_not_typing_mode(false) end)
+	--bind not_typing mode when navigating and when changing filter if the smart option is triggered
+	if o.search_not_typing_smartly then
+		bind_keys(o.list_move_up_keybind, 'move-up', function() list_move_up() list_search_not_typing_mode(true) end)
+		bind_keys(o.list_move_down_keybind, 'move-down', function() list_move_down() list_search_not_typing_mode(true) end)
+		bind_keys(o.list_move_first_keybind, 'move-first', function() list_move_first() list_search_not_typing_mode(true) end)
+		bind_keys(o.list_move_last_keybind, 'move-last', function() list_move_last() list_search_not_typing_mode(true) end)
+		bind_keys(o.list_page_up_keybind, 'page-up', function() list_page_up() list_search_not_typing_mode(true) end)
+		bind_keys(o.list_page_down_keybind, 'page-down', function() list_page_down() list_search_not_typing_mode(true) end)
+		bind_keys(o.next_filter_sequence_keybind, 'list-filter-next', function() list_filter_next() list_search_not_typing_mode(true) end)
+		bind_keys(o.previous_filter_sequence_keybind, 'list-filter-previous', function() list_filter_previous() list_search_not_typing_mode(true) end)
+		bind_keys(o.list_delete_keybind, 'list-delete', function() list_delete() list_search_not_typing_mode(true) end)
+		bind_keys(o.bookmark_slots_remove_keybind, 'slot-remove', function() slot_remove()  list_search_not_typing_mode(true) end)
+	end
+end
+
+function unbind_search_keys() --to unbind search keys when leaving search or when closing list
+	mp.remove_key_binding('search_string_a')
+	mp.remove_key_binding('search_string_b')
+	mp.remove_key_binding('search_string_c')
+	mp.remove_key_binding('search_string_d')
+	mp.remove_key_binding('search_string_e')
+	mp.remove_key_binding('search_string_f')
+	mp.remove_key_binding('search_string_g')
+	mp.remove_key_binding('search_string_h')
+	mp.remove_key_binding('search_string_i')
+	mp.remove_key_binding('search_string_j')
+	mp.remove_key_binding('search_string_k')
+	mp.remove_key_binding('search_string_l')
+	mp.remove_key_binding('search_string_m')
+	mp.remove_key_binding('search_string_n')
+	mp.remove_key_binding('search_string_o')
+	mp.remove_key_binding('search_string_p')
+	mp.remove_key_binding('search_string_q')
+	mp.remove_key_binding('search_string_r')
+	mp.remove_key_binding('search_string_s')
+	mp.remove_key_binding('search_string_t')
+	mp.remove_key_binding('search_string_u')
+	mp.remove_key_binding('search_string_v')
+	mp.remove_key_binding('search_string_w')
+	mp.remove_key_binding('search_string_x')
+	mp.remove_key_binding('search_string_y')
+	mp.remove_key_binding('search_string_z')
+	--unbind letters (caps)
+	mp.remove_key_binding('search_string_A')
+	mp.remove_key_binding('search_string_B')
+	mp.remove_key_binding('search_string_C')
+	mp.remove_key_binding('search_string_D')
+	mp.remove_key_binding('search_string_E')
+	mp.remove_key_binding('search_string_F')
+	mp.remove_key_binding('search_string_G')
+	mp.remove_key_binding('search_string_H')
+	mp.remove_key_binding('search_string_I')
+	mp.remove_key_binding('search_string_J')
+	mp.remove_key_binding('search_string_K')
+	mp.remove_key_binding('search_string_L')
+	mp.remove_key_binding('search_string_M')
+	mp.remove_key_binding('search_string_N')
+	mp.remove_key_binding('search_string_O')
+	mp.remove_key_binding('search_string_P')
+	mp.remove_key_binding('search_string_Q')
+	mp.remove_key_binding('search_string_R')
+	mp.remove_key_binding('search_string_S')
+	mp.remove_key_binding('search_string_T')
+	mp.remove_key_binding('search_string_U')
+	mp.remove_key_binding('search_string_V')
+	mp.remove_key_binding('search_string_W')
+	mp.remove_key_binding('search_string_X')
+	mp.remove_key_binding('search_string_Y')
+	mp.remove_key_binding('search_string_Z')
+	--unbind numbers
+	mp.remove_key_binding('search_string_1')
+	mp.remove_key_binding('search_string_2')
+	mp.remove_key_binding('search_string_3')
+	mp.remove_key_binding('search_string_4')
+	mp.remove_key_binding('search_string_5')
+	mp.remove_key_binding('search_string_6')
+	mp.remove_key_binding('search_string_7')
+	mp.remove_key_binding('search_string_8')
+	mp.remove_key_binding('search_string_9')
+	mp.remove_key_binding('search_string_0')
+	--unbind special characters
+	mp.remove_key_binding('search_string_space')
+	mp.remove_key_binding('search_string_`')
+	mp.remove_key_binding('search_string_~')
+	mp.remove_key_binding('search_string_!')
+	mp.remove_key_binding('search_string_@')
+	mp.remove_key_binding('search_string_sharp')
+	mp.remove_key_binding('search_string_$')
+	mp.remove_key_binding('search_string_percentage')
+	mp.remove_key_binding('search_string_^')
+	mp.remove_key_binding('search_string_&')
+	mp.remove_key_binding('search_string_*')
+	mp.remove_key_binding('search_string_(')
+	mp.remove_key_binding('search_string_)')
+	mp.remove_key_binding('search_string_-')
+	mp.remove_key_binding('search_string__')
+	mp.remove_key_binding('search_string_=')
+	mp.remove_key_binding('search_string_+')
+	mp.remove_key_binding('search_string_\\')
+	mp.remove_key_binding('search_string_|')
+	mp.remove_key_binding('search_string_]')
+	mp.remove_key_binding('search_string_rightcurly')
+	mp.remove_key_binding('search_string_[')
+	mp.remove_key_binding('search_string_leftcurly')
+	mp.remove_key_binding('search_string_\'')
+	mp.remove_key_binding('search_string_\"')
+	mp.remove_key_binding('search_string_semicolon')
+	mp.remove_key_binding('search_string_:')
+	mp.remove_key_binding('search_string_/')
+	mp.remove_key_binding('search_string_?')
+	mp.remove_key_binding('search_string_.')
+	mp.remove_key_binding('search_string_>')
+	mp.remove_key_binding('search_string_,')
+	mp.remove_key_binding('search_string_<')
+	--unbind other search functions
+	mp.remove_key_binding('search_string_del')
+	if not search_active then --Keep the search_exit keybind unless the search is not active
+		unbind_keys(o.list_close_keybind, 'search_exit')
+	end
 end
 
 function write_log(logged_time, keybind_slot)
@@ -739,13 +1083,12 @@ function draw_list()
     
     if o.header_text ~= '' then
         osd_msg = osd_msg .. osd_header .. parse_header(o.header_text)
-        
-        if filterName ~= 'all' and o.header_filter_text ~= '' then
-            osd_msg = osd_msg .. parse_header_filter(o.header_filter_text)
-        end
-        
         osd_msg = osd_msg .. "\\h\\N\\N" .. osd_msg_end
     end
+	
+	if search_active and not list_contents[1] then
+		osd_msg = osd_msg .. 'No search results found' .. osd_msg_end
+	end
     
     if o.list_middle_loader then
         list_start = list_cursor - math.floor(o.list_show_amount / 2)
@@ -796,7 +1139,7 @@ function draw_list()
             osd_msg = osd_msg .. osd_text .. osd_key .. osd_index .. p
         end
         
-        if tonumber(list_contents[#list_contents - i].found_time) > 0 then
+        if list_contents[#list_contents - i].found_time and tonumber(list_contents[#list_contents - i].found_time) > 0 then
             osd_msg = osd_msg .. o.time_seperator .. format_time(list_contents[#list_contents - i].found_time)
         end
         
@@ -839,10 +1182,12 @@ function list_slot_remove()
 end
 
 function select(pos)
-    if not list_contents or not list_contents[1] then
-        unbind()
-        return
-    end
+	if not search_active then --only if search is not active then return
+		if not list_contents or not list_contents[1] then
+			list_close_and_trash_collection()
+			return
+		end
+	end
     
     local list_cursor_temp = list_cursor + pos
     if list_cursor_temp > 0 and list_cursor_temp <= #list_contents then
@@ -909,7 +1254,7 @@ function list_filter_previous()
 end
 
 function load(list_cursor)
-    unbind()
+	if not list_contents or not list_contents[1] then return end --if it is empty then dont do anything
     seekTime = tonumber(list_contents[#list_contents - list_cursor + 1].found_time) + o.resume_offset
     if (seekTime < 0) then
         seekTime = 0
@@ -987,11 +1332,32 @@ function get_list_keybinds()
     bind_keys(o.list_page_down_keybind, 'page-down', list_page_down, 'repeatable')
     bind_keys(o.list_select_keybind, 'list-select', list_select)
     bind_keys(o.list_delete_keybind, 'list-delete', list_delete)
-    bind_keys(o.bookmark_slots_remove_keybind, 'slot-remove', function()list_slot_remove()get_list_contents() if list_cursor ~= #list_contents + 1 then select(0) else select(-1) end end)
-    bind_keys(o.list_close_keybind, 'list-close', unbind)
+    bind_keys(o.bookmark_slots_remove_keybind, 'slot-remove', slot_remove)
     bind_keys(o.next_filter_sequence_keybind, 'list-filter-next', list_filter_next)
     bind_keys(o.previous_filter_sequence_keybind, 'list-filter-previous', list_filter_previous)
+	bind_keys(o.list_search_activate_keybind, 'list-search-activate', list_search_activate)
     
+	if not search_active then --Keep the search_exit keybind unless the search is not active
+		bind_keys(o.list_close_keybind, 'list-close', list_close_and_trash_collection)
+	end
+	
+	bind_keys(o.slots_filter_inside_list_keybind, 'slots-list-inside', function()display_list('slots') end)
+    bind_keys(o.fileonly_filter_inside_list_keybind, 'fileonly-list-inside', function()display_list('fileonly') end)
+    bind_keys(o.timeonly_filter_inside_list_keybind, 'timeonly-list-inside', function()display_list('timeonly') end)
+    bind_keys(o.protocols_filter_inside_list_keybind, 'protocols-list-inside', function()display_list('protocols') end)
+    bind_keys(o.titleonly_filter_inside_list_keybind, 'titleonly-list-inside', function()display_list('titleonly') end)
+    bind_keys(o.keywords_filter_inside_list_keybind, 'keywords-list-inside', function()display_list('keywords') end)
+    bind_keys(o.playing_filter_inside_list_keybind, 'playing-list-inside', function()display_list('playing') end)
+	
+	--unbind the outside-list keybinds, so it only works when outside
+	unbind_keys(o.slots_filter_outside_list_keybind, 'slots-list-outside')
+    unbind_keys(o.fileonly_filter_outside_list_keybind, 'fileonly-list-outside')
+    unbind_keys(o.timeonly_filter_outside_list_keybind, 'timeonly-list-outside')
+    unbind_keys(o.protocols_filter_outside_list_keybind, 'protocols-list-outside')
+    unbind_keys(o.titleonly_filter_outside_list_keybind, 'titleonly-list-outside')
+    unbind_keys(o.keywords_filter_outside_list_keybind, 'keywords-list-outside')
+    unbind_keys(o.playing_filter_outside_list_keybind, 'playing-list-outside')
+	
     if o.quickselect_0to9_keybind and o.list_show_amount <= 10 then
         mp.add_forced_key_binding("1", "recent-1", function()load(list_start + 1) end)
         mp.add_forced_key_binding("2", "recent-2", function()load(list_start + 2) end)
@@ -1003,31 +1369,6 @@ function get_list_keybinds()
         mp.add_forced_key_binding("8", "recent-8", function()load(list_start + 8) end)
         mp.add_forced_key_binding("9", "recent-9", function()load(list_start + 9) end)
         mp.add_forced_key_binding("0", "recent-0", function()load(list_start + 10) end)
-    end
-    
-    if not o.slots_filter_outside_list then
-        bind_keys(o.list_filter_slots_keybind, 'slots-list', function()display_list('slots') end)
-    end
-    if not o.fileonly_filter_outside_list then
-        bind_keys(o.list_filter_fileonly_keybind, 'fileonly-list', function()display_list('fileonly') end)
-    end
-    if not o.timeonly_filter_outside_list then
-        bind_keys(o.list_filter_timeonly_keybind, 'timeonly-list', function()display_list('timeonly') end)
-    end
-    if not o.timeonly_filter_outside_list then
-        bind_keys(o.list_filter_timeonly_keybind, 'timeonly-list', function()display_list('timeonly') end)
-    end
-    if not o.protocols_filter_outside_list then
-        bind_keys(o.list_filter_protocols_keybind, 'protocols-list', function()display_list('protocols') end)
-    end
-    if not o.titleonly_filter_outside_list then
-        bind_keys(o.list_filter_titleonly_keybind, 'titleonly-list', function()display_list('titleonly') end)
-    end
-    if not o.keywords_filter_outside_list then
-        bind_keys(o.list_filter_keywords_keybind, 'keywords-list', function()display_list('keywords') end)
-    end
-    if not o.playing_filter_outside_list then
-        bind_keys(o.list_filter_playing_keybind, 'playing-list', function()display_list('playing') end)
     end
 end
 
@@ -1077,14 +1418,14 @@ function display_list(filter)
     end
     
     if trigger_close_list then
-        unbind()
+        list_close_and_trash_collection()
         return
     end
     
     get_list_contents()
     if not list_contents or not list_contents[1] then
         if not list_drawn then
-            unbind()
+            list_close_and_trash_collection()
         else
             display_list(prev_filter)
         end
@@ -1093,7 +1434,9 @@ function display_list(filter)
     
     draw_list()
     list_drawn = true
-    get_list_keybinds()
+	if not search_active then --Only if the search is not triggered then update the keybinds
+		get_list_keybinds()
+	end
 end
 
 if o.auto_run_list_idle == 'all'
@@ -1109,7 +1452,7 @@ if o.auto_run_list_idle == 'all'
 end
 
 mp.register_event('file-loaded', function()
-    unbind()
+    list_close_and_trash_collection()
     filePath, fileTitle = get_path()
     mark_chapter()
     if (selected == true and seekTime ~= nil) then
@@ -1131,24 +1474,10 @@ for i = 1, #o.bookmark_slots_quicksave_keybind do
     mp.add_forced_key_binding(o.bookmark_slots_quicksave_keybind[i], 'slot-save-' .. i, function()quicksave_slot(i) end)
 end
 
-if o.slots_filter_outside_list then
-    bind_keys(o.list_filter_slots_keybind, 'slots-list', function()display_list('slots') end)
-end
-if o.fileonly_filter_outside_list then
-    bind_keys(o.list_filter_fileonly_keybind, 'fileonly-list', function()display_list('fileonly') end)
-end
-if o.timeonly_filter_outside_list then
-    bind_keys(o.list_filter_timeonly_keybind, 'timeonly-list', function()display_list('timeonly') end)
-end
-if o.protocols_filter_outside_list then
-    bind_keys(o.list_filter_protocols_keybind, 'protocols-list', function()display_list('protocols') end)
-end
-if o.titleonly_filter_outside_list then
-    bind_keys(o.list_filter_titleonly_keybind, 'titleonly-list', function()display_list('titleonly') end)
-end
-if o.keywords_filter_outside_list then
-    bind_keys(o.list_filter_keywords_keybind, 'keywords-list', function()display_list('keywords') end)
-end
-if o.playing_filter_outside_list then
-    bind_keys(o.list_filter_playing_keybind, 'playing-list', function()display_list('playing') end)
-end
+bind_keys(o.slots_filter_outside_list_keybind, 'slots-list-outside', function()display_list('slots') end)
+bind_keys(o.fileonly_filter_outside_list_keybind, 'fileonly-list-outside', function()display_list('fileonly') end)
+bind_keys(o.timeonly_filter_outside_list_keybind, 'timeonly-list-outside', function()display_list('timeonly') end)
+bind_keys(o.protocols_filter_outside_list_keybind, 'protocols-list-outside', function()display_list('protocols') end)
+bind_keys(o.titleonly_filter_outside_list_keybind, 'titleonly-list-outside', function()display_list('titleonly') end)
+bind_keys(o.keywords_filter_outside_list_keybind, 'keywords-list-outside', function()display_list('keywords') end)
+bind_keys(o.playing_filter_outside_list_keybind, 'playing-list-outside', function()display_list('playing') end)
