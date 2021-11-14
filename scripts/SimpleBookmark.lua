@@ -85,6 +85,7 @@ local o = {
         list_move_first_keybind = {'HOME'}, --Keybind that will be used to navigate to the first item on the bookmark list
         list_move_last_keybind = {'END'}, --Keybind that will be used to navigate to the last item on the bookmark list
         list_select_keybind = {'ENTER', 'MBTN_MID'}, --Keybind that will be used to load highlighted entry from the bookmark list
+		list_add_playlist_keybind = {'SHIFT+ENTER'}, --Keybind that will be used to add the selected entry to playlist
         list_close_keybind = {'ESC', 'MBTN_RIGHT'}, --Keybind that will be used to close the bookmark list (closes search first if it is open)
         list_delete_keybind = {'DEL'}, --Keybind that will be used to delete the highlighted entry from the bookmark list
 		list_search_activate_keybind = {'ctrl+f', 'ctrl+F'}, --Keybind that will be used to trigger search
@@ -340,6 +341,10 @@ function list_select()
     load(list_cursor)
 end
 
+function list_add_playlist()
+    load(list_cursor, true)
+end
+
 function list_delete()
     delete()
     get_list_contents()
@@ -399,16 +404,17 @@ end
 
 function unbind_list_keys() --seperated unbind from list_close trash collection
 
-	unbind_keys(o.list_move_up_keybind, "move-up")
-    unbind_keys(o.list_move_down_keybind, "move-down")
-    unbind_keys(o.list_move_first_keybind, "move-first")
-    unbind_keys(o.list_move_last_keybind, "move-last")
-    unbind_keys(o.list_page_up_keybind, "page-up")
-    unbind_keys(o.list_page_down_keybind, "page-down")
-    unbind_keys(o.list_select_keybind, "list-select")
-    unbind_keys(o.list_delete_keybind, "list-delete")
-    unbind_keys(o.list_close_keybind, "list-close")
-    unbind_keys(o.bookmark_slots_remove_keybind, "slot-remove")
+	unbind_keys(o.list_move_up_keybind, 'move-up')
+    unbind_keys(o.list_move_down_keybind, 'move-down')
+    unbind_keys(o.list_move_first_keybind, 'move-first')
+    unbind_keys(o.list_move_last_keybind, 'move-last')
+    unbind_keys(o.list_page_up_keybind, 'page-up')
+    unbind_keys(o.list_page_down_keybind, 'page-down')
+    unbind_keys(o.list_select_keybind, 'list-select')
+	unbind_keys(o.list_add_playlist_keybind, 'list-add-playlist')
+    unbind_keys(o.list_delete_keybind, 'list-delete')
+    unbind_keys(o.list_close_keybind, 'list-close')
+    unbind_keys(o.bookmark_slots_remove_keybind, 'slot-remove')
     unbind_keys(o.next_filter_sequence_keybind, 'list-filter-next')
     unbind_keys(o.previous_filter_sequence_keybind, 'list-filter-previous')
     
@@ -627,7 +633,10 @@ end
 
 function list_search_exit() --deactivate search mode to stop the typing
 	search_active = false
-	update_search_results() --Revert back to the original list and refresh to the new list and also remove the search field string
+	--Get the contents then get the list cursor position, then refresh using select(0)
+	get_list_contents(filterName)
+	get_filter_cursor(filterName)
+	select(0)--When exiting it will go to the find cursor position - select(0) is to refresh with the found cursor position
 	unbind_search_keys()
 	get_list_keybinds()
 end
@@ -648,7 +657,8 @@ function list_search_not_typing_mode(auto_triggered)
 			search_active = false
 		end
 	end
-	update_search_results() --Revert back to the original list and refresh to the new list and also remove the search field string
+	get_list_contents(filterName) --Get the contents of search for refresh	
+	select(0)--refresh list
 	unbind_search_keys()
 	get_list_keybinds()
 end
@@ -657,124 +667,137 @@ function list_search_activate() --activate search mode--EISA NAVIGATE OUTSIDE TO
 	if not list_drawn then return end --only proceed if list is drawn
 	if search_active == 'typing' then list_search_exit() return end -- If the search is active and in typing mode, pressing activate again for search will cancel it
 	search_active = 'typing' --set search as active
-	update_search_results()  --Revert back to the search list and refresh to the new list and also show the search field string
+	--Save cursor position for filter in the list_pages table (same as prev_filter but trigger it here when activating search)
+	for i = 1, #list_pages do
+		if list_pages[i][1] == filterName then
+			list_pages[i][2] = list_cursor
+		end
+	end
+	update_search_results('','') --Just refresh the list and cursor
 	bind_search_keys()
 end
 
-function update_search_results()
-	get_list_contents(filterName) --Refresh the list and also set the cursor in the same place or at the end if it exceeds
-	if list_cursor > #list_contents then  --If the results are higher than current fetched results, then go to last item
-		list_cursor = #list_contents
+function update_search_results(character, action) --Refresh the list and also set the cursor in the same place or at the end if it exceeds
+	if not character then character = '' end --pass the character
+	--local prev_search_string = search_string
+	if action == 'string_del' then --if passed delete, then remove last character here, this is so we can compare deleted search_string with prev_search_string
+		search_string = search_string:sub(1, -2) 
+	end
+	search_string = search_string..character
+	
+	get_list_contents(filterName) --now get the list contents, with the passed search
+	if character ~= '' and #list_contents > 0 or action ~= nil and #list_contents > 0 then --If typing or deleting then go to the begining of the list
+		select(1-list_cursor)
+	elseif #list_contents == 0 then --If there are no contents then position will be 0
+		list_cursor = 0
 		select(list_cursor)
-	elseif list_cursor == 0 and #list_contents > 0 then --If the cursor is on 0 and there are items, then go to the first item
-		select(1)
-	else --if not, remain in the same place
+	else --If just updating then just refresh
 		select(0)
 	end
 end
 
 function bind_search_keys() --to bind search keys when activating search
 	--bind letters (small)
-	mp.add_forced_key_binding('a', 'search_string_a', function() search_string = search_string..'a' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('b', 'search_string_b', function() search_string = search_string..'b' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('c', 'search_string_c', function() search_string = search_string..'c' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('d', 'search_string_d', function() search_string = search_string..'d' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('e', 'search_string_e', function() search_string = search_string..'e' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('f', 'search_string_f', function() search_string = search_string..'f' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('g', 'search_string_g', function() search_string = search_string..'g' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('h', 'search_string_h', function() search_string = search_string..'h' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('i', 'search_string_i', function() search_string = search_string..'i' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('j', 'search_string_j', function() search_string = search_string..'j' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('k', 'search_string_k', function() search_string = search_string..'k' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('l', 'search_string_l', function() search_string = search_string..'l' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('m', 'search_string_m', function() search_string = search_string..'m' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('n', 'search_string_n', function() search_string = search_string..'n' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('o', 'search_string_o', function() search_string = search_string..'o' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('p', 'search_string_p', function() search_string = search_string..'p' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('q', 'search_string_q', function() search_string = search_string..'q' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('r', 'search_string_r', function() search_string = search_string..'r' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('s', 'search_string_s', function() search_string = search_string..'s' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('t', 'search_string_t', function() search_string = search_string..'t' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('u', 'search_string_u', function() search_string = search_string..'u' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('v', 'search_string_v', function() search_string = search_string..'v' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('w', 'search_string_w', function() search_string = search_string..'w' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('x', 'search_string_x', function() search_string = search_string..'x' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('y', 'search_string_y', function() search_string = search_string..'y' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('z', 'search_string_z', function() search_string = search_string..'z' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('a', 'search_string_a', function() update_search_results('a') end, 'repeatable')
+	mp.add_forced_key_binding('b', 'search_string_b', function() update_search_results('b') end, 'repeatable')
+	mp.add_forced_key_binding('c', 'search_string_c', function() update_search_results('c') end, 'repeatable')
+	mp.add_forced_key_binding('d', 'search_string_d', function() update_search_results('d') end, 'repeatable')
+	mp.add_forced_key_binding('e', 'search_string_e', function() update_search_results('e') end, 'repeatable')
+	mp.add_forced_key_binding('f', 'search_string_f', function() update_search_results('f') end, 'repeatable')
+	mp.add_forced_key_binding('g', 'search_string_g', function() update_search_results('g') end, 'repeatable')
+	mp.add_forced_key_binding('h', 'search_string_h', function() update_search_results('h') end, 'repeatable')
+	mp.add_forced_key_binding('i', 'search_string_i', function() update_search_results('i') end, 'repeatable')
+	mp.add_forced_key_binding('j', 'search_string_j', function() update_search_results('j') end, 'repeatable')
+	mp.add_forced_key_binding('k', 'search_string_k', function() update_search_results('k') end, 'repeatable')
+	mp.add_forced_key_binding('l', 'search_string_l', function() update_search_results('l') end, 'repeatable')
+	mp.add_forced_key_binding('m', 'search_string_m', function() update_search_results('m') end, 'repeatable')
+	mp.add_forced_key_binding('n', 'search_string_n', function() update_search_results('n') end, 'repeatable')
+	mp.add_forced_key_binding('o', 'search_string_o', function() update_search_results('o') end, 'repeatable')
+	mp.add_forced_key_binding('p', 'search_string_p', function() update_search_results('p') end, 'repeatable')
+	mp.add_forced_key_binding('q', 'search_string_q', function() update_search_results('q') end, 'repeatable')
+	mp.add_forced_key_binding('r', 'search_string_r', function() update_search_results('r') end, 'repeatable')
+	mp.add_forced_key_binding('s', 'search_string_s', function() update_search_results('s') end, 'repeatable')
+	mp.add_forced_key_binding('t', 'search_string_t', function() update_search_results('t') end, 'repeatable')
+	mp.add_forced_key_binding('u', 'search_string_u', function() update_search_results('u') end, 'repeatable')
+	mp.add_forced_key_binding('v', 'search_string_v', function() update_search_results('v') end, 'repeatable')
+	mp.add_forced_key_binding('w', 'search_string_w', function() update_search_results('w') end, 'repeatable')
+	mp.add_forced_key_binding('x', 'search_string_x', function() update_search_results('x') end, 'repeatable')
+	mp.add_forced_key_binding('y', 'search_string_y', function() update_search_results('y') end, 'repeatable')
+	mp.add_forced_key_binding('z', 'search_string_z', function() update_search_results('z') end, 'repeatable')
 	--bind letters (caps)
-	mp.add_forced_key_binding('A', 'search_string_A', function() search_string = search_string..'A' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('B', 'search_string_B', function() search_string = search_string..'B' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('C', 'search_string_C', function() search_string = search_string..'C' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('D', 'search_string_D', function() search_string = search_string..'D' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('E', 'search_string_E', function() search_string = search_string..'E' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('F', 'search_string_F', function() search_string = search_string..'F' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('G', 'search_string_G', function() search_string = search_string..'G' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('H', 'search_string_H', function() search_string = search_string..'H' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('I', 'search_string_I', function() search_string = search_string..'I' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('J', 'search_string_J', function() search_string = search_string..'J' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('K', 'search_string_K', function() search_string = search_string..'K' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('L', 'search_string_L', function() search_string = search_string..'L' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('M', 'search_string_M', function() search_string = search_string..'M' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('N', 'search_string_N', function() search_string = search_string..'N' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('O', 'search_string_O', function() search_string = search_string..'O' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('P', 'search_string_P', function() search_string = search_string..'P' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('Q', 'search_string_Q', function() search_string = search_string..'Q' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('R', 'search_string_R', function() search_string = search_string..'R' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('S', 'search_string_S', function() search_string = search_string..'S' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('T', 'search_string_T', function() search_string = search_string..'T' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('U', 'search_string_U', function() search_string = search_string..'U' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('V', 'search_string_V', function() search_string = search_string..'V' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('W', 'search_string_W', function() search_string = search_string..'W' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('X', 'search_string_X', function() search_string = search_string..'X' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('Y', 'search_string_Y', function() search_string = search_string..'Y' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('Z', 'search_string_Z', function() search_string = search_string..'Z' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('A', 'search_string_A', function() update_search_results('A') end, 'repeatable')
+	mp.add_forced_key_binding('B', 'search_string_B', function() update_search_results('B') end, 'repeatable')
+	mp.add_forced_key_binding('C', 'search_string_C', function() update_search_results('C') end, 'repeatable')
+	mp.add_forced_key_binding('D', 'search_string_D', function() update_search_results('D') end, 'repeatable')
+	mp.add_forced_key_binding('E', 'search_string_E', function() update_search_results('E') end, 'repeatable')
+	mp.add_forced_key_binding('F', 'search_string_F', function() update_search_results('F') end, 'repeatable')
+	mp.add_forced_key_binding('G', 'search_string_G', function() update_search_results('G') end, 'repeatable')
+	mp.add_forced_key_binding('H', 'search_string_H', function() update_search_results('H') end, 'repeatable')
+	mp.add_forced_key_binding('I', 'search_string_I', function() update_search_results('I') end, 'repeatable')
+	mp.add_forced_key_binding('J', 'search_string_J', function() update_search_results('J') end, 'repeatable')
+	mp.add_forced_key_binding('K', 'search_string_K', function() update_search_results('K') end, 'repeatable')
+	mp.add_forced_key_binding('L', 'search_string_L', function() update_search_results('L') end, 'repeatable')
+	mp.add_forced_key_binding('M', 'search_string_M', function() update_search_results('M') end, 'repeatable')
+	mp.add_forced_key_binding('N', 'search_string_N', function() update_search_results('N') end, 'repeatable')
+	mp.add_forced_key_binding('O', 'search_string_O', function() update_search_results('O') end, 'repeatable')
+	mp.add_forced_key_binding('P', 'search_string_P', function() update_search_results('P') end, 'repeatable')
+	mp.add_forced_key_binding('Q', 'search_string_Q', function() update_search_results('Q') end, 'repeatable')
+	mp.add_forced_key_binding('R', 'search_string_R', function() update_search_results('R') end, 'repeatable')
+	mp.add_forced_key_binding('S', 'search_string_S', function() update_search_results('S') end, 'repeatable')
+	mp.add_forced_key_binding('T', 'search_string_T', function() update_search_results('T') end, 'repeatable')
+	mp.add_forced_key_binding('U', 'search_string_U', function() update_search_results('U') end, 'repeatable')
+	mp.add_forced_key_binding('V', 'search_string_V', function() update_search_results('V') end, 'repeatable')
+	mp.add_forced_key_binding('W', 'search_string_W', function() update_search_results('W') end, 'repeatable')
+	mp.add_forced_key_binding('X', 'search_string_X', function() update_search_results('X') end, 'repeatable')
+	mp.add_forced_key_binding('Y', 'search_string_Y', function() update_search_results('Y') end, 'repeatable')
+	mp.add_forced_key_binding('Z', 'search_string_Z', function() update_search_results('Z') end, 'repeatable')
 	--bind numbers
-	mp.add_forced_key_binding('1', 'search_string_1', function() search_string = search_string..'1' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('2', 'search_string_2', function() search_string = search_string..'2' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('3', 'search_string_3', function() search_string = search_string..'3' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('4', 'search_string_4', function() search_string = search_string..'4' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('5', 'search_string_5', function() search_string = search_string..'5' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('6', 'search_string_6', function() search_string = search_string..'6' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('7', 'search_string_7', function() search_string = search_string..'7' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('8', 'search_string_8', function() search_string = search_string..'8' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('9', 'search_string_9', function() search_string = search_string..'9' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('0', 'search_string_0', function() search_string = search_string..'0' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('1', 'search_string_1', function() update_search_results('1') end, 'repeatable')
+	mp.add_forced_key_binding('2', 'search_string_2', function() update_search_results('2') end, 'repeatable')
+	mp.add_forced_key_binding('3', 'search_string_3', function() update_search_results('3') end, 'repeatable')
+	mp.add_forced_key_binding('4', 'search_string_4', function() update_search_results('4') end, 'repeatable')
+	mp.add_forced_key_binding('5', 'search_string_5', function() update_search_results('5') end, 'repeatable')
+	mp.add_forced_key_binding('6', 'search_string_6', function() update_search_results('6') end, 'repeatable')
+	mp.add_forced_key_binding('7', 'search_string_7', function() update_search_results('7') end, 'repeatable')
+	mp.add_forced_key_binding('8', 'search_string_8', function() update_search_results('8') end, 'repeatable')
+	mp.add_forced_key_binding('9', 'search_string_9', function() update_search_results('9') end, 'repeatable')
+	mp.add_forced_key_binding('0', 'search_string_0', function() update_search_results('0') end, 'repeatable')
 	--bind special characters
-	mp.add_forced_key_binding('SPACE', 'search_string_space', function() search_string = search_string..' ' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('`', 'search_string_`', function() search_string = search_string..'`' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('~', 'search_string_~', function() search_string = search_string..'~' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('!', 'search_string_!', function() search_string = search_string..'!' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('@', 'search_string_@', function() search_string = search_string..'@' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('SHARP', 'search_string_sharp', function() search_string = search_string..'#' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('$', 'search_string_$', function() search_string = search_string..'$' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('%', 'search_string_percentage', function() search_string = search_string..'%' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('^', 'search_string_^', function() search_string = search_string..'^' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('&', 'search_string_&', function() search_string = search_string..'&' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('*', 'search_string_*', function() search_string = search_string..'*' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('(', 'search_string_(', function() search_string = search_string..'(' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding(')', 'search_string_)', function() search_string = search_string..')' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('-', 'search_string_-', function() search_string = search_string..'-' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('_', 'search_string__', function() search_string = search_string..'_' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('=', 'search_string_=', function() search_string = search_string..'=' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('+', 'search_string_+', function() search_string = search_string..'+' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('\\', 'search_string_\\', function() search_string = search_string..'\\' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('|', 'search_string_|', function() search_string = search_string..'|' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding(']', 'search_string_]', function() search_string = search_string..']' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('}', 'search_string_rightcurly', function() search_string = search_string..'}' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('[', 'search_string_[', function() search_string = search_string..'[' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('{', 'search_string_leftcurly', function() search_string = search_string..'{' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('\'', 'search_string_\'', function() search_string = search_string..'\'' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('\"', 'search_string_\"', function() search_string = search_string..'\"' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding(';', 'search_string_semicolon', function() search_string = search_string..';' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding(':', 'search_string_:', function() search_string = search_string..':' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('/', 'search_string_/', function() search_string = search_string..'/' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('?', 'search_string_?', function() search_string = search_string..'?' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('.', 'search_string_.', function() search_string = search_string..'.' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('>', 'search_string_>', function() search_string = search_string..'>' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding(',', 'search_string_,', function() search_string = search_string..',' update_search_results() end, 'repeatable')
-	mp.add_forced_key_binding('<', 'search_string_<', function() search_string = search_string..'<' update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('SPACE', 'search_string_space', function() update_search_results(' ') end, 'repeatable')
+	mp.add_forced_key_binding('`', 'search_string_`', function() update_search_results('`') end, 'repeatable')
+	mp.add_forced_key_binding('~', 'search_string_~', function() update_search_results('~') end, 'repeatable')
+	mp.add_forced_key_binding('!', 'search_string_!', function() update_search_results('!') end, 'repeatable')
+	mp.add_forced_key_binding('@', 'search_string_@', function() update_search_results('@') end, 'repeatable')
+	mp.add_forced_key_binding('SHARP', 'search_string_sharp', function() update_search_results('#') end, 'repeatable')
+	mp.add_forced_key_binding('$', 'search_string_$', function() update_search_results('$') end, 'repeatable')
+	mp.add_forced_key_binding('%', 'search_string_percentage', function() update_search_results('%') end, 'repeatable')
+	mp.add_forced_key_binding('^', 'search_string_^', function() update_search_results('^') end, 'repeatable')
+	mp.add_forced_key_binding('&', 'search_string_&', function() update_search_results('&') end, 'repeatable')
+	mp.add_forced_key_binding('*', 'search_string_*', function() update_search_results('*') end, 'repeatable')
+	mp.add_forced_key_binding('(', 'search_string_(', function() update_search_results('(') end, 'repeatable')
+	mp.add_forced_key_binding(')', 'search_string_)', function() update_search_results(')') end, 'repeatable')
+	mp.add_forced_key_binding('-', 'search_string_-', function() update_search_results('-') end, 'repeatable')
+	mp.add_forced_key_binding('_', 'search_string__', function() update_search_results('_') end, 'repeatable')
+	mp.add_forced_key_binding('=', 'search_string_=', function() update_search_results('=') end, 'repeatable')
+	mp.add_forced_key_binding('+', 'search_string_+', function() update_search_results('+') end, 'repeatable')
+	mp.add_forced_key_binding('\\', 'search_string_\\', function() update_search_results('\\') end, 'repeatable')
+	mp.add_forced_key_binding('|', 'search_string_|', function() update_search_results('|') end, 'repeatable')
+	mp.add_forced_key_binding(']', 'search_string_]', function() update_search_results(']') end, 'repeatable')
+	mp.add_forced_key_binding('}', 'search_string_rightcurly', function() update_search_results('}') end, 'repeatable')
+	mp.add_forced_key_binding('[', 'search_string_[', function() update_search_results('[') end, 'repeatable')
+	mp.add_forced_key_binding('{', 'search_string_leftcurly', function() update_search_results('{') end, 'repeatable')
+	mp.add_forced_key_binding('\'', 'search_string_\'', function() update_search_results('\'') end, 'repeatable')
+	mp.add_forced_key_binding('\"', 'search_string_\"', function() update_search_results('\"') end, 'repeatable')
+	mp.add_forced_key_binding(';', 'search_string_semicolon', function() update_search_results(';') end, 'repeatable')
+	mp.add_forced_key_binding(':', 'search_string_:', function() update_search_results(':') end, 'repeatable')
+	mp.add_forced_key_binding('/', 'search_string_/', function() update_search_results('/') end, 'repeatable')
+	mp.add_forced_key_binding('?', 'search_string_?', function() update_search_results('?') end, 'repeatable')
+	mp.add_forced_key_binding('.', 'search_string_.', function() update_search_results('.') end, 'repeatable')
+	mp.add_forced_key_binding('>', 'search_string_>', function() update_search_results('>') end, 'repeatable')
+	mp.add_forced_key_binding(',', 'search_string_,', function() update_search_results(',') end, 'repeatable')
+	mp.add_forced_key_binding('<', 'search_string_<', function() update_search_results('<') end, 'repeatable')
 	--bind other search functions
-	mp.add_forced_key_binding('bs', 'search_string_del', function() search_string = search_string:sub(1, -2) update_search_results() end, 'repeatable')
+	mp.add_forced_key_binding('bs', 'search_string_del', function() update_search_results('', 'string_del') end, 'repeatable')
 	bind_keys(o.list_close_keybind, 'search_exit', function() list_search_exit() end)
 	bind_keys(o.list_search_not_typing_mode_keybind, 'search_string_not_typing', function()list_search_not_typing_mode(false) end)
 	--bind not_typing mode when navigating and when changing filter if the smart option is triggered
@@ -1239,8 +1262,16 @@ function select_filter_sequence(pos)
             if target_pos > #o.filters_and_sequence then return end
             if target_pos < 1 then return end
         else
-            if target_pos > #o.filters_and_sequence then target_pos = 1 end
-            if target_pos < 1 then target_pos = #o.filters_and_sequence end
+            --if target_pos > #o.filters_and_sequence then target_pos = 1 end --not needed causes issues if first filter not available, the loop automatically already handles this correctly (also I could use target_pos = curr_pos to fix it I think
+            if target_pos < 1 then --when going backwards from begining, check the last available filter available and jump to it to start from backwards
+				for i = #o.filters_and_sequence, 1, -1 do 
+					get_list_contents(o.filters_and_sequence[i]) --Try to find the last available filter
+					if list_contents[1] then--If found then set it as target position and break the loop
+						target_pos = i
+						break
+					end		
+				end
+			end
         end
         display_list(o.filters_and_sequence[target_pos])
     end
@@ -1253,14 +1284,24 @@ function list_filter_previous()
     select_filter_sequence(-1)
 end
 
-function load(list_cursor)
+function load(list_cursor, add_playlist)
 	if not list_contents or not list_contents[1] then return end --if it is empty then dont do anything
     seekTime = tonumber(list_contents[#list_contents - list_cursor + 1].found_time) + o.resume_offset
     if (seekTime < 0) then
         seekTime = 0
     end
     if file_exists(list_contents[#list_contents - list_cursor + 1].found_path) or starts_protocol(protocols, list_contents[#list_contents - list_cursor + 1].found_path) then
-        mp.commandv('loadfile', list_contents[#list_contents - list_cursor + 1].found_path)
+		if not add_playlist then 
+			mp.commandv('loadfile', list_contents[#list_contents - list_cursor + 1].found_path)
+			selected = true
+			msg.info('Loaded the below file:\n' .. list_contents[#list_contents - list_cursor + 1].found_name  .. ' | '.. format_time(seekTime))
+		else
+			mp.commandv('loadfile', list_contents[#list_contents - list_cursor + 1].found_path, 'append-play')
+			if o.osd_messages == true then
+                mp.osd_message('Added into Playlist:\n'..list_contents[#list_contents - list_cursor + 1].found_name..' ')
+            end
+			msg.info('Added the below file into playlist:\n' .. list_contents[#list_contents - list_cursor + 1].found_path)
+		end
     else
         if o.osd_messages == true then
             mp.osd_message('File Doesn\'t Exist:\n' .. list_contents[#list_contents - list_cursor + 1].found_path)
@@ -1268,7 +1309,6 @@ function load(list_cursor)
         msg.info('The file below doesn\'t seem to exist:\n' .. list_contents[#list_contents - list_cursor + 1].found_path)
         return
     end
-    selected = true
 end
 
 function bookmark_save()
@@ -1331,6 +1371,7 @@ function get_list_keybinds()
     bind_keys(o.list_page_up_keybind, 'page-up', list_page_up, 'repeatable')
     bind_keys(o.list_page_down_keybind, 'page-down', list_page_down, 'repeatable')
     bind_keys(o.list_select_keybind, 'list-select', list_select)
+	bind_keys(o.list_add_playlist_keybind, 'list-add-playlist', list_add_playlist)
     bind_keys(o.list_delete_keybind, 'list-delete', list_delete)
     bind_keys(o.bookmark_slots_remove_keybind, 'slot-remove', slot_remove)
     bind_keys(o.next_filter_sequence_keybind, 'list-filter-next', list_filter_next)
@@ -1372,46 +1413,72 @@ function get_list_keybinds()
     end
 end
 
+function get_filter_cursor(filter)
+if not filter then return end
+	for i=1, #list_pages do	--find the cursor position of the new page and load it (must be in a different loop for some reason)
+		if list_pages[i][1] == filter then  
+			list_cursor = list_pages[i][2]
+		end
+	end
+end
+
 function display_list(filter)
     if not filter then filter = 'all' end
+	get_list_contents(filter)
+    if not list_contents and not search_active or not list_contents[1] and not search_active then return end --from begining only proceed if there is content (removed prev_filter check) can't remember why I needed it also (Fixes Crash) --added search_not active, so it proceeds and shows no results found, when entering slots immediately by pressing 'S' or something
     
     if not has_value(o.filters_and_sequence, filter) then
         table.insert(o.filters_and_sequence, filter)
     end
-    
-    local prev_filter = filterName
-    
+	
+	local prev_filter = filterName
+	
     filterName = filter
+	local insert_new = false
+	
     local trigger_close_list = false
     local trigger_initial_list = false
-    local page_change_event = false
-    table.insert(list_pages, {filter, list_cursor})
     
-    if #list_pages > 1 then
-        if list_pages[#list_pages - 1][1] == filter and filter == 'all' and o.bookmark_list_keybind_twice_exits then
-            trigger_close_list = true
-        elseif list_pages[#list_pages - 1][1] == filter and list_pages[1][1] == filter then
-            trigger_close_list = true
-        elseif list_pages[#list_pages - 1][1] == filter then
-            trigger_initial_list = true
-        end
-        
-        if list_pages[#list_pages - 1][1] ~= filter then
-            page_change_event = true
-        end
-    end
-    
-    if page_change_event then
-        list_pages[#list_pages - 1][2] = list_cursor
-        list_cursor = 1
-        for i = #list_pages, 1, -1 do
-            if list_pages[i - 1] and list_pages[i - 1][1] == filter then
-                list_cursor = list_pages[i - 1][2]
-                break
-            end
-        end
-    end
-    
+	--EISA: IDEA. Make list_pages unique, and when exiting search we will find the filter, once the filter is found, we will check the cursor position in the table for the specific filter, if no cursor is found then we start from 1
+	if not list_pages or not list_pages[1] then --First entry immediately
+		table.insert(list_pages, {filter, 1, 1}) --Start new entries with 1 as it indicates the page_access_count
+    else--Next entry, update value if available or insert new to make table unique
+		for i = 1, #list_pages do
+			if list_pages[i][1] == filter then --if the filter is found then update do not allow for new value to be inserted, and update the access count
+				list_pages[i][3] = list_pages[i][3]+1 --If the same page is accessed again, increase the count
+				insert_new = false
+				break
+			else--If it didn't find then set the insert_new variable to true so we add new table entry
+				insert_new = true
+			end
+		end
+	end
+	
+	if insert_new then table.insert(list_pages, {filter, 1, 1}) end --If a new entry is added , indicate we have accessed them once hence last value is 1
+	
+	for i = 1, #list_pages do --In the list_pages, (it must exist no need to check, because we use table.insert if it doesn't above)
+		--Handles Cursor, saves the current cursor position on the previous page
+		if not search_active and list_pages[i][1] == prev_filter then --Only update new cursor positions if the search is not initiated
+			list_pages[i][2] = list_cursor
+		end
+		--End of Handle Cursor
+		--Handle of Triggering page twice
+		if list_pages[i][1] ~= filter then --Reset access count for all other pages that are not the current accessed page, and indicate that the page changed
+			list_pages[i][3] = 0
+		end
+		if list_pages[i][3] == 2 and filter == 'all' and o.bookmark_list_keybind_twice_exits then
+			print('triggered bookmark list twice (must exit)')
+			trigger_close_list = true
+		elseif list_pages[i][3] == 2 and list_pages[1][1] == filter then
+			print('triggered initial list twice, and it is the initiated page (need to exit)')
+			trigger_close_list = true		
+		elseif list_pages[i][3] == 2 then
+			print('triggered same page twice, and it is NOT initiated page (need to go to initiated page)')
+			trigger_initial_list = true
+		end
+		--End of Handling Triggering page twice
+	end
+	
     if trigger_initial_list then
         display_list(list_pages[1][1])
         return
@@ -1422,21 +1489,12 @@ function display_list(filter)
         return
     end
     
-    get_list_contents()
-    if not list_contents or not list_contents[1] then
-        if not list_drawn then
-            list_close_and_trash_collection()
-        else
-            display_list(prev_filter)
-        end
-        return
-    end
-    
+	if not search_active then get_filter_cursor(filter) else update_search_results('','') end --Only load cursor if the search is not active, otherwise refresh cursor for search
     draw_list()
     list_drawn = true
-	if not search_active then --Only if the search is not triggered then update the keybinds
-		get_list_keybinds()
-	end
+	if not search_active then get_list_keybinds() end--Only if the search is not triggered then update the keybinds
+		
+	
 end
 
 if o.auto_run_list_idle == 'all'
