@@ -599,9 +599,15 @@ function get_list_contents(filter)
 	if search_active and search_string ~= '' then
 		filtered_table = {}	--empty the contents of currently filtered, then proceed to insert new stuff
         for i = 1, #list_contents do
-            if string.lower(list_contents[i].found_line):match(esc_string(string.lower(search_string))) then --if the line contains anything from search string then insert it to table
+            if string.lower(list_contents[i].found_path):match(string.lower(search_string)) then --if the path contains anything from search string then insert it to table
                 table.insert(filtered_table, list_contents[i])
-            end
+            elseif list_contents[i].found_title and string.lower(list_contents[i].found_title):match(string.lower(search_string)) then --if there is title and it contains anything from search string then insert it to table
+                table.insert(filtered_table, list_contents[i])
+			elseif format_time(list_contents[i].found_time):match(search_string) then --if the time contains anything from search string then insert it to table
+				table.insert(filtered_table, list_contents[i])
+			elseif list_contents[i].found_slot and string.lower(get_slot_keybind(tonumber(list_contents[i].found_slot))):match(string.lower(search_string)) then --if the slot contains anything from search string then insert it to table
+				table.insert(filtered_table, list_contents[i])
+			end
         end
         
         if o.sort_search_filter ~= 'none' or o.sort_search_filter ~= '' then
