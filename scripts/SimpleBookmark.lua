@@ -603,7 +603,7 @@ function get_list_contents(filter)
                 table.insert(filtered_table, list_contents[i])
             elseif list_contents[i].found_title and string.lower(list_contents[i].found_title):match(string.lower(search_string)) then --if there is title and it contains anything from search string then insert it to table
                 table.insert(filtered_table, list_contents[i])
-			elseif format_time(list_contents[i].found_time):match(search_string) then --if the time contains anything from search string then insert it to table
+			elseif tonumber(list_contents[i].found_time) > 0 and format_time(list_contents[i].found_time):match(search_string) then --if the time is found and it contains anything from search string then insert it to table
 				table.insert(filtered_table, list_contents[i])
 			elseif list_contents[i].found_slot and string.lower(get_slot_keybind(tonumber(list_contents[i].found_slot))):match(string.lower(search_string)) then --if the slot contains anything from search string then insert it to table
 				table.insert(filtered_table, list_contents[i])
