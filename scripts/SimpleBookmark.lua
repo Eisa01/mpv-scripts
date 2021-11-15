@@ -4,7 +4,7 @@ local o = {
 --Changes are recommended to be made in the script-opts directory. It can also be made here although not recommended.
 
         -----Script Settings----
-        auto_run_list_idle = 'none', --Runs automatically when opening mpv and there is no video / file loaded. 'none' for disabled. Or choose between: 'all', 'slots', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'timeonly', 'keywords'.
+        auto_run_list_idle = 'none', --Runs automatically when opening mpv and there is no video / file loaded. 'none' for disabled. Or choose between: 'all', 'slots', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'keywords'.
         bookmark_loads_last_idle = true, --When attempting to bookmark, if there is no video / file loaded, it will instead jump to your last bookmarked item
         slots_quicksave_fileonly = true, --When quick saving a bookmark to keybind slot, it will not save position
         slots_empty_auto_create = false, --If the keybind slot is empty, this enables quick bookmarking and adding to slot, Otherwise keybinds are assigned from the bookmark list or via quicksave.
@@ -17,12 +17,17 @@ local o = {
         list_default_sort = 'added-asc', --the default sorting method for the bookmark list. select between 'added-asc', 'added-desc', 'alphanum-asc', 'alphanum-desc'
         mark_bookmark_as_chapter = false, --true is for marking the bookmarked time as a chapter. false disables mark as chapter behavior.
 		search_not_typing_smartly = true, --To smartly set the search as not typing (when search box is open) without needing to press ctrl+enter.
-        --available filters: 'all' to display all the bookmarks. Or 'slots' to display the bookmarks filtered with slots. Or 'fileonly' to display files saved without time. Or 'timeonly' to display files that have time only. Or 'keywords' to display files with matching keywords specified in the configuration. Or 'playing' to show bookmarks for current playing file.
-        --available sort: 'added-asc' is for the newest added bookmark to show first. Or 'added-desc' for the newest added to show last. Or 'alphanum-asc' is for A to Z approach with filename and episode number lower first. Or 'alphanum-desc' is for its Z to A approach. Or 'keybind-asc', or 'keybind-desc' to sort based on keybinds which is execlusive to sort_slots_filter.
         
         -----Filter Settings------
-        filters_and_sequence = {'all', 'slots', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'playing', 'keywords'}, --Jump to the following filters and in the shown sequence when navigating via left and right keys. You can change the sequence and delete filters that are not needed.
-        keywords_filter_list = {'youtube.com', 'mp4', 'naruto', 'c:\\users\\eisa01\\desktop'}, --Create a filter out of your desired 'keywords', e.g.: youtube.com will filter out the videos from youtube. You can also insert a portion of filename or title, or extension or a full path / portion of a path.
+		--available filters: 'all' to display all the bookmarks. Or 'slots' to display the bookmarks filtered with slots. Or 'fileonly' to display files saved without time. Or 'timeonly' to display files that have time only. Or 'keywords' to display files with matching keywords specified in the configuration. Or 'playing' to show bookmarks for current playing file.
+        --available sort: 'added-asc' is for the newest added bookmark to show first. Or 'added-desc' for the newest added to show last. Or 'alphanum-asc' is for A to Z approach with filename and episode number lower first. Or 'alphanum-desc' is for its Z to A approach. Or 'keybind-asc', or 'keybind-desc' to sort based on keybinds which is execlusive to sort_slots_filter.
+
+        filters_and_sequence=[[
+		["all", "slots", "protocols", "fileonly", "titleonly", "timeonly", "playing", "keywords"]
+		]],--Jump to the following filters and in the shown sequence when navigating via left and right keys. You can change the sequence and delete filters that are not needed.
+        keywords_filter_list=[[
+		["youtube.com", "mp4", "naruto", "c:\\users\\eisa01\\desktop"]
+		]], --Create a filter out of your desired 'keywords', e.g.: youtube.com will filter out the videos from youtube. You can also insert a portion of filename or title, or extension or a full path / portion of a path.
         sort_slots_filter = 'keybind-asc', --Sorts the slots filter. Select between 'none', 'keybind-asc', 'keybind-desc', 'added-asc', 'added-desc', 'alphanum-asc', 'alphanum-desc'. description: 'none' is for default ordering. 'keybind-asc' is only for slots, it uses A to Z approach but for keybinds. 'keybind-desc' is the same but for Z to A approach.
         sort_fileonly_filter = 'alphanum-asc', --Sorts the filter. Select between 'none', 'added-asc', 'added-desc', 'alphanum-asc', 'alphanum-desc'.
         sort_protocols_filter = 'none',
@@ -34,13 +39,15 @@ local o = {
         loop_through_filters = true, --true is for bypassing the last filter to go to first filter when navigating through filters using arrow keys, and vice-versa. false disables this behavior.
         
         -----Logging Settings-----
-        log_path = mp.find_config_file('.'):match('@?(.*/)'), --Change to debug.getinfo(1).source:match('@?(.*/)') for placing it in the same directory of script, OR change to mp.find_config_file('.'):match('@?(.*/)') for mpv portable_config directory OR specify the desired path in quotes, e.g.: 'C:\Users\Eisa01\Desktop\'
+        log_path = '/:dir%mpvconf', --Change to '/:dir%script' for placing it in the same directory of script, OR change to '/:dir%mpvconf' for mpv portable_config directory. OR specify the desired path, e.g.: 'C:\Users\Eisa01\Desktop\'
         log_file = 'mpvBookmark.log', --name+extension of the file that will be used to store the log data
         date_format = '%d/%m/%y %X', --Date format in the log (see lua date formatting), e.g.:'%d/%m/%y %X' or '%d/%b/%y %X'
         bookmark_time_text = 'time=', --The text that is stored for the video time inside log file. It can also be left blank.
         keybind_slot_text = 'slot=', --The text that is stored for the keybind slot inside log file. It can also be left blank.
         file_title_logging = 'protocols', --Change between 'all', 'protocols, 'none'. This option will store the media title in log file, it is useful for websites / protocols because title cannot be parsed from links alone
-        protocols = {'https?://', 'magnet:', 'rtmp:'}, --add below (after a comma) any protocol you want its title to be stored in the log file. This is valid only for (file_title_logging = 'protocols' or file_title_logging = 'all')
+        protocols=[[
+		["https?://", "magnet:", "rtmp:"]
+		]], --add above (after a comma) any protocol you want its title to be stored in the log file. This is valid only for (file_title_logging = 'protocols' or file_title_logging = 'all')
         prefer_filename_over_title = 'local', --Prefers to use filename over filetitle. Select between 'local', 'protocols', 'all', and 'none'. 'local' prefer filenames for videos that are not protocols. 'protocols' will prefer filenames for protocols only. 'all' will prefer filename over filetitle for both protocols and not protocols videos. 'none' will always use filetitle instead of filename
         
         -----Boorkmark Menu Settings-----
@@ -66,49 +73,123 @@ local o = {
         time_seperator = ' 🕒 ', --Time seperator that will be used after title / filename for bookmarked time
         slot_seperator = ' ⌨ ', --Slot seperator that will be used after the bookmarked time
         list_show_amount = 10, --Change maximum number to show items at once
+		quickselect_0to9_keybind = true, --Keybind entries from 0 to 9 for quick selection when list is open (list_show_amount = 10 is maximum for this feature to work)
         list_sliced_prefix = '...\\h\\N\\N', --The text that indicates there are more items above. \\h\\N\\N is for new line.
         list_sliced_suffix = '...', --The text that indicates there are more items below.
         list_middle_loader = true, --false is for more items to show, then u must reach the end. true is for new items to show after reaching the middle of list.
         bookmark_list_keybind_twice_exits = true, --Will exit the bookmark list when double tapping the bookmark list, even if the list was accessed through a different filter.
-        
+
         -----Keybind Settings-----
-        bookmark_list_keybind = {'b', 'B'}, --Keybind that will be used to display the bookmark list
-        bookmark_save_keybind = {'ctrl+b', 'ctrl+B'}, --Keybind that will be used to save the video and its time to bookmark file
-        bookmark_fileonly_keybind = {'alt+b', 'alt+B'}, --Keybind that will be used to save the video without time to bookmark file
-        bookmark_slots_add_load_keybind = {'alt+1', 'alt+2', 'alt+3', 'alt+4', 'alt+5', 'alt+6', 'alt+7', 'alt+8', 'alt+9'}, --Keybind that will be used to bind a bookmark to a key. e.g.: Press alt+1 on a bookmark slot to assign it when list is open, press while list is hidden to load. (A new slot is automatically created for each keybind. e.g: ..'alt+9, alt+0'. Where alt+0 creates a new 10th slot.)
-        bookmark_slots_remove_keybind = {'alt+-', 'alt+_'}, --Keybind that is used to remove the highlighted bookmark slot keybind from a bookmark entry when the bookmark list is open.
-        bookmark_slots_quicksave_keybind = {'alt+!', 'alt+@', 'alt+#', 'alt+$', 'alt+%', 'alt+^', 'alt+&', 'alt+*', 'alt+)'}, --To save keybind to a slot without opening the bookmark list, to load these bookmarks it uses bookmark_slots_add_load_keybind
-        list_move_up_keybind = {'UP', 'WHEEL_UP'}, --Keybind that will be used to navigate up on the bookmark list
-        list_move_down_keybind = {'DOWN', 'WHEEL_DOWN'}, --Keybind that will be used to navigate down on the bookmark list
-        list_page_up_keybind = {'PGUP'}, --Keybind that will be used to go to the first item for the page shown on the bookmark list
-        list_page_down_keybind = {'PGDWN'}, --Keybind that will be used to go to the last item for the page shown on the bookmark list
-        list_move_first_keybind = {'HOME'}, --Keybind that will be used to navigate to the first item on the bookmark list
-        list_move_last_keybind = {'END'}, --Keybind that will be used to navigate to the last item on the bookmark list
-        list_select_keybind = {'ENTER', 'MBTN_MID'}, --Keybind that will be used to load highlighted entry from the bookmark list
-		list_add_playlist_keybind = {'SHIFT+ENTER'}, --Keybind that will be used to add the selected entry to playlist
-        list_close_keybind = {'ESC', 'MBTN_RIGHT'}, --Keybind that will be used to close the bookmark list (closes search first if it is open)
-        list_delete_keybind = {'DEL'}, --Keybind that will be used to delete the highlighted entry from the bookmark list
-		list_search_activate_keybind = {'ctrl+f', 'ctrl+F'}, --Keybind that will be used to trigger search
-		list_search_not_typing_mode_keybind = {'CTRL+ENTER'}, --Keybind that will be used to exit typing mode of search while keeping search open
-        quickselect_0to9_keybind = true, --Keybind entries from 0 to 9 for quick selection when list is open (list_show_amount = 10 is maximum for this feature to work)
+		--Add below (after a comma) any additional keybind you want to bind. Or change the letter inside the quotes to change the keybind
+		--Example of changing and adding keybinds: --From ["b", "B"] To ["b"]. --From [""] to ["alt+b"]. --From [""] to ["a" "ctrl+a", "alt+a"]
+		
+        bookmark_list_keybind=[[
+		["b", "B"]
+		]], --Keybind that will be used to display the bookmark list
+        bookmark_save_keybind=[[
+		["ctrl+b", "ctrl+B"]
+		]], --Keybind that will be used to save the video and its time to bookmark file
+        bookmark_fileonly_keybind=[[
+		["alt+b", "alt+B"]
+		]], --Keybind that will be used to save the video without time to bookmark file
+        bookmark_slots_add_load_keybind=[[
+		["alt+1", "alt+2", "alt+3", "alt+4", "alt+5", "alt+6", "alt+7", "alt+8", "alt+9"]
+		]], --Keybind that will be used to bind a bookmark to a key. e.g.: Press alt+1 on a bookmark slot to assign it when list is open, press while list is hidden to load. (A new slot is automatically created for each keybind. e.g: .."alt+9, alt+0". Where alt+0 creates a new 10th slot.)
+        bookmark_slots_remove_keybind=[[
+		["alt+-", "alt+_"]
+		]], --Keybind that is used to remove the highlighted bookmark slot keybind from a bookmark entry when the bookmark list is open.
+        bookmark_slots_quicksave_keybind=[[
+		["alt+!", "alt+@", "alt+#", "alt+$", "alt+%", "alt+^", "alt+&", "alt+*", "alt+)"]
+		]], --To save keybind to a slot without opening the bookmark list, to load these bookmarks it uses bookmark_slots_add_load_keybind
+        list_move_up_keybind=[[
+		["UP", "WHEEL_UP"]
+		]], --Keybind that will be used to navigate up on the bookmark list
+        list_move_down_keybind=[[
+		["DOWN", "WHEEL_DOWN"]
+		]], --Keybind that will be used to navigate down on the bookmark list
+        list_page_up_keybind=[[
+		["PGUP"]
+		]], --Keybind that will be used to go to the first item for the page shown on the bookmark list
+        list_page_down_keybind=[[
+		["PGDWN"]
+		]], --Keybind that will be used to go to the last item for the page shown on the bookmark list
+        list_move_first_keybind=[[
+		["HOME"]
+		]], --Keybind that will be used to navigate to the first item on the bookmark list
+        list_move_last_keybind=[[
+		["END"]
+		]], --Keybind that will be used to navigate to the last item on the bookmark list
+        list_select_keybind=[[
+		["ENTER", "MBTN_MID"]
+		]], --Keybind that will be used to load highlighted entry from the bookmark list
+		list_add_playlist_keybind=[[
+		["SHIFT+ENTER"]
+		]], --Keybind that will be used to add the selected entry to playlist
+        list_close_keybind=[[
+		["ESC", "MBTN_RIGHT"]
+		]], --Keybind that will be used to close the bookmark list (closes search first if it is open)
+        list_delete_keybind=[[
+		["DEL"]
+		]], --Keybind that will be used to delete the highlighted entry from the bookmark list
+		list_search_activate_keybind=[[
+		["ctrl+f", "ctrl+F"]
+		]], --Keybind that will be used to trigger search
+		list_search_not_typing_mode_keybind=[[
+		["CTRL+ENTER"]
+		]], --Keybind that will be used to exit typing mode of search while keeping search open
         
         -----Filter Keybind Settings-----
-        next_filter_sequence_keybind = {'RIGHT', 'MBTN_FORWARD'}, --Keybind that will be used to go to the next available filter based on the configured sequence
-        previous_filter_sequence_keybind = {'LEFT', 'MBTN_BACK'}, --Keybind that will be used to go to the previous available filter based on the configured sequence
-        slots_filter_inside_list_keybind = {'s', 'S'}, --Keybind to jump to this specific filter when list is open
-        slots_filter_outside_list_keybind = {'s', 'S'}, --Keybind to jump to this specific filter when list is closed
-        fileonly_filter_inside_list_keybind = {'f', 'F'},
-        fileonly_filter_outside_list_keybind = {''},
-        timeonly_filter_inside_list_keybind = {''},
-        timeonly_filter_outside_list_keybind = {''},
-        protocols_filter_inside_list_keybind = {''},
-        protocols_filter_outside_list_keybind = {''},
-        titleonly_filter_inside_list_keybind = {''},
-        titleonly_filter_outside_list_keybind = {''},
-        keywords_filter_inside_list_keybind = {''},
-        keywords_filter_outside_list_keybind = {''},
-        playing_filter_inside_list_keybind = {''},
-        playing_filter_outside_list_keybind = {''},
+        next_filter_sequence_keybind=[[
+		["RIGHT", "MBTN_FORWARD"]
+		]], --Keybind that will be used to go to the next available filter based on the configured sequence
+        previous_filter_sequence_keybind=[[
+		["LEFT", "MBTN_BACK"]
+		]], --Keybind that will be used to go to the previous available filter based on the configured sequence
+		
+		--Keybind to jump to the specific filter when list is open
+        slots_filter_inside_list_keybind=[[
+		["s", "S"]
+		]],
+        fileonly_filter_inside_list_keybind=[[
+		["f", "F"]
+		]],
+		timeonly_filter_inside_list_keybind=[[
+		[""]
+		]],
+        protocols_filter_inside_list_keybind=[[
+		[""]
+		]],
+		titleonly_filter_inside_list_keybind=[[
+		[""]
+		]],
+		keywords_filter_inside_list_keybind=[[
+		[""]
+		]],
+        playing_filter_inside_list_keybind=[[
+		[""]
+		]],
+		--Keybind to jump to the specific filter when list is closed	
+        slots_filter_outside_list_keybind=[[
+		["s", "S"]
+		]],
+        fileonly_filter_outside_list_keybind=[[
+		[""]
+		]],
+        timeonly_filter_outside_list_keybind=[[
+		[""]
+		]],
+        protocols_filter_outside_list_keybind=[[
+		[""]
+		]],
+        titleonly_filter_outside_list_keybind=[[
+		[""]
+		]],
+        keywords_filter_outside_list_keybind=[[
+		[""]
+		]],
+        playing_filter_outside_list_keybind=[[
+		[""]
+		]],
 
 ---------------------------END OF USER CUSTOMIZATION SETTINGS---------------------------
 }
@@ -121,8 +202,52 @@ local o = {
 (require 'mp.options').read_options(o)
 local utils = require 'mp.utils'
 local msg = require 'mp.msg'
+--Update to parse the tables using [[[]]] which are json. The below makes them back to be a normal table. This is needed for supporting user config file
+o.filters_and_sequence = utils.parse_json(o.filters_and_sequence)
+o.keywords_filter_list = utils.parse_json(o.keywords_filter_list)
+o.protocols = utils.parse_json(o.protocols)
+o.bookmark_list_keybind = utils.parse_json(o.bookmark_list_keybind)
+o.bookmark_save_keybind = utils.parse_json(o.bookmark_save_keybind)
+o.bookmark_fileonly_keybind = utils.parse_json(o.bookmark_fileonly_keybind)
+o.bookmark_slots_add_load_keybind = utils.parse_json(o.bookmark_slots_add_load_keybind)
+o.bookmark_slots_remove_keybind = utils.parse_json(o.bookmark_slots_remove_keybind)
+o.bookmark_slots_quicksave_keybind = utils.parse_json(o.bookmark_slots_quicksave_keybind)
+o.list_move_up_keybind = utils.parse_json(o.list_move_up_keybind)
+o.list_move_down_keybind = utils.parse_json(o.list_move_down_keybind)
+o.list_page_up_keybind = utils.parse_json(o.list_page_up_keybind)
+o.list_page_down_keybind = utils.parse_json(o.list_page_down_keybind)
+o.list_move_first_keybind = utils.parse_json(o.list_move_first_keybind)
+o.list_move_last_keybind = utils.parse_json(o.list_move_last_keybind)
+o.list_select_keybind = utils.parse_json(o.list_select_keybind)
+o.list_add_playlist_keybind = utils.parse_json(o.list_add_playlist_keybind)
+o.list_close_keybind = utils.parse_json(o.list_close_keybind)
+o.list_delete_keybind = utils.parse_json(o.list_delete_keybind)
+o.list_search_activate_keybind = utils.parse_json(o.list_search_activate_keybind)
+o.list_search_not_typing_mode_keybind = utils.parse_json(o.list_search_not_typing_mode_keybind)
+o.next_filter_sequence_keybind = utils.parse_json(o.next_filter_sequence_keybind)
+o.previous_filter_sequence_keybind = utils.parse_json(o.previous_filter_sequence_keybind)
+o.slots_filter_inside_list_keybind = utils.parse_json(o.slots_filter_inside_list_keybind)
+o.slots_filter_outside_list_keybind = utils.parse_json(o.slots_filter_outside_list_keybind)
+o.fileonly_filter_inside_list_keybind = utils.parse_json(o.fileonly_filter_inside_list_keybind)
+o.fileonly_filter_outside_list_keybind = utils.parse_json(o.fileonly_filter_outside_list_keybind)
+o.timeonly_filter_inside_list_keybind = utils.parse_json(o.timeonly_filter_inside_list_keybind)
+o.timeonly_filter_outside_list_keybind = utils.parse_json(o.timeonly_filter_outside_list_keybind)
+o.protocols_filter_inside_list_keybind = utils.parse_json(o.protocols_filter_inside_list_keybind)
+o.protocols_filter_outside_list_keybind = utils.parse_json(o.protocols_filter_outside_list_keybind)
+o.titleonly_filter_inside_list_keybind = utils.parse_json(o.titleonly_filter_inside_list_keybind)
+o.titleonly_filter_outside_list_keybind = utils.parse_json(o.titleonly_filter_outside_list_keybind)
+o.keywords_filter_inside_list_keybind = utils.parse_json(o.keywords_filter_inside_list_keybind)
+o.keywords_filter_outside_list_keybind = utils.parse_json(o.keywords_filter_outside_list_keybind)
+o.playing_filter_inside_list_keybind = utils.parse_json(o.playing_filter_inside_list_keybind)
+o.playing_filter_outside_list_keybind = utils.parse_json(o.playing_filter_outside_list_keybind)
 
+if o.log_path == '/:dir%mpvconf' then
+	o.log_path = mp.find_config_file('.'):match('@?(.*/)') --finds the directory of mpv config
+elseif o.log_path == '/:dir%script' then
+	o.log_path = debug.getinfo(1).source:match('@?(.*/)') --finds the directory of script
+end
 local bookmark_log = o.log_path .. o.log_file
+
 local protocols = {'https?://', 'magnet:', 'rtmp:'}
 local search_string = '' --To create the search string that will be passed to the filter
 local search_active = false --To specify whether search is active or typing or not
@@ -1445,44 +1570,37 @@ function display_list(filter)
     local trigger_close_list = false
     local trigger_initial_list = false
     
-	--EISA: IDEA. Make list_pages unique, and when exiting search we will find the filter, once the filter is found, we will check the cursor position in the table for the specific filter, if no cursor is found then we start from 1
-	if not list_pages or not list_pages[1] then --First entry immediately
-		table.insert(list_pages, {filter, 1, 1}) --Start new entries with 1 as it indicates the page_access_count
-    else--Next entry, update value if available or insert new to make table unique
+	
+	if not list_pages or not list_pages[1] then
+		table.insert(list_pages, {filter, 1, 1})
+    else
 		for i = 1, #list_pages do
-			if list_pages[i][1] == filter then --if the filter is found then update do not allow for new value to be inserted, and update the access count
-				list_pages[i][3] = list_pages[i][3]+1 --If the same page is accessed again, increase the count
+			if list_pages[i][1] == filter then
+				list_pages[i][3] = list_pages[i][3]+1
 				insert_new = false
 				break
-			else--If it didn't find then set the insert_new variable to true so we add new table entry
+			else
 				insert_new = true
 			end
 		end
 	end
 	
-	if insert_new then table.insert(list_pages, {filter, 1, 1}) end --If a new entry is added , indicate we have accessed them once hence last value is 1
+	if insert_new then table.insert(list_pages, {filter, 1, 1}) end
 	
-	for i = 1, #list_pages do --In the list_pages, (it must exist no need to check, because we use table.insert if it doesn't above)
-		--Handles Cursor, saves the current cursor position on the previous page
-		if not search_active and list_pages[i][1] == prev_filter then --Only update new cursor positions if the search is not initiated
+	for i = 1, #list_pages do
+		if not search_active and list_pages[i][1] == prev_filter then
 			list_pages[i][2] = list_cursor
 		end
-		--End of Handle Cursor
-		--Handle of Triggering page twice
-		if list_pages[i][1] ~= filter then --Reset access count for all other pages that are not the current accessed page, and indicate that the page changed
+		if list_pages[i][1] ~= filter then
 			list_pages[i][3] = 0
 		end
 		if list_pages[i][3] == 2 and filter == 'all' and o.bookmark_list_keybind_twice_exits then
-			print('triggered bookmark list twice (must exit)')
 			trigger_close_list = true
 		elseif list_pages[i][3] == 2 and list_pages[1][1] == filter then
-			print('triggered initial list twice, and it is the initiated page (need to exit)')
 			trigger_close_list = true		
 		elseif list_pages[i][3] == 2 then
-			print('triggered same page twice, and it is NOT initiated page (need to go to initiated page)')
 			trigger_initial_list = true
 		end
-		--End of Handling Triggering page twice
 	end
 	
     if trigger_initial_list then
@@ -1495,12 +1613,10 @@ function display_list(filter)
         return
     end
     
-	if not search_active then get_filter_cursor(filter) else update_search_results('','') end --Only load cursor if the search is not active, otherwise refresh cursor for search
+	if not search_active then get_filter_cursor(filter) else update_search_results('','') end
     draw_list()
     list_drawn = true
-	if not search_active then get_list_keybinds() end--Only if the search is not triggered then update the keybinds
-		
-	
+	if not search_active then get_list_keybinds() end
 end
 
 if o.auto_run_list_idle == 'all'
