@@ -557,7 +557,7 @@ function unbind_list_keys()
 	bind_keys(o.keywords_filter_outside_list_keybind, 'keywords-list-outside', function()display_list('keywords') end)
 	bind_keys(o.playing_filter_outside_list_keybind, 'playing-list-outside', function()display_list('playing') end)
 	
-	if not o.quickselect_0to9_keybind and o.list_show_amount <= 10 then
+	if o.quickselect_0to9_keybind and o.list_show_amount <= 10 then
 		mp.remove_key_binding("recent-1")
 		mp.remove_key_binding("recent-2")
 		mp.remove_key_binding("recent-3")
