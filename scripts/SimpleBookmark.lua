@@ -20,7 +20,7 @@ local o = {
 	
 	-----Filter Settings------
 	--available filters: 'all' to display all the bookmarks. Or 'slots' to display the bookmarks filtered with slots. Or 'fileonly' to display files saved without time. Or 'timeonly' to display files that have time only. Or 'keywords' to display files with matching keywords specified in the configuration. Or 'playing' to show bookmarks for current playing file.
-	--available sort: 'added-asc' is for the newest added bookmark to show first. Or 'added-desc' for the newest added to show last. Or 'alphanum-asc' is for A to Z approach with filename and episode number lower first. Or 'alphanum-desc' is for its Z to A approach. Or 'keybind-asc', or 'keybind-desc' to sort based on keybinds which is execlusive to sort_slots_filter.
+	--available sort: 'added-asc' is for the newest added bookmark to show first. Or 'added-desc' for the newest added to show last. Or 'alphanum-asc' is for A to Z approach with filename and episode number lower first. Or 'alphanum-desc' is for its Z to A approach. Or 'time-asc', 'time-desc' to sort the list based on bookmarked time Or 'keybind-asc', or 'keybind-desc' to sort based on keybinds which is execlusive to sort_slots_filter.
 
 	filters_and_sequence=[[
 	["all", "slots", "protocols", "fileonly", "titleonly", "timeonly", "playing", "keywords"]
@@ -28,14 +28,14 @@ local o = {
 	keywords_filter_list=[[
 	["youtube.com", "mp4", "naruto", "c:\\users\\eisa01\\desktop"]
 	]], --Create a filter out of your desired 'keywords', e.g.: youtube.com will filter out the videos from youtube. You can also insert a portion of filename or title, or extension or a full path / portion of a path.
-	sort_slots_filter = 'keybind-asc', --Sorts the slots filter. Select between 'none', 'keybind-asc', 'keybind-desc', 'added-asc', 'added-desc', 'alphanum-asc', 'alphanum-desc'. description: 'none' is for default ordering. 'keybind-asc' is only for slots, it uses A to Z approach but for keybinds. 'keybind-desc' is the same but for Z to A approach.
-	sort_fileonly_filter = 'alphanum-asc', --Sorts the filter. Select between 'none', 'added-asc', 'added-desc', 'alphanum-asc', 'alphanum-desc'.
+	sort_slots_filter = 'keybind-asc', --Sorts the slots filter. Select between 'none', 'keybind-asc', 'keybind-desc', 'added-asc', 'added-desc', 'alphanum-asc', 'alphanum-desc', 'time-asc', time-desc'. description: 'none' is for default ordering. 'keybind-asc' is only for slots, it uses A to Z approach but for keybinds. 'keybind-desc' is the same but for Z to A approach.
+	sort_fileonly_filter = 'alphanum-asc', --Sorts the filter. Select between 'none', 'added-asc', 'added-desc', 'alphanum-asc', 'alphanum-desc', 'time-asc', 'time-desc'.
 	sort_protocols_filter = 'none',
 	sort_titleonly_filter = 'none',
 	sort_timeonly_filter = 'none',
 	sort_keywords_filter = 'none',
-	sort_playing_filter = 'none',
-	sort_search_filter = 'none',
+	sort_playing_filter = 'time-asc',
+	sort_search_filter = 'alphanum-asc',
 	loop_through_filters = true, --true is for bypassing the last filter to go to first filter when navigating through filters using arrow keys, and vice-versa. false disables this behavior.
 	
 	-----Logging Settings-----
@@ -337,6 +337,10 @@ function list_sort(tab, sort)
 		table.sort(tab, function(a, b) return a['found_slot'] > b['found_slot'] end)
 	elseif sort == 'keybind-desc' and filterName == 'slots' then
 		table.sort(tab, function(a, b) return a['found_slot'] < b['found_slot'] end)
+	elseif sort == 'time-asc' then
+		table.sort(tab, function(a, b) return tonumber(a['found_time']) > tonumber(b['found_time']) end)
+	elseif sort == 'time-desc' then
+		table.sort(tab, function(a, b) return tonumber(a['found_time']) < tonumber(b['found_time']) end)
 	elseif sort == 'alphanum-asc' or sort == 'alphanum-desc' then
 		local function padnum(d) local dec, n = string.match(d, "(%.?)0*(.+)")
 			return #dec > 0 and ("%.12f"):format(d) or ("%s%03d%s"):format(dec, #n, n) end
@@ -1549,6 +1553,10 @@ end
 
 function display_list(filter)
 	if not filter then filter = 'all' end
+	
+	local prev_filter = filterName
+	filterName = filter --change position so filter position is updated immediately, fixes (keybind-asc) checking filterName issue
+	
 	get_list_contents(filter)
 	if not list_contents and not search_active or not list_contents[1] and not search_active then return end
 	
@@ -1556,9 +1564,6 @@ function display_list(filter)
 		table.insert(o.filters_and_sequence, filter)
 	end
 	
-	local prev_filter = filterName
-	
-	filterName = filter
 	local insert_new = false
 	
 	local trigger_close_list = false
