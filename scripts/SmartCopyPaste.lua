@@ -3,7 +3,7 @@
 
 -- Creator: Eisa AlAwadhi
 -- Project: SmartCopyPaste
--- Version: 2.5
+-- Version: 2.6
 
 local utils = require 'mp.utils'
 local msg = require 'mp.msg'
