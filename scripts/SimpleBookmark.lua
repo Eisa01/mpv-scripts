@@ -1,3 +1,9 @@
+-- Copyright (c) 2021, Eisa AlAwadhi
+-- License: BSD 2-Clause License
+-- Creator: Eisa AlAwadhi
+-- Project: SimpleBookmark
+-- Version: 1.0
+
 local o = {
 ---------------------------USER CUSTOMIZATION SETTINGS---------------------------
 --These settings are for users to manually change some options.
@@ -193,11 +199,6 @@ local o = {
 	
 ---------------------------END OF USER CUSTOMIZATION SETTINGS---------------------------
 }
--- Copyright (c) 2021, Eisa AlAwadhi
--- License: BSD 2-Clause License
--- Creator: Eisa AlAwadhi
--- Project: SimpleBookmark
--- Version: 1.0
 	
 (require 'mp.options').read_options(o)
 local utils = require 'mp.utils'
@@ -363,7 +364,6 @@ function esc_string(str)
 end
 
 ---------Start of LogReaderManager---------
-
 --LogReaderManager (Read and Format the List from Log)--
 function read_log(func)
 	local f = io.open(bookmark_log, "r")
@@ -1595,7 +1595,7 @@ function bookmark_save()
 		msg.info('Added the below to bookmarks\n' .. fileTitle .. o.time_seperator .. format_time(seekTime))
 	elseif filePath == nil and o.bookmark_loads_last_idle then
 		get_list_contents()
-		load(1)--1.16#Removed notification that was below and used notification from load function instead
+		load(1)
 	else
 		if o.osd_messages == true then
 			mp.osd_message('Failed to Bookmark\nNo Video Found')
@@ -1617,7 +1617,7 @@ function bookmark_fileonly_save()
 		msg.info('Added the below to bookmarks\n' .. fileTitle)
 	elseif filePath == nil and o.bookmark_loads_last_idle then
 		get_list_contents()
-		load(1)--1.16#Removed notification that was below and used notification from load function instead
+		load(1)
 	else
 		if o.osd_messages == true then
 			mp.osd_message('Failed to Bookmark\nNo Video Found')
