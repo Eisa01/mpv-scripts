@@ -298,37 +298,100 @@ function file_exists(name)
 	if f ~= nil then io.close(f) return true else return false end
 end
 
-function mark_chapter()
-	if not o.mark_bookmark_as_chapter then return end
-	
-	local all_chapters = mp.get_property_native("chapter-list")
-	local chapter_index = 0
-	local chapters_time = {}
-	
-	get_list_contents()
-	for i = 1, #list_contents do
-		if list_contents[i].found_path == filePath and tonumber(list_contents[i].found_time) > 0 then
-			table.insert(chapters_time, tonumber(list_contents[i].found_time))
-		end
-	end
-	if not chapters_time[1] then return end
-	
-	table.sort(chapters_time, function(a, b) return a < b end)
-	
-	for i = 1, #chapters_time do
-		chapter_index = chapter_index + 1
-		
-		all_chapters[chapter_index] = {
-			title = 'SimpleBookmark ' .. chapter_index,
-			time = chapters_time[i]
-		}
-	end
-	
-	table.sort(all_chapters, function(a, b) return a['time'] < b['time'] end)
-	
-	mp.set_property_native("chapter-list", all_chapters)
+function format_time(duration)
+	local total_seconds = math.floor(duration)
+	local hours = (math.floor(total_seconds / 3600))
+	total_seconds = (total_seconds % 3600)
+	local minutes = (math.floor(total_seconds / 60))
+	local seconds = (total_seconds % 60)
+	return string.format("%02d:%02d:%02d", hours, minutes, seconds)
 end
 
+function get_path()
+	local path = mp.get_property('path')
+	if not path then return end
+	
+	local title = mp.get_property('media-title'):gsub("\"", "")
+	
+	if starts_protocol(o.protocols, path) and o.prefer_filename_over_title == 'protocols' then
+		title = mp.get_property('filename'):gsub("\"", "")
+	elseif not starts_protocol(o.protocols, path) and o.prefer_filename_over_title == 'local' then
+		title = mp.get_property('filename'):gsub("\"", "")
+	elseif o.prefer_filename_over_title == 'all' then
+		title = mp.get_property('filename'):gsub("\"", "")
+	end
+	
+	return path, title
+end
+
+function get_slot_keybind(keyindex)
+	local keybind_return
+	
+	if o.bookmark_slots_add_load_keybind[keyindex] then
+		keybind_return = o.bookmark_slots_add_load_keybind[keyindex]
+	else
+		keybind_return = o.keybind_slot_text .. keyindex .. ' is NA'
+	end
+	
+	return keybind_return
+end
+
+function bind_keys(keys, name, func, opts)
+	if not keys then
+		mp.add_forced_key_binding(keys, name, func, opts)
+		return
+	end
+	
+	for i = 1, #keys do
+		mp.add_forced_key_binding(keys[i], name .. i, func, opts)
+	end
+end
+
+function unbind_keys(keys, name)
+	if not keys then
+		mp.remove_key_binding(name)
+		return
+	end
+	
+	for i = 1, #keys do
+		mp.remove_key_binding(name .. i)
+	end
+end
+
+function esc_string(str)
+	return str:gsub("([%p])", "%%%1")
+end
+
+---------Start of LogReaderManager---------
+
+--LogReaderManager (Read and Format the List from Log)--
+function read_log(func)
+	local f = io.open(bookmark_log, "r")
+	if not f then return end
+	list_contents = {}
+	for line in f:lines() do
+		table.insert(list_contents, (func(line)))
+	end
+	f:close()
+	return list_contents
+end
+
+function read_log_table()
+	return read_log(function(line)
+		local tt, p, t, s, d, n, e, l
+		if line:match('^.-\"(.-)\"') then
+			tt = line:match('^.-\"(.-)\"')
+			n, p = line:match('^.-\"(.-)\" | (.*) | ' .. esc_string(o.bookmark_time_text) .. '(.*)')
+		else
+			p = line:match('[(.*)%]]%s(.*) | ' .. esc_string(o.bookmark_time_text) .. '(.*)')
+			d, n, e = p:match('^(.-)([^\\/]-)%.([^\\/%.]-)%.?$')
+		end
+		t = line:match(' | ' .. esc_string(o.bookmark_time_text) .. '(%d*%.?%d*)(.*)$')
+		s = line:match(' | .* | ' .. esc_string(o.keybind_slot_text) .. '(.*)$')
+		l = line
+		return {found_path = p, found_time = t, found_name = n, found_slot = s, found_title = tt, found_line = l}
+	end)
+end
 
 function list_sort(tab, sort)
 	if sort == 'added-desc' then
@@ -352,15 +415,6 @@ function list_sort(tab, sort)
 	end
 	
 	return tab
-end
-
-function format_time(duration)
-	local total_seconds = math.floor(duration)
-	local hours = (math.floor(total_seconds / 3600))
-	total_seconds = (total_seconds % 3600)
-	local minutes = (math.floor(total_seconds / 60))
-	local seconds = (total_seconds % 60)
-	return string.format("%02d:%02d:%02d", hours, minutes, seconds)
 end
 
 function parse_header(string)
@@ -402,218 +456,6 @@ function parse_header(string)
 	end
 	string = string:gsub("%%%%", "%%")
 	return string
-end
-
-function bind_keys(keys, name, func, opts)
-	if not keys then
-		mp.add_forced_key_binding(keys, name, func, opts)
-		return
-	end
-	
-	for i = 1, #keys do
-		mp.add_forced_key_binding(keys[i], name .. i, func, opts)
-	end
-end
-
-function unbind_keys(keys, name)
-	if not keys then
-		mp.remove_key_binding(name)
-		return
-	end
-	
-	for i = 1, #keys do
-		mp.remove_key_binding(name .. i)
-	end
-end
-
-function list_move_up()
-	select(-1)
-end
-
-function list_move_down()
-	select(1)
-end
-
-function list_move_first()
-	select(1 - list_cursor)
-end
-
-function list_move_last()
-	select(#list_contents - list_cursor)
-end
-
-function list_page_up()
-	select(list_start + 1 - list_cursor)
-end
-
-function list_page_down()
-	if o.list_middle_loader then
-		if #list_contents < o.list_show_amount then
-			select(#list_contents - list_cursor)
-		else
-			select(o.list_show_amount + list_start - list_cursor)
-		end
-	else
-		if o.list_show_amount > list_cursor then
-			select(o.list_show_amount - list_cursor)
-		elseif #list_contents - list_cursor >= o.list_show_amount then
-			select(o.list_show_amount)
-		else
-			select(#list_contents - list_cursor)
-		end
-	end
-end
-
-function list_select()
-	load(list_cursor)
-end
-
-function list_add_playlist()
-	load(list_cursor, true)
-end
-
-function list_delete()
-	delete()
-	get_list_contents()
-	if not list_contents or not list_contents[1] then
-		list_close_and_trash_collection()
-		return
-	end
-	if list_cursor ~= #list_contents + 1 then
-		select(0)
-	else
-		select(-1)
-	end
-end
-
-function slot_remove()
-	list_slot_remove()
-	get_list_contents()
-	if list_cursor ~= #list_contents + 1 then
-		select(0) 
-	else 
-		select(-1) 
-	end
-end
-
-function esc_string(str)
-	return str:gsub("([%p])", "%%%1")
-end
-
-function get_path()
-	local path = mp.get_property('path')
-	if not path then return end
-	
-	local title = mp.get_property('media-title'):gsub("\"", "")
-	
-	if starts_protocol(o.protocols, path) and o.prefer_filename_over_title == 'protocols' then
-		title = mp.get_property('filename'):gsub("\"", "")
-	elseif not starts_protocol(o.protocols, path) and o.prefer_filename_over_title == 'local' then
-		title = mp.get_property('filename'):gsub("\"", "")
-	elseif o.prefer_filename_over_title == 'all' then
-		title = mp.get_property('filename'):gsub("\"", "")
-	end
-	
-	return path, title
-end
-
-function get_slot_keybind(keyindex)
-	local keybind_return
-	
-	if o.bookmark_slots_add_load_keybind[keyindex] then
-		keybind_return = o.bookmark_slots_add_load_keybind[keyindex]
-	else
-		keybind_return = o.keybind_slot_text .. keyindex .. ' is NA'
-	end
-	
-	return keybind_return
-end
-
-function unbind_list_keys()
-
-	unbind_keys(o.list_move_up_keybind, 'move-up')
-	unbind_keys(o.list_move_down_keybind, 'move-down')
-	unbind_keys(o.list_move_first_keybind, 'move-first')
-	unbind_keys(o.list_move_last_keybind, 'move-last')
-	unbind_keys(o.list_page_up_keybind, 'page-up')
-	unbind_keys(o.list_page_down_keybind, 'page-down')
-	unbind_keys(o.list_select_keybind, 'list-select')
-	unbind_keys(o.list_add_playlist_keybind, 'list-add-playlist')
-	unbind_keys(o.list_delete_keybind, 'list-delete')
-	unbind_keys(o.list_close_keybind, 'list-close')
-	unbind_keys(o.bookmark_slots_remove_keybind, 'slot-remove')
-	unbind_keys(o.next_filter_sequence_keybind, 'list-filter-next')
-	unbind_keys(o.previous_filter_sequence_keybind, 'list-filter-previous')
-	
-	unbind_keys(o.slots_filter_inside_list_keybind, 'slots-list-inside')
-	unbind_keys(o.fileonly_filter_inside_list_keybind, 'fileonly-list-inside')
-	unbind_keys(o.timeonly_filter_inside_list_keybind, 'timeonly-list-inside')
-	unbind_keys(o.protocols_filter_inside_list_keybind, 'protocols-list-inside')
-	unbind_keys(o.titleonly_filter_inside_list_keybind, 'titleonly-list-inside')
-	unbind_keys(o.keywords_filter_inside_list_keybind, 'keywords-list-inside')
-	unbind_keys(o.playing_filter_inside_list_keybind, 'playing-list-inside')
-	
-	bind_keys(o.slots_filter_outside_list_keybind, 'slots-list-outside', function()display_list('slots') end)
-	bind_keys(o.fileonly_filter_outside_list_keybind, 'fileonly-list-outside', function()display_list('fileonly') end)
-	bind_keys(o.timeonly_filter_outside_list_keybind, 'timeonly-list-outside', function()display_list('timeonly') end)
-	bind_keys(o.protocols_filter_outside_list_keybind, 'protocols-list-outside', function()display_list('protocols') end)
-	bind_keys(o.titleonly_filter_outside_list_keybind, 'titleonly-list-outside', function()display_list('titleonly') end)
-	bind_keys(o.keywords_filter_outside_list_keybind, 'keywords-list-outside', function()display_list('keywords') end)
-	bind_keys(o.playing_filter_outside_list_keybind, 'playing-list-outside', function()display_list('playing') end)
-	
-	if o.quickselect_0to9_keybind and o.list_show_amount <= 10 then
-		mp.remove_key_binding("recent-1")
-		mp.remove_key_binding("recent-2")
-		mp.remove_key_binding("recent-3")
-		mp.remove_key_binding("recent-4")
-		mp.remove_key_binding("recent-5")
-		mp.remove_key_binding("recent-6")
-		mp.remove_key_binding("recent-7")
-		mp.remove_key_binding("recent-8")
-		mp.remove_key_binding("recent-9")
-		mp.remove_key_binding("recent-0")
-	end
-end
-
-function list_close_and_trash_collection()
-	unbind_list_keys()
-	unbind_search_keys()
-	mp.set_osd_ass(0, 0, "")
-	list_drawn = false
-	list_cursor = 1
-	list_start = 0
-	filterName = 'all'
-	list_pages = {}
-	search_string = ''
-	search_active = false
-end
-
-function read_log(func)
-	local f = io.open(bookmark_log, "r")
-	if not f then return end
-	list_contents = {}
-	for line in f:lines() do
-		table.insert(list_contents, (func(line)))
-	end
-	f:close()
-	return list_contents
-end
-
-function read_log_table()
-	return read_log(function(line)
-		local tt, p, t, s, d, n, e, l
-		if line:match('^.-\"(.-)\"') then
-			tt = line:match('^.-\"(.-)\"')
-			n, p = line:match('^.-\"(.-)\" | (.*) | ' .. esc_string(o.bookmark_time_text) .. '(.*)')
-		else
-			p = line:match('[(.*)%]]%s(.*) | ' .. esc_string(o.bookmark_time_text) .. '(.*)')
-			d, n, e = p:match('^(.-)([^\\/]-)%.([^\\/%.]-)%.?$')
-		end
-		t = line:match(' | ' .. esc_string(o.bookmark_time_text) .. '(%d*%.?%d*)(.*)$')
-		s = line:match(' | .* | ' .. esc_string(o.keybind_slot_text) .. '(.*)$')
-		l = line
-		return {found_path = p, found_time = t, found_name = n, found_slot = s, found_title = tt, found_line = l}
-	end)
 end
 
 function get_list_contents(filter)
@@ -761,7 +603,486 @@ function get_list_contents(filter)
 	end
 end
 
+function draw_list()
+	local osd_msg = ''
+	local osd_index = ''
+	local osd_key = ''
+	local key = 0
+	local osd_text = string.format("{\\fscx%f}{\\fscy%f}{\\bord%f}{\\1c&H%s}", o.text_scale, o.text_scale, o.text_border, o.text_color)
+	local osd_highlight = string.format("{\\fscx%f}{\\fscy%f}{\\bord%f}{\\1c&H%s}", o.highlight_scale, o.highlight_scale, o.highlight_border, o.highlight_color)
+	local osd_header = string.format("{\\fscx%f}{\\fscy%f}{\\bord%f}{\\1c&H%s}", o.header_scale, o.header_scale, o.header_border, o.header_color)
+	local osd_msg_end = "{\\1c&HFFFFFF}"
+	
+	if o.header_text ~= '' then
+		osd_msg = osd_msg .. osd_header .. parse_header(o.header_text)
+		osd_msg = osd_msg .. "\\h\\N\\N" .. osd_msg_end
+	end
+	
+	if search_active and not list_contents[1] then
+		osd_msg = osd_msg .. 'No search results found' .. osd_msg_end
+	end
+	
+	if o.list_middle_loader then
+		list_start = list_cursor - math.floor(o.list_show_amount / 2)
+	else
+		list_start = list_cursor - o.list_show_amount
+	end
+	
+	local showall = false
+	local showrest = false
+	if list_start < 0 then list_start = 0 end
+	if #list_contents <= o.list_show_amount then
+		list_start = 0
+		showall = true
+	end
+	if list_start > math.max(#list_contents - o.list_show_amount - 1, 0) then
+		list_start = #list_contents - o.list_show_amount
+		showrest = true
+	end
+	if list_start > 0 and not showall then
+		osd_msg = osd_msg .. o.list_sliced_prefix .. osd_msg_end
+	end
+	for i = list_start, list_start + o.list_show_amount - 1, 1 do
+		if i == #list_contents then break end
+		
+		if o.show_paths then
+			p = list_contents[#list_contents - i].found_path or list_contents[#list_contents - i].found_name or ""
+		else
+			p = list_contents[#list_contents - i].found_name or list_contents[#list_contents - i].found_path or ""
+		end
+		
+		if o.slice_longfilenames and p:len() > o.slice_longfilenames_amount then
+			p = p:sub(1, o.slice_longfilenames_amount) .. "..."
+		end
+		
+		if o.quickselect_0to9_keybind and o.list_show_amount <= 10 then
+			key = 1 + key
+			if key == 10 then key = 0 end
+			osd_key = '(' .. key .. ')  '
+		end
+		
+		if o.show_item_number then
+			osd_index = (i + 1) .. '. '
+		end
+		
+		if i + 1 == list_cursor then
+			osd_msg = osd_msg .. osd_highlight .. osd_key .. osd_index .. p
+		else
+			osd_msg = osd_msg .. osd_text .. osd_key .. osd_index .. p
+		end
+		
+		if list_contents[#list_contents - i].found_time and tonumber(list_contents[#list_contents - i].found_time) > 0 then
+			osd_msg = osd_msg .. o.time_seperator .. format_time(list_contents[#list_contents - i].found_time)
+		end
+		
+		if list_contents[#list_contents - i].found_slot then
+			osd_msg = osd_msg .. o.slot_seperator .. get_slot_keybind(tonumber(list_contents[#list_contents - i].found_slot))
+		end
+		
+		osd_msg = osd_msg .. '\\h\\N\\N' .. osd_msg_end
+		
+		if i == list_start + o.list_show_amount - 1 and not showall and not showrest then
+			osd_msg = osd_msg .. o.list_sliced_suffix
+		end
+	
+	end
+	mp.set_osd_ass(0, 0, osd_msg)
+end
 
+function display_list(filter)
+	if not filter then filter = 'all' end
+	
+	local prev_filter = filterName
+	filterName = filter
+	
+	get_list_contents(filter)
+	if not list_contents and not search_active or not list_contents[1] and not search_active then return end
+	
+	if not has_value(o.filters_and_sequence, filter) then
+		table.insert(o.filters_and_sequence, filter)
+	end
+	
+	local insert_new = false
+	
+	local trigger_close_list = false
+	local trigger_initial_list = false
+	
+	
+	if not list_pages or not list_pages[1] then
+		table.insert(list_pages, {filter, 1, 1})
+	else
+		for i = 1, #list_pages do
+			if list_pages[i][1] == filter then
+				list_pages[i][3] = list_pages[i][3]+1
+				insert_new = false
+				break
+			else
+				insert_new = true
+			end
+		end
+	end
+	
+	if insert_new then table.insert(list_pages, {filter, 1, 1}) end
+	
+	for i = 1, #list_pages do
+		if not search_active and list_pages[i][1] == prev_filter then
+			list_pages[i][2] = list_cursor
+		end
+		if list_pages[i][1] ~= filter then
+			list_pages[i][3] = 0
+		end
+		if list_pages[i][3] == 2 and filter == 'all' and o.bookmark_list_keybind_twice_exits then
+			trigger_close_list = true
+		elseif list_pages[i][3] == 2 and list_pages[1][1] == filter then
+			trigger_close_list = true		
+		elseif list_pages[i][3] == 2 then
+			trigger_initial_list = true
+		end
+	end
+	
+	if trigger_initial_list then
+		display_list(list_pages[1][1])
+		return
+	end
+	
+	if trigger_close_list then
+		list_close_and_trash_collection()
+		return
+	end
+	
+	if not search_active then get_filter_cursor(filter) else update_search_results('','') end
+	draw_list()
+	list_drawn = true
+	if not search_active then get_list_keybinds() end
+end
+--End of LogReaderManager (Read and Format the List from Log)--
+
+--LogReaderManager Navigation--
+function select(pos)
+	if not search_active then
+		if not list_contents or not list_contents[1] then
+			list_close_and_trash_collection()
+			return
+		end
+	end
+	
+	local list_cursor_temp = list_cursor + pos
+	if list_cursor_temp > 0 and list_cursor_temp <= #list_contents then
+		list_cursor = list_cursor_temp
+	end
+	
+	if o.loop_through_list then
+		if list_cursor_temp > #list_contents then
+			list_cursor = 1
+		elseif list_cursor_temp < 1 then
+			list_cursor = #list_contents
+		end
+	end
+	
+	draw_list()
+end
+
+function list_move_up()
+	select(-1)
+end
+
+function list_move_down()
+	select(1)
+end
+
+function list_move_first()
+	select(1 - list_cursor)
+end
+
+function list_move_last()
+	select(#list_contents - list_cursor)
+end
+
+function list_page_up()
+	select(list_start + 1 - list_cursor)
+end
+
+function list_page_down()
+	if o.list_middle_loader then
+		if #list_contents < o.list_show_amount then
+			select(#list_contents - list_cursor)
+		else
+			select(o.list_show_amount + list_start - list_cursor)
+		end
+	else
+		if o.list_show_amount > list_cursor then
+			select(o.list_show_amount - list_cursor)
+		elseif #list_contents - list_cursor >= o.list_show_amount then
+			select(o.list_show_amount)
+		else
+			select(#list_contents - list_cursor)
+		end
+	end
+end
+--End of LogReaderManager Navigation--
+
+--LogReaderManager Actions--
+function load(list_cursor, add_playlist)
+	if not list_contents or not list_contents[1] then return end
+	seekTime = tonumber(list_contents[#list_contents - list_cursor + 1].found_time) + o.resume_offset
+	if (seekTime < 0) then
+		seekTime = 0
+	end
+	if file_exists(list_contents[#list_contents - list_cursor + 1].found_path) or starts_protocol(protocols, list_contents[#list_contents - list_cursor + 1].found_path) then
+		if not add_playlist then 
+			mp.commandv('loadfile', list_contents[#list_contents - list_cursor + 1].found_path)
+			selected = true
+			if o.osd_messages == true then --1.16#Notification for Loaded
+				mp.osd_message('Loaded:\n' .. list_contents[#list_contents - list_cursor + 1].found_name.. o.time_seperator .. format_time(list_contents[#list_contents - list_cursor + 1].found_time))
+			end
+			msg.info('Loaded the below file:\n' .. list_contents[#list_contents - list_cursor + 1].found_name  .. ' | '.. format_time(list_contents[#list_contents - list_cursor + 1].found_time))
+		else
+			mp.commandv('loadfile', list_contents[#list_contents - list_cursor + 1].found_path, 'append-play')
+			if o.osd_messages == true then
+				mp.osd_message('Added into Playlist:\n'..list_contents[#list_contents - list_cursor + 1].found_name..' ')
+			end
+			msg.info('Added the below file into playlist:\n' .. list_contents[#list_contents - list_cursor + 1].found_path)
+		end
+	else
+		if o.osd_messages == true then
+			mp.osd_message('File Doesn\'t Exist:\n' .. list_contents[#list_contents - list_cursor + 1].found_path)
+		end
+		msg.info('The file below doesn\'t seem to exist:\n' .. list_contents[#list_contents - list_cursor + 1].found_path)
+		return
+	end
+end
+
+function list_select()
+	load(list_cursor)
+end
+
+function list_add_playlist()
+	load(list_cursor, true)
+end
+
+function delete_log_entry()
+	local content = read_log(function(line)
+		if line:find(esc_string(filePath) .. '(.*)' .. esc_string(o.bookmark_time_text) .. seekTime) then
+			return nil
+		else
+			return line
+		end
+	end)
+	
+	f = io.open(bookmark_log, "w+")
+	if content then
+		for i = 1, #content do
+			f:write(("%s\n"):format(content[i]))
+		end
+	end
+	f:close()
+end
+
+function delete_highlighted()
+	filePath = list_contents[#list_contents - list_cursor + 1].found_path
+	fileTitle = list_contents[#list_contents - list_cursor + 1].found_name
+	seekTime = tonumber(list_contents[#list_contents - list_cursor + 1].found_time)
+	if not filePath and not seekTime then
+		msg.info("Failed to delete")
+		return
+	end
+	delete_log_entry()
+	msg.info("Deleted \"" .. filePath .. "\" | " .. format_time(seekTime))
+	filePath, fileTitle = get_path()
+end
+
+function list_delete()
+	delete_highlighted()
+	get_list_contents()
+	if not list_contents or not list_contents[1] then
+		list_close_and_trash_collection()
+		return
+	end
+	if list_cursor ~= #list_contents + 1 then
+		select(0)
+	else
+		select(-1)
+	end
+end
+--End of LogReaderManager Actions--
+
+--LogReaderManager Filter Functions--
+function get_filter_cursor(filter)
+	if not filter then return end
+	for i=1, #list_pages do
+		if list_pages[i][1] == filter then  
+			list_cursor = list_pages[i][2]
+		end
+	end
+end
+
+function select_filter_sequence(pos)
+	if not list_drawn then return end
+	local curr_pos
+	local target_pos
+	
+	for i = 1, #o.filters_and_sequence do
+		if filterName == o.filters_and_sequence[i] then
+			curr_pos = i
+		end
+	end
+	
+	if curr_pos and pos > -1 then
+		for i = curr_pos, #o.filters_and_sequence do
+			get_list_contents(o.filters_and_sequence[i + pos])
+			if list_contents[1] then
+				target_pos = i + pos
+				break
+			end
+		end
+	elseif curr_pos and pos < 0 then
+		for i = curr_pos, 0, -1 do
+			get_list_contents(o.filters_and_sequence[i + pos])
+			if list_contents[1] then
+				target_pos = i + pos
+				break
+			end
+		end
+	end
+	
+	if target_pos then
+		if not o.loop_through_filters then
+			if target_pos > #o.filters_and_sequence then return end
+			if target_pos < 1 then return end
+		else
+			if target_pos < 1 then
+				for i = #o.filters_and_sequence, 1, -1 do 
+					get_list_contents(o.filters_and_sequence[i])
+					if list_contents[1] then
+						target_pos = i
+						break
+					end		
+				end
+			end
+		end
+		display_list(o.filters_and_sequence[target_pos])
+	end
+end
+
+function list_filter_next()
+	select_filter_sequence(1)
+end
+function list_filter_previous()
+	select_filter_sequence(-1)
+end
+--End of LogReaderManager Filter Functions--
+
+--LogReaderManager (List Bind and Unbind)--
+function get_list_keybinds()
+	bind_keys(o.list_move_up_keybind, 'move-up', list_move_up, 'repeatable')
+	bind_keys(o.list_move_down_keybind, 'move-down', list_move_down, 'repeatable')
+	bind_keys(o.list_move_first_keybind, 'move-first', list_move_first, 'repeatable')
+	bind_keys(o.list_move_last_keybind, 'move-last', list_move_last, 'repeatable')
+	bind_keys(o.list_page_up_keybind, 'page-up', list_page_up, 'repeatable')
+	bind_keys(o.list_page_down_keybind, 'page-down', list_page_down, 'repeatable')
+	bind_keys(o.list_select_keybind, 'list-select', list_select)
+	bind_keys(o.list_add_playlist_keybind, 'list-add-playlist', list_add_playlist)
+	bind_keys(o.list_delete_keybind, 'list-delete', list_delete)
+	bind_keys(o.bookmark_slots_remove_keybind, 'slot-remove', slot_remove)
+	bind_keys(o.next_filter_sequence_keybind, 'list-filter-next', list_filter_next)
+	bind_keys(o.previous_filter_sequence_keybind, 'list-filter-previous', list_filter_previous)
+	bind_keys(o.list_search_activate_keybind, 'list-search-activate', list_search_activate)
+	
+	if not search_active then
+		bind_keys(o.list_close_keybind, 'list-close', list_close_and_trash_collection)
+	end
+	
+	bind_keys(o.slots_filter_inside_list_keybind, 'slots-list-inside', function()display_list('slots') end)
+	bind_keys(o.fileonly_filter_inside_list_keybind, 'fileonly-list-inside', function()display_list('fileonly') end)
+	bind_keys(o.timeonly_filter_inside_list_keybind, 'timeonly-list-inside', function()display_list('timeonly') end)
+	bind_keys(o.protocols_filter_inside_list_keybind, 'protocols-list-inside', function()display_list('protocols') end)
+	bind_keys(o.titleonly_filter_inside_list_keybind, 'titleonly-list-inside', function()display_list('titleonly') end)
+	bind_keys(o.keywords_filter_inside_list_keybind, 'keywords-list-inside', function()display_list('keywords') end)
+	bind_keys(o.playing_filter_inside_list_keybind, 'playing-list-inside', function()display_list('playing') end)
+	
+
+	unbind_keys(o.slots_filter_outside_list_keybind, 'slots-list-outside')
+	unbind_keys(o.fileonly_filter_outside_list_keybind, 'fileonly-list-outside')
+	unbind_keys(o.timeonly_filter_outside_list_keybind, 'timeonly-list-outside')
+	unbind_keys(o.protocols_filter_outside_list_keybind, 'protocols-list-outside')
+	unbind_keys(o.titleonly_filter_outside_list_keybind, 'titleonly-list-outside')
+	unbind_keys(o.keywords_filter_outside_list_keybind, 'keywords-list-outside')
+	unbind_keys(o.playing_filter_outside_list_keybind, 'playing-list-outside')
+	
+	if o.quickselect_0to9_keybind and o.list_show_amount <= 10 then
+		mp.add_forced_key_binding("1", "recent-1", function()load(list_start + 1) end)
+		mp.add_forced_key_binding("2", "recent-2", function()load(list_start + 2) end)
+		mp.add_forced_key_binding("3", "recent-3", function()load(list_start + 3) end)
+		mp.add_forced_key_binding("4", "recent-4", function()load(list_start + 4) end)
+		mp.add_forced_key_binding("5", "recent-5", function()load(list_start + 5) end)
+		mp.add_forced_key_binding("6", "recent-6", function()load(list_start + 6) end)
+		mp.add_forced_key_binding("7", "recent-7", function()load(list_start + 7) end)
+		mp.add_forced_key_binding("8", "recent-8", function()load(list_start + 8) end)
+		mp.add_forced_key_binding("9", "recent-9", function()load(list_start + 9) end)
+		mp.add_forced_key_binding("0", "recent-0", function()load(list_start + 10) end)
+	end
+end
+
+function unbind_list_keys()
+	unbind_keys(o.list_move_up_keybind, 'move-up')
+	unbind_keys(o.list_move_down_keybind, 'move-down')
+	unbind_keys(o.list_move_first_keybind, 'move-first')
+	unbind_keys(o.list_move_last_keybind, 'move-last')
+	unbind_keys(o.list_page_up_keybind, 'page-up')
+	unbind_keys(o.list_page_down_keybind, 'page-down')
+	unbind_keys(o.list_select_keybind, 'list-select')
+	unbind_keys(o.list_add_playlist_keybind, 'list-add-playlist')
+	unbind_keys(o.list_delete_keybind, 'list-delete')
+	unbind_keys(o.list_close_keybind, 'list-close')
+	unbind_keys(o.bookmark_slots_remove_keybind, 'slot-remove')
+	unbind_keys(o.next_filter_sequence_keybind, 'list-filter-next')
+	unbind_keys(o.previous_filter_sequence_keybind, 'list-filter-previous')
+	
+	unbind_keys(o.slots_filter_inside_list_keybind, 'slots-list-inside')
+	unbind_keys(o.fileonly_filter_inside_list_keybind, 'fileonly-list-inside')
+	unbind_keys(o.timeonly_filter_inside_list_keybind, 'timeonly-list-inside')
+	unbind_keys(o.protocols_filter_inside_list_keybind, 'protocols-list-inside')
+	unbind_keys(o.titleonly_filter_inside_list_keybind, 'titleonly-list-inside')
+	unbind_keys(o.keywords_filter_inside_list_keybind, 'keywords-list-inside')
+	unbind_keys(o.playing_filter_inside_list_keybind, 'playing-list-inside')
+	
+	bind_keys(o.slots_filter_outside_list_keybind, 'slots-list-outside', function()display_list('slots') end)
+	bind_keys(o.fileonly_filter_outside_list_keybind, 'fileonly-list-outside', function()display_list('fileonly') end)
+	bind_keys(o.timeonly_filter_outside_list_keybind, 'timeonly-list-outside', function()display_list('timeonly') end)
+	bind_keys(o.protocols_filter_outside_list_keybind, 'protocols-list-outside', function()display_list('protocols') end)
+	bind_keys(o.titleonly_filter_outside_list_keybind, 'titleonly-list-outside', function()display_list('titleonly') end)
+	bind_keys(o.keywords_filter_outside_list_keybind, 'keywords-list-outside', function()display_list('keywords') end)
+	bind_keys(o.playing_filter_outside_list_keybind, 'playing-list-outside', function()display_list('playing') end)
+	
+	if o.quickselect_0to9_keybind and o.list_show_amount <= 10 then
+		mp.remove_key_binding("recent-1")
+		mp.remove_key_binding("recent-2")
+		mp.remove_key_binding("recent-3")
+		mp.remove_key_binding("recent-4")
+		mp.remove_key_binding("recent-5")
+		mp.remove_key_binding("recent-6")
+		mp.remove_key_binding("recent-7")
+		mp.remove_key_binding("recent-8")
+		mp.remove_key_binding("recent-9")
+		mp.remove_key_binding("recent-0")
+	end
+end
+
+function list_close_and_trash_collection()
+	unbind_list_keys()
+	unbind_search_keys()
+	mp.set_osd_ass(0, 0, "")
+	list_drawn = false
+	list_cursor = 1
+	list_start = 0
+	filterName = 'all'
+	list_pages = {}
+	search_string = ''
+	search_active = false
+end
+--End of LogReaderManager (List Bind and Unbind)--
+
+--LogReaderManager Search Feature--
 function list_search_exit()
 	search_active = false
 	get_list_contents(filterName)
@@ -827,7 +1148,6 @@ function update_search_results(character, action)
 end
 
 function bind_search_keys()
-
 	mp.add_forced_key_binding('a', 'search_string_a', function() update_search_results('a') end, 'repeatable')
 	mp.add_forced_key_binding('b', 'search_string_b', function() update_search_results('b') end, 'repeatable')
 	mp.add_forced_key_binding('c', 'search_string_c', function() update_search_results('c') end, 'repeatable')
@@ -1050,6 +1370,80 @@ function unbind_search_keys()
 		unbind_keys(o.list_close_keybind, 'search_exit')
 	end
 end
+--End of LogReaderManager Search Feature--
+---------End of LogReaderManager---------
+
+--Keybind Slot Feature--
+function remove_slot_log_entry()
+	local content = read_log(function(line)
+		if line:match(' | .* | ' .. esc_string(o.keybind_slot_text) .. slotKeyIndex) then
+			return line:match('(.* | ' .. esc_string(o.bookmark_time_text) .. '%d*%.?%d*)(.*)$')
+		else
+			return line
+		end
+	end)
+	
+	f = io.open(bookmark_log, "w+")
+	if content then
+		for i = 1, #content do
+			f:write(("%s\n"):format(content[i]))
+		end
+	end
+	f:close()
+end
+
+function list_slot_remove()
+	if not list_drawn then return end
+	slotKeyIndex = tonumber(list_contents[#list_contents - list_cursor + 1].found_slot)
+	if not slotKeyIndex then
+		msg.info("Failed to remove")
+		return
+	end
+	remove_slot_log_entry()
+	msg.info('Removed Keybind: ' .. get_slot_keybind(slotKeyIndex))
+end
+
+function slot_remove()
+	list_slot_remove()
+	get_list_contents()
+	if list_cursor ~= #list_contents + 1 then
+		select(0) 
+	else 
+		select(-1) 
+	end
+end
+--End of Keybind Slot Feature--
+
+function mark_chapter()
+	if not o.mark_bookmark_as_chapter then return end
+	
+	local all_chapters = mp.get_property_native("chapter-list")
+	local chapter_index = 0
+	local chapters_time = {}
+	
+	get_list_contents()
+	for i = 1, #list_contents do
+		if list_contents[i].found_path == filePath and tonumber(list_contents[i].found_time) > 0 then
+			table.insert(chapters_time, tonumber(list_contents[i].found_time))
+		end
+	end
+	if not chapters_time[1] then return end
+	
+	table.sort(chapters_time, function(a, b) return a < b end)
+	
+	for i = 1, #chapters_time do
+		chapter_index = chapter_index + 1
+		
+		all_chapters[chapter_index] = {
+			title = 'SimpleBookmark ' .. chapter_index,
+			time = chapters_time[i]
+		}
+	end
+	
+	table.sort(all_chapters, function(a, b) return a['time'] < b['time'] end)
+	
+	mp.set_property_native("chapter-list", all_chapters)
+end
 
 function write_log(logged_time, keybind_slot)
 	if not filePath then return end
@@ -1082,42 +1476,6 @@ function write_log(logged_time, keybind_slot)
 	f:close()
 end
 
-function delete_log_entry()
-	local content = read_log(function(line)
-		if line:find(esc_string(filePath) .. '(.*)' .. esc_string(o.bookmark_time_text) .. seekTime) then
-			return nil
-		else
-			return line
-		end
-	end)
-	
-	f = io.open(bookmark_log, "w+")
-	if content then
-		for i = 1, #content do
-			f:write(("%s\n"):format(content[i]))
-		end
-	end
-	f:close()
-end
-
-function remove_slot_log_entry()
-	local content = read_log(function(line)
-		if line:match(' | .* | ' .. esc_string(o.keybind_slot_text) .. slotKeyIndex) then
-			return line:match('(.* | ' .. esc_string(o.bookmark_time_text) .. '%d*%.?%d*)(.*)$')
-		else
-			return line
-		end
-	end)
-	
-	f = io.open(bookmark_log, "w+")
-	if content then
-		for i = 1, #content do
-			f:write(("%s\n"):format(content[i]))
-		end
-	end
-	f:close()
-end
-
 function write_log_slot_entry()
 	filePath = list_contents[#list_contents - list_cursor + 1].found_path
 	fileTitle = list_contents[#list_contents - list_cursor + 1].found_name
@@ -1145,7 +1503,7 @@ function add_load_slot(key_index)
 		for i = 1, #list_contents do
 			if tonumber(list_contents[i].found_slot) == slotKeyIndex then
 				filePath = list_contents[i].found_path
-				fileTitle = list_contents[i].found_name --1.15#Fixes possible wrong title when loading slot
+				fileTitle = list_contents[i].found_name
 				seekTime = tonumber(list_contents[i].found_time)
 				slot_taken = true
 				break
@@ -1224,222 +1582,6 @@ function quicksave_slot(key_index)
 	slotKeyIndex = 0
 end
 
-function draw_list()
-	local osd_msg = ''
-	local osd_index = ''
-	local osd_key = ''
-	local key = 0
-	local osd_text = string.format("{\\fscx%f}{\\fscy%f}{\\bord%f}{\\1c&H%s}", o.text_scale, o.text_scale, o.text_border, o.text_color)
-	local osd_highlight = string.format("{\\fscx%f}{\\fscy%f}{\\bord%f}{\\1c&H%s}", o.highlight_scale, o.highlight_scale, o.highlight_border, o.highlight_color)
-	local osd_header = string.format("{\\fscx%f}{\\fscy%f}{\\bord%f}{\\1c&H%s}", o.header_scale, o.header_scale, o.header_border, o.header_color)
-	local osd_msg_end = "{\\1c&HFFFFFF}"
-	
-	if o.header_text ~= '' then
-		osd_msg = osd_msg .. osd_header .. parse_header(o.header_text)
-		osd_msg = osd_msg .. "\\h\\N\\N" .. osd_msg_end
-	end
-	
-	if search_active and not list_contents[1] then
-		osd_msg = osd_msg .. 'No search results found' .. osd_msg_end
-	end
-	
-	if o.list_middle_loader then
-		list_start = list_cursor - math.floor(o.list_show_amount / 2)
-	else
-		list_start = list_cursor - o.list_show_amount
-	end
-	
-	local showall = false
-	local showrest = false
-	if list_start < 0 then list_start = 0 end
-	if #list_contents <= o.list_show_amount then
-		list_start = 0
-		showall = true
-	end
-	if list_start > math.max(#list_contents - o.list_show_amount - 1, 0) then
-		list_start = #list_contents - o.list_show_amount
-		showrest = true
-	end
-	if list_start > 0 and not showall then
-		osd_msg = osd_msg .. o.list_sliced_prefix .. osd_msg_end
-	end
-	for i = list_start, list_start + o.list_show_amount - 1, 1 do
-		if i == #list_contents then break end
-		
-		if o.show_paths then
-			p = list_contents[#list_contents - i].found_path or list_contents[#list_contents - i].found_name or ""
-		else
-			p = list_contents[#list_contents - i].found_name or list_contents[#list_contents - i].found_path or ""
-		end
-		
-		if o.slice_longfilenames and p:len() > o.slice_longfilenames_amount then
-			p = p:sub(1, o.slice_longfilenames_amount) .. "..."
-		end
-		
-		if o.quickselect_0to9_keybind and o.list_show_amount <= 10 then
-			key = 1 + key
-			if key == 10 then key = 0 end
-			osd_key = '(' .. key .. ')  '
-		end
-		
-		if o.show_item_number then
-			osd_index = (i + 1) .. '. '
-		end
-		
-		if i + 1 == list_cursor then
-			osd_msg = osd_msg .. osd_highlight .. osd_key .. osd_index .. p
-		else
-			osd_msg = osd_msg .. osd_text .. osd_key .. osd_index .. p
-		end
-		
-		if list_contents[#list_contents - i].found_time and tonumber(list_contents[#list_contents - i].found_time) > 0 then
-			osd_msg = osd_msg .. o.time_seperator .. format_time(list_contents[#list_contents - i].found_time)
-		end
-		
-		if list_contents[#list_contents - i].found_slot then
-			osd_msg = osd_msg .. o.slot_seperator .. get_slot_keybind(tonumber(list_contents[#list_contents - i].found_slot))
-		end
-		
-		osd_msg = osd_msg .. '\\h\\N\\N' .. osd_msg_end
-		
-		if i == list_start + o.list_show_amount - 1 and not showall and not showrest then
-			osd_msg = osd_msg .. o.list_sliced_suffix
-		end
-	
-	end
-	mp.set_osd_ass(0, 0, osd_msg)
-end
-
-function delete()
-	filePath = list_contents[#list_contents - list_cursor + 1].found_path
-	fileTitle = list_contents[#list_contents - list_cursor + 1].found_name
-	seekTime = tonumber(list_contents[#list_contents - list_cursor + 1].found_time)
-	if not filePath and not seekTime then
-		msg.info("Failed to delete")
-		return
-	end
-	delete_log_entry()
-	msg.info("Deleted \"" .. filePath .. "\" | " .. format_time(seekTime))
-	filePath, fileTitle = get_path()
-end
-
-function list_slot_remove()
-	if not list_drawn then return end
-	slotKeyIndex = tonumber(list_contents[#list_contents - list_cursor + 1].found_slot)
-	if not slotKeyIndex then
-		msg.info("Failed to remove")
-		return
-	end
-	remove_slot_log_entry()
-	msg.info('Removed Keybind: ' .. get_slot_keybind(slotKeyIndex))
-end
-
-function select(pos)
-	if not search_active then
-		if not list_contents or not list_contents[1] then
-			list_close_and_trash_collection()
-			return
-		end
-	end
-	
-	local list_cursor_temp = list_cursor + pos
-	if list_cursor_temp > 0 and list_cursor_temp <= #list_contents then
-		list_cursor = list_cursor_temp
-	end
-	
-	if o.loop_through_list then
-		if list_cursor_temp > #list_contents then
-			list_cursor = 1
-		elseif list_cursor_temp < 1 then
-			list_cursor = #list_contents
-		end
-	end
-	
-	draw_list()
-end
-
-function select_filter_sequence(pos)
-	if not list_drawn then return end
-	local curr_pos
-	local target_pos
-	
-	for i = 1, #o.filters_and_sequence do
-		if filterName == o.filters_and_sequence[i] then
-			curr_pos = i
-		end
-	end
-	
-	if curr_pos and pos > -1 then
-		for i = curr_pos, #o.filters_and_sequence do
-			get_list_contents(o.filters_and_sequence[i + pos])
-			if list_contents[1] then
-				target_pos = i + pos
-				break
-			end
-		end
-	elseif curr_pos and pos < 0 then
-		for i = curr_pos, 0, -1 do
-			get_list_contents(o.filters_and_sequence[i + pos])
-			if list_contents[1] then
-				target_pos = i + pos
-				break
-			end
-		end
-	end
-	
-	if target_pos then
-		if not o.loop_through_filters then
-			if target_pos > #o.filters_and_sequence then return end
-			if target_pos < 1 then return end
-		else
-			if target_pos < 1 then
-				for i = #o.filters_and_sequence, 1, -1 do 
-					get_list_contents(o.filters_and_sequence[i])
-					if list_contents[1] then
-						target_pos = i
-						break
-					end		
-				end
-			end
-		end
-		display_list(o.filters_and_sequence[target_pos])
-	end
-end
-
-function list_filter_next()
-	select_filter_sequence(1)
-end
-function list_filter_previous()
-	select_filter_sequence(-1)
-end
-
-function load(list_cursor, add_playlist)
-	if not list_contents or not list_contents[1] then return end
-	seekTime = tonumber(list_contents[#list_contents - list_cursor + 1].found_time) + o.resume_offset
-	if (seekTime < 0) then
-		seekTime = 0
-	end
-	if file_exists(list_contents[#list_contents - list_cursor + 1].found_path) or starts_protocol(protocols, list_contents[#list_contents - list_cursor + 1].found_path) then
-		if not add_playlist then 
-			mp.commandv('loadfile', list_contents[#list_contents - list_cursor + 1].found_path)
-			selected = true
-			msg.info('Loaded the below file:\n' .. list_contents[#list_contents - list_cursor + 1].found_name  .. ' | '.. format_time(seekTime))
-		else
-			mp.commandv('loadfile', list_contents[#list_contents - list_cursor + 1].found_path, 'append-play')
-			if o.osd_messages == true then
-				mp.osd_message('Added into Playlist:\n'..list_contents[#list_contents - list_cursor + 1].found_name..' ')
-			end
-			msg.info('Added the below file into playlist:\n' .. list_contents[#list_contents - list_cursor + 1].found_path)
-		end
-	else
-		if o.osd_messages == true then
-			mp.osd_message('File Doesn\'t Exist:\n' .. list_contents[#list_contents - list_cursor + 1].found_path)
-		end
-		msg.info('The file below doesn\'t seem to exist:\n' .. list_contents[#list_contents - list_cursor + 1].found_path)
-		return
-	end
-end
-
 function bookmark_save()
 	if filePath ~= nil then
 		write_log(false, false)
@@ -1453,11 +1595,7 @@ function bookmark_save()
 		msg.info('Added the below to bookmarks\n' .. fileTitle .. o.time_seperator .. format_time(seekTime))
 	elseif filePath == nil and o.bookmark_loads_last_idle then
 		get_list_contents()
-		load(1)
-		if o.osd_messages == true then
-			mp.osd_message('Loaded Last Bookmark File:\n' .. list_contents[#list_contents].found_name .. o.time_seperator .. format_time(seekTime))
-		end
-		msg.info('Loaded the last bookmarked file shown below into mpv:\n' .. list_contents[#list_contents].found_name .. o.time_seperator .. format_time(seekTime))
+		load(1)--1.16#Removed notification that was below and used notification from load function instead
 	else
 		if o.osd_messages == true then
 			mp.osd_message('Failed to Bookmark\nNo Video Found')
@@ -1479,143 +1617,13 @@ function bookmark_fileonly_save()
 		msg.info('Added the below to bookmarks\n' .. fileTitle)
 	elseif filePath == nil and o.bookmark_loads_last_idle then
 		get_list_contents()
-		load(1)
-		if o.osd_messages == true then
-			mp.osd_message('Loaded Last Bookmark File:\n' .. list_contents[#list_contents].found_name .. o.time_seperator .. format_time(seekTime))
-		end
-		msg.info('Loaded the last bookmarked file shown below into mpv:\n' .. list_contents[#list_contents].found_name .. o.time_seperator .. format_time(seekTime))
+		load(1)--1.16#Removed notification that was below and used notification from load function instead
 	else
 		if o.osd_messages == true then
 			mp.osd_message('Failed to Bookmark\nNo Video Found')
 		end
 		msg.info("Failed to bookmark, no video found")
 	end
-end
-
-function get_list_keybinds()
-	bind_keys(o.list_move_up_keybind, 'move-up', list_move_up, 'repeatable')
-	bind_keys(o.list_move_down_keybind, 'move-down', list_move_down, 'repeatable')
-	bind_keys(o.list_move_first_keybind, 'move-first', list_move_first, 'repeatable')
-	bind_keys(o.list_move_last_keybind, 'move-last', list_move_last, 'repeatable')
-	bind_keys(o.list_page_up_keybind, 'page-up', list_page_up, 'repeatable')
-	bind_keys(o.list_page_down_keybind, 'page-down', list_page_down, 'repeatable')
-	bind_keys(o.list_select_keybind, 'list-select', list_select)
-	bind_keys(o.list_add_playlist_keybind, 'list-add-playlist', list_add_playlist)
-	bind_keys(o.list_delete_keybind, 'list-delete', list_delete)
-	bind_keys(o.bookmark_slots_remove_keybind, 'slot-remove', slot_remove)
-	bind_keys(o.next_filter_sequence_keybind, 'list-filter-next', list_filter_next)
-	bind_keys(o.previous_filter_sequence_keybind, 'list-filter-previous', list_filter_previous)
-	bind_keys(o.list_search_activate_keybind, 'list-search-activate', list_search_activate)
-	
-	if not search_active then
-		bind_keys(o.list_close_keybind, 'list-close', list_close_and_trash_collection)
-	end
-	
-	bind_keys(o.slots_filter_inside_list_keybind, 'slots-list-inside', function()display_list('slots') end)
-	bind_keys(o.fileonly_filter_inside_list_keybind, 'fileonly-list-inside', function()display_list('fileonly') end)
-	bind_keys(o.timeonly_filter_inside_list_keybind, 'timeonly-list-inside', function()display_list('timeonly') end)
-	bind_keys(o.protocols_filter_inside_list_keybind, 'protocols-list-inside', function()display_list('protocols') end)
-	bind_keys(o.titleonly_filter_inside_list_keybind, 'titleonly-list-inside', function()display_list('titleonly') end)
-	bind_keys(o.keywords_filter_inside_list_keybind, 'keywords-list-inside', function()display_list('keywords') end)
-	bind_keys(o.playing_filter_inside_list_keybind, 'playing-list-inside', function()display_list('playing') end)
-	
-
-	unbind_keys(o.slots_filter_outside_list_keybind, 'slots-list-outside')
-	unbind_keys(o.fileonly_filter_outside_list_keybind, 'fileonly-list-outside')
-	unbind_keys(o.timeonly_filter_outside_list_keybind, 'timeonly-list-outside')
-	unbind_keys(o.protocols_filter_outside_list_keybind, 'protocols-list-outside')
-	unbind_keys(o.titleonly_filter_outside_list_keybind, 'titleonly-list-outside')
-	unbind_keys(o.keywords_filter_outside_list_keybind, 'keywords-list-outside')
-	unbind_keys(o.playing_filter_outside_list_keybind, 'playing-list-outside')
-	
-	if o.quickselect_0to9_keybind and o.list_show_amount <= 10 then
-		mp.add_forced_key_binding("1", "recent-1", function()load(list_start + 1) end)
-		mp.add_forced_key_binding("2", "recent-2", function()load(list_start + 2) end)
-		mp.add_forced_key_binding("3", "recent-3", function()load(list_start + 3) end)
-		mp.add_forced_key_binding("4", "recent-4", function()load(list_start + 4) end)
-		mp.add_forced_key_binding("5", "recent-5", function()load(list_start + 5) end)
-		mp.add_forced_key_binding("6", "recent-6", function()load(list_start + 6) end)
-		mp.add_forced_key_binding("7", "recent-7", function()load(list_start + 7) end)
-		mp.add_forced_key_binding("8", "recent-8", function()load(list_start + 8) end)
-		mp.add_forced_key_binding("9", "recent-9", function()load(list_start + 9) end)
-		mp.add_forced_key_binding("0", "recent-0", function()load(list_start + 10) end)
-	end
-end
-
-function get_filter_cursor(filter)
-if not filter then return end
-	for i=1, #list_pages do
-		if list_pages[i][1] == filter then  
-			list_cursor = list_pages[i][2]
-		end
-	end
-end
-
-function display_list(filter)
-	if not filter then filter = 'all' end
-	
-	local prev_filter = filterName
-	filterName = filter
-	
-	get_list_contents(filter)
-	if not list_contents and not search_active or not list_contents[1] and not search_active then return end
-	
-	if not has_value(o.filters_and_sequence, filter) then
-		table.insert(o.filters_and_sequence, filter)
-	end
-	
-	local insert_new = false
-	
-	local trigger_close_list = false
-	local trigger_initial_list = false
-	
-	
-	if not list_pages or not list_pages[1] then
-		table.insert(list_pages, {filter, 1, 1})
-	else
-		for i = 1, #list_pages do
-			if list_pages[i][1] == filter then
-				list_pages[i][3] = list_pages[i][3]+1
-				insert_new = false
-				break
-			else
-				insert_new = true
-			end
-		end
-	end
-	
-	if insert_new then table.insert(list_pages, {filter, 1, 1}) end
-	
-	for i = 1, #list_pages do
-		if not search_active and list_pages[i][1] == prev_filter then
-			list_pages[i][2] = list_cursor
-		end
-		if list_pages[i][1] ~= filter then
-			list_pages[i][3] = 0
-		end
-		if list_pages[i][3] == 2 and filter == 'all' and o.bookmark_list_keybind_twice_exits then
-			trigger_close_list = true
-		elseif list_pages[i][3] == 2 and list_pages[1][1] == filter then
-			trigger_close_list = true		
-		elseif list_pages[i][3] == 2 then
-			trigger_initial_list = true
-		end
-	end
-	
-	if trigger_initial_list then
-		display_list(list_pages[1][1])
-		return
-	end
-	
-	if trigger_close_list then
-		list_close_and_trash_collection()
-		return
-	end
-	
-	if not search_active then get_filter_cursor(filter) else update_search_results('','') end
-	draw_list()
-	list_drawn = true
-	if not search_active then get_list_keybinds() end
 end
 
 if o.auto_run_list_idle == 'all'
