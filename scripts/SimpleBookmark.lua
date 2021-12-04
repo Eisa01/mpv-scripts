@@ -1,7 +1,7 @@
 local o = {
 ---------------------------USER CUSTOMIZATION SETTINGS---------------------------
 --These settings are for users to manually change some options.
---Changes are recommended to be made in the script-opts directory. It can also be made here although not recommended.
+--Changes are recommended to be made in the script-opts directory.
 	
 	-----Script Settings----
 	auto_run_list_idle = 'none', --Runs automatically when opening mpv and there is no video / file loaded. 'none' for disabled. Or choose between: 'all', 'slots', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'keywords'.
@@ -148,7 +148,7 @@ local o = {
 	
 	--Keybind to jump to the specific filter when list is open
 	slots_filter_inside_list_keybind=[[
-	["s", "S"]
+	["k", "K"]
 	]],
 	fileonly_filter_inside_list_keybind=[[
 	["f", "F"]
@@ -170,7 +170,7 @@ local o = {
 	]],
 	--Keybind to jump to the specific filter when list is closed	
 	slots_filter_outside_list_keybind=[[
-	["s", "S"]
+	["k", "K"]
 	]],
 	fileonly_filter_outside_list_keybind=[[
 	[""]
@@ -1145,7 +1145,7 @@ function add_load_slot(key_index)
 		for i = 1, #list_contents do
 			if tonumber(list_contents[i].found_slot) == slotKeyIndex then
 				filePath = list_contents[i].found_path
-				fileTitle = list_contents[#list_contents - list_cursor + 1].found_name
+				fileTitle = list_contents[i].found_name --1.15#Fixes possible wrong title when loading slot
 				seekTime = tonumber(list_contents[i].found_time)
 				slot_taken = true
 				break
@@ -1555,7 +1555,7 @@ function display_list(filter)
 	if not filter then filter = 'all' end
 	
 	local prev_filter = filterName
-	filterName = filter --change position so filter position is updated immediately, fixes (keybind-asc) checking filterName issue
+	filterName = filter
 	
 	get_list_contents(filter)
 	if not list_contents and not search_active or not list_contents[1] and not search_active then return end
