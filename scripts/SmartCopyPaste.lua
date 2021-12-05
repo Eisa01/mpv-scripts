@@ -34,7 +34,7 @@ local paste_anything = false --false is for specific paste based on the specifie
 
 if not paste_anything then
 	protocols = { --add below (after a comma) any protocol you want SmartCopyPaste to work with; e.g: ,'ftp://'
-		'https?://' ,'magnet:', , 'rtmp:'
+		'https?://' ,'magnet:', 'rtmp:'
 	}
 	extensions = { --add below (after a comma) any extension you want SmartCopyPaste to work with; e.g: ,'pdf'
 		--video & audio
