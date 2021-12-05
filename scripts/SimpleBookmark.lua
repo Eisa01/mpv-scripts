@@ -20,7 +20,7 @@ local o = {
 	resume_offset = -0.65, --change to 0 so that bookmark resumes from the exact position, or decrease the value so that it gives you a little preview before loading the resume point
 	osd_messages = true, --true is for displaying osd messages when actions occur. Change to false will disable all osd messages generated from this script
 	loop_through_list = false, --true is for going up on the first item loops towards the last item and vise-versa. false disables this behavior.
-	list_default_sort = 'added-asc', --the default sorting method for the bookmark list. select between 'added-asc', 'added-desc', 'alphanum-asc', 'alphanum-desc'
+	list_default_sort = 'none', --the default sorting method for the bookmark list. select between 'added-asc', 'added-desc', 'alphanum-asc', 'alphanum-desc'. description: 'none' defaults to added-asc without requiring to sort
 	mark_bookmark_as_chapter = false, --true is for marking the bookmarked time as a chapter. false disables mark as chapter behavior.
 	search_not_typing_smartly = true, --To smartly set the search as not typing (when search box is open) without needing to press ctrl+enter.
 	
@@ -54,7 +54,7 @@ local o = {
 	protocols=[[
 	["https?://", "magnet:", "rtmp:"]
 	]], --add above (after a comma) any protocol you want its title to be stored in the log file. This is valid only for (file_title_logging = 'protocols' or file_title_logging = 'all')
-	prefer_filename_over_title = 'local', --Prefers to use filename over filetitle. Select between 'local', 'protocols', 'all', and 'none'. 'local' prefer filenames for videos that are not protocols. 'protocols' will prefer filenames for protocols only. 'all' will prefer filename over filetitle for both protocols and not protocols videos. 'none' will always use filetitle instead of filename
+	prefer_filename_over_title = 'local', --Prefers to log filename over filetitle. Select between 'local', 'protocols', 'all', and 'none'. 'local' prefer filenames for videos that are not protocols. 'protocols' will prefer filenames for protocols only. 'all' will prefer filename over filetitle for both protocols and not protocols videos. 'none' will always use filetitle instead of filename
 	
 	-----Boorkmark Menu Settings-----
 	text_color = 'ffffff', --Text color for list in BGR hexadecimal
@@ -377,6 +377,7 @@ function read_log(func)
 end
 
 function read_log_table()
+	local line_pos = 0 --1.18#Need line_pos to add the position of each line 
 	return read_log(function(line)
 		local tt, p, t, s, d, n, e, l
 		if line:match('^.-\"(.-)\"') then
@@ -389,13 +390,16 @@ function read_log_table()
 		t = line:match(' | ' .. esc_string(o.bookmark_time_text) .. '(%d*%.?%d*)(.*)$')
 		s = line:match(' | .* | ' .. esc_string(o.keybind_slot_text) .. '(.*)$')
 		l = line
-		return {found_path = p, found_time = t, found_name = n, found_slot = s, found_title = tt, found_line = l}
+		line_pos = line_pos + 1 --1.18#Each read line will be incremented by 1 and then I will return it as a found_sequence
+		return {found_path = p, found_time = t, found_name = n, found_slot = s, found_title = tt, found_line = l, found_sequence = line_pos}
 	end)
 end
 
 function list_sort(tab, sort)
-	if sort == 'added-desc' then
-		table.sort(tab, function(a, b) return a['found_line'] > b['found_line'] end)
+	if sort == 'added-asc' then
+		table.sort(tab, function(a, b) return a['found_sequence'] < b['found_sequence'] end) --1.18#sort added-asc/added-desc filter based on the newly created found_sequence 
+	elseif sort == 'added-desc' then
+		table.sort(tab, function(a, b) return a['found_sequence'] > b['found_sequence'] end) --1.18#sort added-asc/added-desc filter based on the newly created found_sequence 
 	elseif sort == 'keybind-asc' and filterName == 'slots' then
 		table.sort(tab, function(a, b) return a['found_slot'] > b['found_slot'] end)
 	elseif sort == 'keybind-desc' and filterName == 'slots' then
@@ -462,7 +466,7 @@ function get_list_contents(filter)
 	if not filter then filter = filterName end
 	
 	list_contents = read_log_table()
-	if o.list_default_sort ~= 'added-asc' or o.list_default_sort ~= 'none' or o.list_default_sort ~= '' then
+	if o.list_default_sort ~= 'none' or o.list_default_sort ~= '' then --1.18#Removed added-asc check, since added-asc now sorts properly
 		list_sort(list_contents, o.list_default_sort)
 	end
 	
@@ -475,7 +479,7 @@ function get_list_contents(filter)
 			end
 		end
 		
-		if o.sort_slots_filter ~= 'added-asc' or o.sort_slots_filter ~= 'none' or o.sort_slots_filter ~= '' then
+		if o.sort_slots_filter ~= 'none' or o.sort_slots_filter ~= '' then --1.18#Removed added-asc check, since added-asc now sorts properly
 			list_sort(filtered_table, o.sort_slots_filter)
 		end
 		
@@ -488,7 +492,7 @@ function get_list_contents(filter)
 			end
 		end
 		
-		if o.sort_fileonly_filter ~= 'added-asc' or o.sort_fileonly_filter ~= 'none' or o.sort_fileonly_filter ~= '' then
+		if o.sort_fileonly_filter ~= 'none' or o.sort_fileonly_filter ~= '' then
 			list_sort(filtered_table, o.sort_fileonly_filter)
 		end
 		
@@ -501,7 +505,7 @@ function get_list_contents(filter)
 			end
 		end
 		
-		if o.sort_timeonly_filter ~= 'added-asc' or o.sort_timeonly_filter ~= 'none' or o.sort_timeonly_filter ~= '' then
+		if o.sort_timeonly_filter ~= 'none' or o.sort_timeonly_filter ~= '' then
 			list_sort(filtered_table, o.sort_timeonly_filter)
 		end
 		
@@ -514,7 +518,7 @@ function get_list_contents(filter)
 			end
 		end
 		
-		if o.sort_titleonly_filter ~= 'added-asc' or o.sort_titleonly_filter ~= 'none' or o.sort_titleonly_filter ~= '' then
+		if o.sort_titleonly_filter ~= 'none' or o.sort_titleonly_filter ~= '' then
 			list_sort(filtered_table, o.sort_titleonly_filter)
 		end
 		
@@ -528,7 +532,7 @@ function get_list_contents(filter)
 			end
 		end
 		
-		if o.sort_protocols_filter ~= 'added-asc' or o.sort_protocols_filter ~= 'none' or o.sort_protocols_filter ~= '' then
+		if o.sort_protocols_filter ~= 'none' or o.sort_protocols_filter ~= '' then
 			list_sort(filtered_table, o.sort_protocols_filter)
 		end
 		
@@ -542,7 +546,7 @@ function get_list_contents(filter)
 			end
 		end
 		
-		if o.sort_keywords_filter ~= 'added-asc' or o.sort_keywords_filter ~= 'none' or o.sort_keywords_filter ~= '' then
+		if o.sort_keywords_filter ~= 'none' or o.sort_keywords_filter ~= '' then
 			list_sort(filtered_table, o.sort_keywords_filter)
 		end
 		
@@ -556,7 +560,7 @@ function get_list_contents(filter)
 			end
 		end
 		
-		if o.sort_playing_filter ~= 'added-asc' or o.sort_playing_filter ~= 'none' or o.sort_playing_filter ~= '' then
+		if o.sort_playing_filter ~= 'none' or o.sort_playing_filter ~= '' then
 			list_sort(filtered_table, o.sort_playing_filter)
 		end
 		
