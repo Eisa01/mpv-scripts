@@ -253,13 +253,14 @@ local protocols = {'https?://', 'magnet:', 'rtmp:'}
 local search_string = ''
 local search_active = false
 
-local selected = false
+local resume_selected = false
 local list_contents = {}
 local list_start = 0
 local list_cursor = 1
 local list_drawn = false
 local list_pages = {}
-local filePath, fileTitle, seekTime
+local filePath, fileTitle
+local seekTime = 0
 local filterName = 'all'
 
 local slotKeyIndex = 0
@@ -462,15 +463,18 @@ function parse_header(string)
 	return string
 end
 
-function get_list_contents(filter)
+function get_list_contents(filter, sort)
 	if not filter then filter = filterName end
 	
-	list_contents = read_log_table()
-	if o.list_default_sort ~= 'none' or o.list_default_sort ~= '' then --1.18#Removed added-asc check, since added-asc now sorts properly
-		list_sort(list_contents, o.list_default_sort)
-	end
+	local active_sort = sort --1.20#Added active_sort so I can update it with the passed sort (initialized with sort value) (i cant update sort itself because by default it will be updated immediately when no filter is passed)
+	local filtered_table = {} --1.20# rearranged
 	
-	local filtered_table = {}
+	list_contents = read_log_table()
+	
+	if not sort then active_sort = o.list_default_sort end --1.20#If nothing is passed to sort, then update the active_sort with the specific filter sort method
+	if active_sort ~= 'none' or active_sort ~= '' then
+		list_sort(list_contents, active_sort)
+	end
 	
 	if filter == 'slots' then
 		for i = 1, #list_contents do
@@ -479,8 +483,9 @@ function get_list_contents(filter)
 			end
 		end
 		
-		if o.sort_slots_filter ~= 'none' or o.sort_slots_filter ~= '' then --1.18#Removed added-asc check, since added-asc now sorts properly
-			list_sort(filtered_table, o.sort_slots_filter)
+		if not sort then active_sort = o.sort_slots_filter end --1.20#If nothing is passed to sort, then update the active_sort with the specific filter sort method
+		if active_sort ~= 'none' or active_sort ~= '' then
+			list_sort(filtered_table, active_sort)
 		end
 		
 		list_contents = filtered_table
@@ -492,8 +497,9 @@ function get_list_contents(filter)
 			end
 		end
 		
-		if o.sort_fileonly_filter ~= 'none' or o.sort_fileonly_filter ~= '' then
-			list_sort(filtered_table, o.sort_fileonly_filter)
+		if not sort then active_sort = o.sort_fileonly_filter end --1.20#If nothing is passed to sort, then update the active_sort with the specific filter sort method
+		if active_sort ~= 'none' or active_sort ~= '' then
+			list_sort(filtered_table, active_sort)
 		end
 		
 		list_contents = filtered_table
@@ -505,8 +511,9 @@ function get_list_contents(filter)
 			end
 		end
 		
-		if o.sort_timeonly_filter ~= 'none' or o.sort_timeonly_filter ~= '' then
-			list_sort(filtered_table, o.sort_timeonly_filter)
+		if not sort then active_sort = o.sort_timeonly_filter end --1.20#If nothing is passed to sort, then update the active_sort with the specific filter sort method
+		if active_sort ~= 'none' or active_sort ~= '' then
+			list_sort(filtered_table, active_sort)
 		end
 		
 		list_contents = filtered_table
@@ -518,8 +525,9 @@ function get_list_contents(filter)
 			end
 		end
 		
-		if o.sort_titleonly_filter ~= 'none' or o.sort_titleonly_filter ~= '' then
-			list_sort(filtered_table, o.sort_titleonly_filter)
+		if not sort then active_sort = o.sort_titleonly_filter end --1.20#If nothing is passed to sort, then update the active_sort with the specific filter sort method
+		if active_sort ~= 'none' or active_sort ~= '' then
+			list_sort(filtered_table, active_sort)
 		end
 		
 		list_contents = filtered_table
@@ -532,8 +540,9 @@ function get_list_contents(filter)
 			end
 		end
 		
-		if o.sort_protocols_filter ~= 'none' or o.sort_protocols_filter ~= '' then
-			list_sort(filtered_table, o.sort_protocols_filter)
+		if not sort then active_sort = o.sort_protocols_filter end --1.20#If nothing is passed to sort, then update the active_sort with the specific filter sort method
+		if active_sort ~= 'none' or active_sort ~= '' then
+			list_sort(filtered_table, active_sort)
 		end
 		
 		list_contents = filtered_table
@@ -546,8 +555,9 @@ function get_list_contents(filter)
 			end
 		end
 		
-		if o.sort_keywords_filter ~= 'none' or o.sort_keywords_filter ~= '' then
-			list_sort(filtered_table, o.sort_keywords_filter)
+		if not sort then active_sort = o.sort_keywords_filter end --1.20#If nothing is passed to sort, then update the active_sort with the specific filter sort method
+		if active_sort ~= 'none' or active_sort ~= '' then
+			list_sort(filtered_table, active_sort)
 		end
 		
 		list_contents = filtered_table
@@ -560,8 +570,9 @@ function get_list_contents(filter)
 			end
 		end
 		
-		if o.sort_playing_filter ~= 'none' or o.sort_playing_filter ~= '' then
-			list_sort(filtered_table, o.sort_playing_filter)
+		if not sort then active_sort = o.sort_playing_filter end --1.20#If nothing is passed to sort, then update the active_sort with the specific filter sort method
+		if active_sort ~= 'none' or active_sort ~= '' then
+			list_sort(filtered_table, active_sort)
 		end
 		
 		list_contents = filtered_table
@@ -569,20 +580,21 @@ function get_list_contents(filter)
 	
 	if search_active and search_string ~= '' then
 		filtered_table = {}
-		for i = 1, #list_contents do
-			if string.lower(list_contents[i].found_path):match(string.lower(search_string)) then
+		for i = 1, #list_contents do --1.21#Fixed malformed crash when typing "[" by adding esc_string to search_string
+			if string.lower(list_contents[i].found_path):match(string.lower(esc_string(search_string))) then
 				table.insert(filtered_table, list_contents[i])
-			elseif list_contents[i].found_title and string.lower(list_contents[i].found_title):match(string.lower(search_string)) then
+			elseif list_contents[i].found_title and string.lower(list_contents[i].found_title):match(string.lower(esc_string(search_string))) then
 				table.insert(filtered_table, list_contents[i])
-			elseif tonumber(list_contents[i].found_time) > 0 and format_time(list_contents[i].found_time):match(search_string) then
+			elseif tonumber(list_contents[i].found_time) > 0 and format_time(list_contents[i].found_time):match(esc_string(search_string)) then
 				table.insert(filtered_table, list_contents[i])
-			elseif list_contents[i].found_slot and string.lower(get_slot_keybind(tonumber(list_contents[i].found_slot))):match(string.lower(search_string)) then
+			elseif list_contents[i].found_slot and string.lower(get_slot_keybind(tonumber(list_contents[i].found_slot))):match(string.lower(esc_string(search_string))) then
 				table.insert(filtered_table, list_contents[i])
 			end
 		end
 		
-		if o.sort_search_filter ~= 'none' or o.sort_search_filter ~= '' then
-			list_sort(filtered_table, o.sort_search_filter)
+		if not sort then active_sort = o.sort_search_filter end --1.20#If nothing is passed to sort, then update the active_sort with the specific filter sort method
+		if active_sort ~= 'none' or active_sort ~= '' then
+			list_sort(filtered_table, active_sort)
 		end
 		
 		list_contents = filtered_table
@@ -835,7 +847,7 @@ function load(list_cursor, add_playlist)
 	if file_exists(list_contents[#list_contents - list_cursor + 1].found_path) or starts_protocol(protocols, list_contents[#list_contents - list_cursor + 1].found_path) then
 		if not add_playlist then 
 			mp.commandv('loadfile', list_contents[#list_contents - list_cursor + 1].found_path)
-			selected = true
+			resume_selected = true
 			if o.osd_messages == true then --1.16#Notification for Loaded
 				mp.osd_message('Loaded:\n' .. list_contents[#list_contents - list_cursor + 1].found_name.. o.time_seperator .. format_time(list_contents[#list_contents - list_cursor + 1].found_time))
 			end
@@ -1449,16 +1461,16 @@ function mark_chapter()
 	mp.set_property_native("chapter-list", all_chapters)
 end
 
-function write_log(logged_time, keybind_slot)
+function write_log(target_time, keybind_slot) --1.20#renamed to target_time since it passes the desired time
 	if not filePath then return end
-	
-	if logged_time then
-		seekTime = logged_time
-	else
-		seekTime = (mp.get_property_number('time-pos') or 0)
+	local prev_seekTime = seekTime --1.21#retain the old seekTime to revert back after writing log
+
+	seekTime = (mp.get_property_number('time-pos') or 0) --1.20#seekTime now by default contains time-pos and updates with value if available
+	if target_time then
+		seekTime = target_time
 	end
-	
 	if seekTime < 0 then seekTime = 0 end
+	
 	delete_log_entry()
 	if keybind_slot then
 		remove_slot_log_entry()
@@ -1478,6 +1490,8 @@ function write_log(logged_time, keybind_slot)
 	end
 	f:write('\n')
 	f:close()
+	
+	seekTime = prev_seekTime --1.21#revert to the original seekTime after writing log
 end
 
 function write_log_slot_entry()
@@ -1524,7 +1538,7 @@ function add_load_slot(key_index)
 				return
 			end
 			if o.slots_auto_resume then
-				selected = true
+				resume_selected = true
 			end
 			if o.osd_messages == true then
 				mp.osd_message('Loaded slot:' .. o.slot_seperator .. get_slot_keybind(slotKeyIndex) .. '\n' .. fileTitle .. o.time_seperator .. format_time(seekTime))
@@ -1598,7 +1612,7 @@ function bookmark_save()
 		end
 		msg.info('Added the below to bookmarks\n' .. fileTitle .. o.time_seperator .. format_time(seekTime))
 	elseif filePath == nil and o.bookmark_loads_last_idle then
-		get_list_contents()
+		get_list_contents('all', 'added-asc') --1.20#After fixing sort, now I can pass the correct filter thanks to added-asc for loading the first item
 		load(1)
 	else
 		if o.osd_messages == true then
@@ -1620,7 +1634,7 @@ function bookmark_fileonly_save()
 		end
 		msg.info('Added the below to bookmarks\n' .. fileTitle)
 	elseif filePath == nil and o.bookmark_loads_last_idle then
-		get_list_contents()
+		get_list_contents('all', 'added-asc') --1.20#After fixing sort, now I can pass the correct filter thanks to added-asc for loading the first item
 		load(1)
 	else
 		if o.osd_messages == true then
@@ -1645,11 +1659,11 @@ end
 mp.register_event('file-loaded', function()
 	list_close_and_trash_collection()
 	filePath, fileTitle = get_path()
-	mark_chapter()
-	if (selected == true and seekTime ~= nil) then
+	if (resume_selected == true and seekTime ~= nil) then
 		mp.commandv('seek', seekTime, 'absolute', 'exact')
-		selected = false
+		resume_selected = false
 	end
+	mark_chapter() --#1.21rearrange	
 end)
 
 
