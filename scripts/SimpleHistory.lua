@@ -436,6 +436,22 @@ function get_list_contents(filter, sort)
 	local filtered_table = {}
 	
 	list_contents = read_log_table()
+	if not search_active then --1.22#trigger list_contents check at the beginning also to return error messages if the log file is empty (fixes crash when attempting to open empty filter and log file is not created)
+		if not list_contents or not list_contents[1] then	
+			local msg_text
+			if filter ~= 'all' then
+				msg_text = filter .. " filter in History Empty"
+			else
+				msg_text = "History Empty"
+			end
+			msg.info(msg_text)
+			if o.osd_messages == true and not list_drawn then
+				mp.osd_message(msg_text)
+			end
+			
+			return
+		end
+	end
 	
 	if not sort then active_sort = o.list_default_sort end
 	if active_sort ~= 'none' or active_sort ~= '' then
@@ -577,7 +593,7 @@ function get_list_contents(filter, sort)
 		list_contents = filtered_table
 	end
 	
-	if not search_active then
+	if not search_active then --1.22#keep this in the end so that it shows the error of empty filter when filter is applied later-on (or when list_content is available but filter is not).
 		if not list_contents or not list_contents[1] then
 			
 			local msg_text
