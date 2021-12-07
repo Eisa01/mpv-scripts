@@ -32,7 +32,7 @@ local o = {
 	--available sort: 'added-asc' is for the newest added item to show first. Or 'added-desc' for the newest added to show last. Or 'alphanum-asc' is for A to Z approach with filename and episode number lower first. Or 'alphanum-desc' is for its Z to A approach. Or 'time-asc', 'time-desc' to sort the list based on time.
 
 	filters_and_sequence=[[
-	["all", "recents", "protocols", "fileonly", "titleonly", "timeonly", "playing", "keywords"]
+	["all", "recents", "playing", "protocols", "fileonly", "titleonly", "keywords"]
 	]],--Jump to the following filters and in the shown sequence when navigating via left and right keys. You can change the sequence and delete filters that are not needed.
 	keywords_filter_list=[[
 	["youtube.com", "mp4", "naruto", "c:\\users\\eisa01\\desktop"]
@@ -560,11 +560,11 @@ function get_list_contents(filter, sort)
 	if search_active and search_string ~= '' then
 		filtered_table = {}
 		for i = 1, #list_contents do
-			if string.lower(list_contents[i].found_path):match(string.lower(search_string)) then
+			if string.lower(list_contents[i].found_path):match(string.lower(esc_string(search_string))) then
 				table.insert(filtered_table, list_contents[i])
-			elseif list_contents[i].found_title and string.lower(list_contents[i].found_title):match(string.lower(search_string)) then
+			elseif list_contents[i].found_title and string.lower(list_contents[i].found_title):match(string.lower(esc_string(search_string))) then
 				table.insert(filtered_table, list_contents[i])
-			elseif tonumber(list_contents[i].found_time) > 0 and format_time(list_contents[i].found_time):match(search_string) then
+			elseif tonumber(list_contents[i].found_time) > 0 and format_time(list_contents[i].found_time):match(esc_string(search_string)) then
 				table.insert(filtered_table, list_contents[i])
 			end
 		end
@@ -1476,9 +1476,9 @@ function history_load_last()
 		get_list_contents('all', 'added-asc')
 		load(1)
 		resume_selected = false
-	elseif filePath ~= nil then --If there is file loaded then get_list_contents and add the first item into playlist
+	elseif filePath ~= nil then --1.01#If there is file loaded then get_list_contents and add the second item into playlist, because first item is the current loaded item
 		get_list_contents('all', 'added-asc')
-		load(1, true)
+		load(2, true)
 	end
 end
 
