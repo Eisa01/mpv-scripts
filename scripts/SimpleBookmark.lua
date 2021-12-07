@@ -470,6 +470,23 @@ function get_list_contents(filter, sort)
 	local filtered_table = {} --1.20# rearranged
 	
 	list_contents = read_log_table()
+	if not search_active then  --1.22#keep this in the end so that it shows the error of empty filter when filter is applied later-on.
+		if not list_contents or not list_contents[1] then
+			
+			local msg_text
+			if filter ~= 'all' then
+				msg_text = filter .. " filter in Bookmark Empty"
+			else
+				msg_text = "Bookmark Empty"
+			end
+			msg.info(msg_text)
+			if o.osd_messages == true and not list_drawn then
+				mp.osd_message(msg_text)
+			end
+			
+			return
+		end
+	end
 	
 	if not sort then active_sort = o.list_default_sort end --1.20#If nothing is passed to sort, then update the active_sort with the specific filter sort method
 	if active_sort ~= 'none' or active_sort ~= '' then
@@ -600,7 +617,7 @@ function get_list_contents(filter, sort)
 		list_contents = filtered_table
 	end
 	
-	if not search_active then
+	if not search_active then --1.22#keep this in the end so that it shows the error of empty filter when filter is applied later-on (or when list_content is available but filter is not).
 		if not list_contents or not list_contents[1] then
 			
 			local msg_text
