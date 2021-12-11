@@ -10,7 +10,7 @@ local o = {
 --Changes are recommended to be made in the script-opts directory.
 	
 	-----Script Settings----
-	auto_run_list_idle = 'recents', --Auto run the list when opening mpv and there is no video / file loaded. 'none' for disabled. Or choose between: 'all', 'recents', 'distinct', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'keywords'.
+	auto_run_list_idle = 'distinct', --Auto run the list when opening mpv and there is no video / file loaded. 'none' for disabled. Or choose between: 'all', 'recents', 'distinct', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'keywords'.
 	resume_offset = -0.65, --change to 0 so that selected item resumes from the exact position, or decrease the value so that it gives you a little preview before loading the resume point
 	osd_messages = true, --true is for displaying osd messages when actions occur. Change to false will disable all osd messages generated from this script
 	mark_history_as_chapter = false, --true is for marking the time as a chapter. false disables mark as chapter behavior.
@@ -903,6 +903,7 @@ function delete_log_entry(multiple, round, target_path, target_time)
 	if not target_path then target_path = filePath end
 	if not target_time then target_time = seekTime end
 	get_list_contents('all','added-asc')
+	if not list_contents or not list_contents[1] then return end --Fix crash when history file is empty
 	
 	if not multiple then --delete only the latest targeted entry 
 		for i = #list_contents, 1, -1 do
