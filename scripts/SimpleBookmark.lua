@@ -1040,7 +1040,7 @@ function get_list_keybinds()
 		bind_keys(o.list_close_keybind, 'list-close', list_close_and_trash_collection)
 	end
 	
-	bind_keys(o.keybind_slots_filter_inside_list_keybind, 'keybind-slots-list-inside', function()display_list('slots') end)
+	bind_keys(o.keybind_slots_filter_inside_list_keybind, 'keybind-slots-list-inside', function()display_list('keybind_slots') end)
 	bind_keys(o.fileonly_filter_inside_list_keybind, 'fileonly-list-inside', function()display_list('fileonly') end)
 	bind_keys(o.timeonly_filter_inside_list_keybind, 'timeonly-list-inside', function()display_list('timeonly') end)
 	bind_keys(o.protocols_filter_inside_list_keybind, 'protocols-list-inside', function()display_list('protocols') end)
@@ -1094,7 +1094,7 @@ function unbind_list_keys()
 	unbind_keys(o.keywords_filter_inside_list_keybind, 'keywords-list-inside')
 	unbind_keys(o.playing_filter_inside_list_keybind, 'playing-list-inside')
 	
-	bind_keys(o.keybind_slots_filter_outside_list_keybind, 'keybind-slots-list-outside', function()display_list('slots') end)
+	bind_keys(o.keybind_slots_filter_outside_list_keybind, 'keybind-slots-list-outside', function()display_list('keybind_slots') end)
 	bind_keys(o.fileonly_filter_outside_list_keybind, 'fileonly-list-outside', function()display_list('fileonly') end)
 	bind_keys(o.timeonly_filter_outside_list_keybind, 'timeonly-list-outside', function()display_list('timeonly') end)
 	bind_keys(o.protocols_filter_outside_list_keybind, 'protocols-list-outside', function()display_list('protocols') end)
