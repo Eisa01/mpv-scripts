@@ -8,33 +8,82 @@ local o = {
 ---------------------------USER CUSTOMIZATION SETTINGS---------------------------
 --These settings are for users to manually change some options.
 --Changes are recommended to be made in the script-opts directory.
-	
-	-----Script Settings----
-	auto_run_list_idle = 'none', --Runs automatically when opening mpv and there is no video / file loaded. 'none' for disabled. Or choose between: 'all', 'slots', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'keywords'.
-	bookmark_loads_last_idle = true, --When attempting to bookmark, if there is no video / file loaded, it will instead jump to your last bookmarked item
-	slots_quicksave_fileonly = true, --When quick saving a bookmark to keybind slot, it will not save position
-	slots_empty_auto_create = false, --If the keybind slot is empty, this enables quick bookmarking and adding to slot, Otherwise keybinds are assigned from the bookmark list or via quicksave.
-	slots_empty_fileonly = true, --When auto creating slot, it will not save position.
-	slots_auto_resume = true, --When loading a slot, it will auto resume to the bookmarked time.
-	show_paths = false, --Show file paths instead of media-title
-	resume_offset = -0.65, --change to 0 so that bookmark resumes from the exact position, or decrease the value so that it gives you a little preview before loading the resume point
-	osd_messages = true, --true is for displaying osd messages when actions occur. Change to false will disable all osd messages generated from this script
-	loop_through_list = false, --true is for going up on the first item loops towards the last item and vise-versa. false disables this behavior.
-	list_default_sort = 'none', --the default sorting method for the bookmark list. select between 'added-asc', 'added-desc', 'alphanum-asc', 'alphanum-desc'. description: 'none' defaults to added-asc without requiring to sort
-	mark_bookmark_as_chapter = false, --true is for marking the bookmarked time as a chapter. false disables mark as chapter behavior.
-	search_not_typing_smartly = true, --To smartly set the search as not typing (when search box is open) without needing to press ctrl+enter.
-	
-	-----Filter Settings------
-	--available filters: 'all' to display all the bookmarks. Or 'slots' to display the bookmarks filtered with slots. Or 'fileonly' to display files saved without time. Or 'timeonly' to display files that have time only. Or 'keywords' to display files with matching keywords specified in the configuration. Or 'playing' to show bookmarks for current playing file.
-	--available sort: 'added-asc' is for the newest added bookmark to show first. Or 'added-desc' for the newest added to show last. Or 'alphanum-asc' is for A to Z approach with filename and episode number lower first. Or 'alphanum-desc' is for its Z to A approach. Or 'time-asc', 'time-desc' to sort the list based on bookmarked time Or 'keybind-asc', or 'keybind-desc' to sort based on keybinds which is execlusive to sort_slots_filter.
 
+	-----Script Settings----
+	auto_run_list_idle = 'none', --Auto run the list when opening mpv and there is no video / file loaded. 'none' for disabled. Or choose between: 'all', 'keybind_slots', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'keywords'.
+	resume_offset = -0.65, --change to 0 so resumes from the exact position, or decrease the value so that it gives you a little preview before loading the resume point
+	osd_messages = true, --true is for displaying osd messages when actions occur. Change to false will disable all osd messages generated from this script
+	bookmark_loads_last_idle = true, --When attempting to bookmark, if there is no video / file loaded, it will instead jump to your last bookmarked item
+	mark_bookmark_as_chapter = false, --true is for marking the time as a chapter. false disables mark as chapter behavior.
+	bookmark_list_keybind=[[
+	["b", "B"]
+	]], --Keybind that will be used to display the main list
+	bookmark_save_keybind=[[
+	["ctrl+b", "ctrl+B"]
+	]], --Keybind that will be used to save the video and its time to log file
+	bookmark_fileonly_keybind=[[
+	["alt+b", "alt+B"]
+	]], --Keybind that will be used to save the video without time to log file
+
+	-----Keybind Slots Settings----
+	keybind_slots_quicksave_fileonly = true, --When quick saving to a keybind slot, it will not save position
+	keybind_slots_empty_auto_create = false, --If the keybind slot is empty, this enables quick logging and adding to slot, Otherwise keybinds are assigned from the list or via quicksave.
+	keybind_slots_empty_fileonly = true, --When auto creating keybind slot, it will not save position.
+	keybind_slots_auto_resume = true, --When loading a keybind slot, it will auto resume to the saved time.
+	keybind_slots_add_load_keybind=[[
+	["alt+1", "alt+2", "alt+3", "alt+4", "alt+5", "alt+6", "alt+7", "alt+8", "alt+9"]
+	]], --Keybind that will be used to bind list item to a key, as well as to load it. e.g.: Press alt+1 on highlighted item from the list to add it, press alt+1 while list is hidden to load item keybinded into alt+1. (A new slot is automatically created for each keybind. e.g: .."alt+9, alt+0". Where alt+0 creates a new 10th slot.)
+	keybind_slots_quicksave_keybind=[[
+	["alt+!", "alt+@", "alt+#", "alt+$", "alt+%", "alt+^", "alt+&", "alt+*", "alt+)"]
+	]], --To save keybind to a slot without opening the list, to load these keybinds it uses keybind_slots_add_load_keybind
+	keybind_slots_remove_keybind=[[
+	["alt+-", "alt+_"]
+	]], --Keybind that is used when list is open to remove the keybind slot from the highlighted item
+
+	-----Logging Settings-----
+	log_path = '/:dir%mpvconf', --Change to '/:dir%script' for placing it in the same directory of script, OR change to '/:dir%mpvconf' for mpv portable_config directory. OR specify the desired path, e.g.: 'C:\Users\Eisa01\Desktop\'
+	log_file = 'mpvBookmark.log', --name+extension of the file that will be used to store the log data
+	date_format = '%d/%m/%y %X', --Date format in the log (see lua date formatting), e.g.:'%d/%m/%y %X' or '%d/%b/%y %X'
+	log_time_text = 'time=', --The text that is stored for the video time inside log file. It can also be left blank.
+	keybind_slot_text = 'slot=', --The text that is stored for the keybind slot inside log file. It can also be left blank.
+	file_title_logging = 'protocols', --Change between 'all', 'protocols', 'none'. This option will store the media title in log file, it is useful for websites / protocols because title cannot be parsed from links alone
+	logging_protocols=[[
+	["https?://", "magnet:", "rtmp:"]
+	]], --add above (after a comma) any protocol you want its title to be stored in the log file. This is valid only for (file_title_logging = 'protocols' or file_title_logging = 'all')
+	prefer_filename_over_title = 'local', --Prefers to log filename over filetitle. Select between 'local', 'protocols', 'all', and 'none'. 'local' prefer filenames for videos that are not protocols. 'protocols' will prefer filenames for protocols only. 'all' will prefer filename over filetitle for both protocols and not protocols videos. 'none' will always use filetitle instead of filename
+
+	-----List Settings-----
+	loop_through_list = false, --true is for going up on the first item loops towards the last item and vise-versa. false disables this behavior.
+	list_middle_loader = true, --false is for more items to show, then u must reach the end. true is for new items to show after reaching the middle of list.
+	show_paths = false, --Show file paths instead of media-title
+	show_item_number = true, --Show the number of each item before displaying its name and values.
+	slice_longfilenames = false, --Change to true or false. Slices long filenames per the amount specified below
+	slice_longfilenames_amount = 55, --Amount for slicing long filenames
+	list_show_amount = 10, --Change maximum number to show items at once
+	quickselect_0to9_keybind = true, --Keybind entries from 0 to 9 for quick selection when list is open (list_show_amount = 10 is maximum for this feature to work)
+	main_list_keybind_twice_exits = true, --Will exit the list when double tapping the main list, even if the list was accessed through a different filter.
+	search_not_typing_smartly = true, --To smartly set the search as not typing (when search box is open) without needing to press ctrl+enter.
+
+	-----Filter Settings------
+	--available filters: 'all' to display all the items. Or 'keybind_slots' to display the list filtered with keybind slots. Or 'fileonly' to display files saved without time. Or 'timeonly' to display files that have time only. Or 'keywords' to display files with matching keywords specified in the configuration. Or 'playing' to show list for current playing file.
 	filters_and_sequence=[[
-	["all", "slots", "protocols", "fileonly", "titleonly", "timeonly", "playing", "keywords"]
-	]],--Jump to the following filters and in the shown sequence when navigating via left and right keys. You can change the sequence and delete filters that are not needed.
+	["all", "keybind_slots", "protocols", "fileonly", "titleonly", "timeonly", "playing", "keywords"]
+	]], --Jump to the following filters and in the shown sequence when navigating via left and right keys. You can change the sequence and delete filters that are not needed.
+	next_filter_sequence_keybind=[[
+	["RIGHT", "MBTN_FORWARD"]
+	]],--Keybind that will be used to go to the next available filter based on the filters_and_sequence
+	previous_filter_sequence_keybind=[[
+	["LEFT", "MBTN_BACK"]
+	]],--Keybind that will be used to go to the previous available filter based on the filters_and_sequence
+	loop_through_filters = true, --true is for bypassing the last filter to go to first filter when navigating through filters using arrow keys, and vice-versa. false disables this behavior.
 	keywords_filter_list=[[
 	["youtube.com", "mp4", "naruto", "c:\\users\\eisa01\\desktop"]
 	]], --Create a filter out of your desired 'keywords', e.g.: youtube.com will filter out the videos from youtube. You can also insert a portion of filename or title, or extension or a full path / portion of a path.
-	sort_slots_filter = 'keybind-asc', --Sorts the slots filter. Select between 'none', 'keybind-asc', 'keybind-desc', 'added-asc', 'added-desc', 'alphanum-asc', 'alphanum-desc', 'time-asc', time-desc'. description: 'none' is for default ordering. 'keybind-asc' is only for slots, it uses A to Z approach but for keybinds. 'keybind-desc' is the same but for Z to A approach.
+
+	-----Sort Settings------
+	--available sort: 'added-asc' is for the newest added items to show first. Or 'added-desc' for the newest added to show last. Or 'alphanum-asc' is for A to Z approach with filename and episode number lower first. Or 'alphanum-desc' is for its Z to A approach. Or 'time-asc', 'time-desc' to sort the list based on time. Or 'keybind-asc', 'keybind-desc' to sort based on keybinds which is execlusive to sort_keybind_slots_filter.
+	list_default_sort = 'none', --the default sorting method for the list. select between 'added-asc', 'added-desc', 'alphanum-asc', 'alphanum-desc'. description: 'none' defaults to added-asc without requiring to sort
+	sort_keybind_slots_filter = 'keybind-asc', --Sorts the keybind slots filter. Select between 'none', 'keybind-asc', 'keybind-desc', 'added-asc', 'added-desc', 'alphanum-asc', 'alphanum-desc', 'time-asc', 'time-desc'. description: 'none' is for default ordering. 'keybind-asc' is only for slots, it uses A to Z approach but for keybinds. 'keybind-desc' is the same but for Z to A approach.
 	sort_fileonly_filter = 'alphanum-asc', --Sorts the filter. Select between 'none', 'added-asc', 'added-desc', 'alphanum-asc', 'alphanum-desc', 'time-asc', 'time-desc'.
 	sort_protocols_filter = 'none',
 	sort_titleonly_filter = 'none',
@@ -42,101 +91,63 @@ local o = {
 	sort_keywords_filter = 'none',
 	sort_playing_filter = 'time-asc',
 	sort_search_filter = 'alphanum-asc',
-	loop_through_filters = true, --true is for bypassing the last filter to go to first filter when navigating through filters using arrow keys, and vice-versa. false disables this behavior.
-	
-	-----Logging Settings-----
-	log_path = '/:dir%mpvconf', --Change to '/:dir%script' for placing it in the same directory of script, OR change to '/:dir%mpvconf' for mpv portable_config directory. OR specify the desired path, e.g.: 'C:\Users\Eisa01\Desktop\'
-	log_file = 'mpvBookmark.log', --name+extension of the file that will be used to store the log data
-	date_format = '%d/%m/%y %X', --Date format in the log (see lua date formatting), e.g.:'%d/%m/%y %X' or '%d/%b/%y %X'
-	bookmark_time_text = 'time=', --The text that is stored for the video time inside log file. It can also be left blank.
-	keybind_slot_text = 'slot=', --The text that is stored for the keybind slot inside log file. It can also be left blank.
-	file_title_logging = 'protocols', --Change between 'all', 'protocols, 'none'. This option will store the media title in log file, it is useful for websites / protocols because title cannot be parsed from links alone
-	protocols=[[
-	["https?://", "magnet:", "rtmp:"]
-	]], --add above (after a comma) any protocol you want its title to be stored in the log file. This is valid only for (file_title_logging = 'protocols' or file_title_logging = 'all')
-	prefer_filename_over_title = 'local', --Prefers to log filename over filetitle. Select between 'local', 'protocols', 'all', and 'none'. 'local' prefer filenames for videos that are not protocols. 'protocols' will prefer filenames for protocols only. 'all' will prefer filename over filetitle for both protocols and not protocols videos. 'none' will always use filetitle instead of filename
-	
-	-----Boorkmark Menu Settings-----
+		
+	-----List Design Settings-----
 	text_color = 'ffffff', --Text color for list in BGR hexadecimal
-	text_scale = 50, --Font size for the text of bookmark list
-	text_border = 0.7, --Black border size for the text of bookmark list
+	text_scale = 50, --Font size for the text of list
+	text_border = 0.7, --Black border size for the text of list
 	highlight_color = 'ffbf7f', --Highlight color in BGR hexadecimal
-	highlight_scale = 50, --Font size for highlighted text in bookmark list
-	highlight_border = 0.7, --Black border size for highlighted text in bookmark list
-	header_text = '🔖 Bookmarks [%cursor/%total] %prefilter%filter%afterfilter%presearch%search%aftersearch', --Text to be shown as header for the bookmark list. %cursor: shows the position of highlighted file. %total: shows the total amount of bookmarked items. %filter: shows the filter name, %prefilter: user defined text before showing filter, %afterfilter: user defined text after showing filter, %search: shows the typed search, %presearch, %aftersearch: same concept of prefilter and afterfilter.
+	highlight_scale = 50, --Font size for highlighted text in list
+	highlight_border = 0.7, --Black border size for highlighted text in list
+	header_text = '🔖 Bookmarks [%cursor/%total] %prefilter%filter%afterfilter%presearch%search%aftersearch', --Text to be shown as header for the list. %cursor: shows the position of highlighted file. %total: shows the total amount of items. %filter: shows the filter name, %prefilter: user defined text before showing filter, %afterfilter: user defined text after showing filter, %search: shows the typed search, %presearch, %aftersearch: same concept of prefilter and afterfilter.
 	header_filter_pre_text = ' (filtered: ', --Text to be shown before filter in the header
 	header_filter_after_text = ')', --Text to be shown after filter in the header (since filter is inside the header, if you need to add a variable like %%search it will need double %%)
-	header_search_pre_text = '\\h\\N\\N(search=', --text to be shown before search in the header
+	header_search_pre_text = '\\h\\N\\N(search=', --Text to be shown before search in the header
 	header_search_after_text = '..)', --Text to be shown after search in the header
 	header_color = 'ffffaa', --Header color in BGR hexadecimal
 	search_color_typing = '00bfff', --Search color when in typing mode
 	search_color_not_typing = 'ffffaa', --Search color when not in typing mode and it is active
-	header_scale = 55, --Header text size for the bookmark list
-	header_border = 0.8, --Black border size for the Header of bookmark list
-	show_item_number = true, --Show the number of each bookmark item before displaying its name and values.
-	slice_longfilenames = false, --Change to true or false. Slices long filenames per the amount specified below
-	slice_longfilenames_amount = 55, --Amount for slicing long filenames
-	time_seperator = ' 🕒 ', --Time seperator that will be used after title / filename for bookmarked time
-	slot_seperator = ' ⌨ ', --Slot seperator that will be used after the bookmarked time
-	list_show_amount = 10, --Change maximum number to show items at once
-	quickselect_0to9_keybind = true, --Keybind entries from 0 to 9 for quick selection when list is open (list_show_amount = 10 is maximum for this feature to work)
-	list_sliced_prefix = '...\\h\\N\\N', --The text that indicates there are more items above. \\h\\N\\N is for new line.
-	list_sliced_suffix = '...', --The text that indicates there are more items below.
-	list_middle_loader = true, --false is for more items to show, then u must reach the end. true is for new items to show after reaching the middle of list.
-	bookmark_list_keybind_twice_exits = true, --Will exit the bookmark list when double tapping the bookmark list, even if the list was accessed through a different filter.
+	header_scale = 55, --Header text size for the list
+	header_border = 0.8, --Black border size for the Header of list
+	time_seperator = ' 🕒 ', --Time seperator that will be used before the saved time
+	keybind_slots_seperator = ' ⌨ ', --Keybind slots seperator that will be used before the saved keybind
+	list_sliced_prefix = '...\\h\\N\\N', --The text that indicates there are more items above. \\h\\N\\N is for new line
+	list_sliced_suffix = '...', --The text that indicates there are more items below
 
-	-----Keybind Settings-----
+	-----List Keybind Settings-----
 	--Add below (after a comma) any additional keybind you want to bind. Or change the letter inside the quotes to change the keybind
 	--Example of changing and adding keybinds: --From ["b", "B"] To ["b"]. --From [""] to ["alt+b"]. --From [""] to ["a" "ctrl+a", "alt+a"]
 	
-	bookmark_list_keybind=[[
-	["b", "B"]
-	]], --Keybind that will be used to display the bookmark list
-	bookmark_save_keybind=[[
-	["ctrl+b", "ctrl+B"]
-	]], --Keybind that will be used to save the video and its time to bookmark file
-	bookmark_fileonly_keybind=[[
-	["alt+b", "alt+B"]
-	]], --Keybind that will be used to save the video without time to bookmark file
-	bookmark_slots_add_load_keybind=[[
-	["alt+1", "alt+2", "alt+3", "alt+4", "alt+5", "alt+6", "alt+7", "alt+8", "alt+9"]
-	]], --Keybind that will be used to bind a bookmark to a key. e.g.: Press alt+1 on a bookmark slot to assign it when list is open, press while list is hidden to load. (A new slot is automatically created for each keybind. e.g: .."alt+9, alt+0". Where alt+0 creates a new 10th slot.)
-	bookmark_slots_remove_keybind=[[
-	["alt+-", "alt+_"]
-	]], --Keybind that is used to remove the highlighted bookmark slot keybind from a bookmark entry when the bookmark list is open.
-	bookmark_slots_quicksave_keybind=[[
-	["alt+!", "alt+@", "alt+#", "alt+$", "alt+%", "alt+^", "alt+&", "alt+*", "alt+)"]
-	]], --To save keybind to a slot without opening the bookmark list, to load these bookmarks it uses bookmark_slots_add_load_keybind
 	list_move_up_keybind=[[
 	["UP", "WHEEL_UP"]
-	]], --Keybind that will be used to navigate up on the bookmark list
+	]], --Keybind that will be used to navigate up on the list
 	list_move_down_keybind=[[
 	["DOWN", "WHEEL_DOWN"]
-	]], --Keybind that will be used to navigate down on the bookmark list
+	]], --Keybind that will be used to navigate down on the list
 	list_page_up_keybind=[[
 	["PGUP"]
-	]], --Keybind that will be used to go to the first item for the page shown on the bookmark list
+	]], --Keybind that will be used to go to the first item for the page shown on the list
 	list_page_down_keybind=[[
 	["PGDWN"]
-	]], --Keybind that will be used to go to the last item for the page shown on the bookmark list
+	]], --Keybind that will be used to go to the last item for the page shown on the list
 	list_move_first_keybind=[[
 	["HOME"]
-	]], --Keybind that will be used to navigate to the first item on the bookmark list
+	]], --Keybind that will be used to navigate to the first item on the list
 	list_move_last_keybind=[[
 	["END"]
-	]], --Keybind that will be used to navigate to the last item on the bookmark list
+	]], --Keybind that will be used to navigate to the last item on the list
 	list_select_keybind=[[
 	["ENTER", "MBTN_MID"]
-	]], --Keybind that will be used to load highlighted entry from the bookmark list
+	]], --Keybind that will be used to load highlighted entry from the list
 	list_add_playlist_keybind=[[
 	["SHIFT+ENTER"]
 	]], --Keybind that will be used to add the selected entry to playlist
 	list_close_keybind=[[
 	["ESC", "MBTN_RIGHT"]
-	]], --Keybind that will be used to close the bookmark list (closes search first if it is open)
+	]], --Keybind that will be used to close the list (closes search first if it is open)
 	list_delete_keybind=[[
 	["DEL"]
-	]], --Keybind that will be used to delete the highlighted entry from the bookmark list
+	]], --Keybind that will be used to delete the highlighted entry from the list
 	list_search_activate_keybind=[[
 	["ctrl+f", "ctrl+F"]
 	]], --Keybind that will be used to trigger search
@@ -145,15 +156,8 @@ local o = {
 	]], --Keybind that will be used to exit typing mode of search while keeping search open
 	
 	-----Filter Keybind Settings-----
-	next_filter_sequence_keybind=[[
-	["RIGHT", "MBTN_FORWARD"]
-	]], --Keybind that will be used to go to the next available filter based on the configured sequence
-	previous_filter_sequence_keybind=[[
-	["LEFT", "MBTN_BACK"]
-	]], --Keybind that will be used to go to the previous available filter based on the configured sequence
-	
 	--Keybind to jump to the specific filter when list is open
-	slots_filter_inside_list_keybind=[[
+	keybind_slots_filter_inside_list_keybind=[[
 	["k", "K"]
 	]],
 	fileonly_filter_inside_list_keybind=[[
@@ -175,7 +179,7 @@ local o = {
 	[""]
 	]],
 	--Keybind to jump to the specific filter when list is closed	
-	slots_filter_outside_list_keybind=[[
+	keybind_slots_filter_outside_list_keybind=[[
 	["k", "K"]
 	]],
 	fileonly_filter_outside_list_keybind=[[
@@ -206,13 +210,13 @@ local msg = require 'mp.msg'
 
 o.filters_and_sequence = utils.parse_json(o.filters_and_sequence)
 o.keywords_filter_list = utils.parse_json(o.keywords_filter_list)
-o.protocols = utils.parse_json(o.protocols)
+o.logging_protocols = utils.parse_json(o.logging_protocols)
 o.bookmark_list_keybind = utils.parse_json(o.bookmark_list_keybind)
 o.bookmark_save_keybind = utils.parse_json(o.bookmark_save_keybind)
 o.bookmark_fileonly_keybind = utils.parse_json(o.bookmark_fileonly_keybind)
-o.bookmark_slots_add_load_keybind = utils.parse_json(o.bookmark_slots_add_load_keybind)
-o.bookmark_slots_remove_keybind = utils.parse_json(o.bookmark_slots_remove_keybind)
-o.bookmark_slots_quicksave_keybind = utils.parse_json(o.bookmark_slots_quicksave_keybind)
+o.keybind_slots_add_load_keybind = utils.parse_json(o.keybind_slots_add_load_keybind)
+o.keybind_slots_remove_keybind = utils.parse_json(o.keybind_slots_remove_keybind)
+o.keybind_slots_quicksave_keybind = utils.parse_json(o.keybind_slots_quicksave_keybind)
 o.list_move_up_keybind = utils.parse_json(o.list_move_up_keybind)
 o.list_move_down_keybind = utils.parse_json(o.list_move_down_keybind)
 o.list_page_up_keybind = utils.parse_json(o.list_page_up_keybind)
@@ -227,8 +231,8 @@ o.list_search_activate_keybind = utils.parse_json(o.list_search_activate_keybind
 o.list_search_not_typing_mode_keybind = utils.parse_json(o.list_search_not_typing_mode_keybind)
 o.next_filter_sequence_keybind = utils.parse_json(o.next_filter_sequence_keybind)
 o.previous_filter_sequence_keybind = utils.parse_json(o.previous_filter_sequence_keybind)
-o.slots_filter_inside_list_keybind = utils.parse_json(o.slots_filter_inside_list_keybind)
-o.slots_filter_outside_list_keybind = utils.parse_json(o.slots_filter_outside_list_keybind)
+o.keybind_slots_filter_inside_list_keybind = utils.parse_json(o.keybind_slots_filter_inside_list_keybind)
+o.keybind_slots_filter_outside_list_keybind = utils.parse_json(o.keybind_slots_filter_outside_list_keybind)
 o.fileonly_filter_inside_list_keybind = utils.parse_json(o.fileonly_filter_inside_list_keybind)
 o.fileonly_filter_outside_list_keybind = utils.parse_json(o.fileonly_filter_outside_list_keybind)
 o.timeonly_filter_inside_list_keybind = utils.parse_json(o.timeonly_filter_inside_list_keybind)
@@ -243,11 +247,11 @@ o.playing_filter_inside_list_keybind = utils.parse_json(o.playing_filter_inside_
 o.playing_filter_outside_list_keybind = utils.parse_json(o.playing_filter_outside_list_keybind)
 
 if o.log_path == '/:dir%mpvconf' then
-	o.log_path = mp.find_config_file('.'):match('@?(.*/)')
+	o.log_path = mp.find_config_file('.') --1.23#Add support for mpv.net
 elseif o.log_path == '/:dir%script' then
 	o.log_path = debug.getinfo(1).source:match('@?(.*/)')
 end
-local bookmark_log = o.log_path .. o.log_file
+local bookmark_log = utils.join_path(o.log_path, o.log_file) --1.25#Add support for mpv.net using utils.join_path
 
 local protocols = {'https?://', 'magnet:', 'rtmp:'}
 local search_string = ''
@@ -315,9 +319,9 @@ function get_path()
 	
 	local title = mp.get_property('media-title'):gsub("\"", "")
 	
-	if starts_protocol(o.protocols, path) and o.prefer_filename_over_title == 'protocols' then
+	if starts_protocol(o.logging_protocols, path) and o.prefer_filename_over_title == 'protocols' then
 		title = mp.get_property('filename'):gsub("\"", "")
-	elseif not starts_protocol(o.protocols, path) and o.prefer_filename_over_title == 'local' then
+	elseif not starts_protocol(o.logging_protocols, path) and o.prefer_filename_over_title == 'local' then
 		title = mp.get_property('filename'):gsub("\"", "")
 	elseif o.prefer_filename_over_title == 'all' then
 		title = mp.get_property('filename'):gsub("\"", "")
@@ -329,8 +333,8 @@ end
 function get_slot_keybind(keyindex)
 	local keybind_return
 	
-	if o.bookmark_slots_add_load_keybind[keyindex] then
-		keybind_return = o.bookmark_slots_add_load_keybind[keyindex]
+	if o.keybind_slots_add_load_keybind[keyindex] then
+		keybind_return = o.keybind_slots_add_load_keybind[keyindex]
 	else
 		keybind_return = o.keybind_slot_text .. keyindex .. ' is NA'
 	end
@@ -378,20 +382,20 @@ function read_log(func)
 end
 
 function read_log_table()
-	local line_pos = 0 --1.18#Need line_pos to add the position of each line 
+	local line_pos = 0
 	return read_log(function(line)
 		local tt, p, t, s, d, n, e, l
 		if line:match('^.-\"(.-)\"') then
 			tt = line:match('^.-\"(.-)\"')
-			n, p = line:match('^.-\"(.-)\" | (.*) | ' .. esc_string(o.bookmark_time_text) .. '(.*)')
+			n, p = line:match('^.-\"(.-)\" | (.*) | ' .. esc_string(o.log_time_text) .. '(.*)')
 		else
-			p = line:match('[(.*)%]]%s(.*) | ' .. esc_string(o.bookmark_time_text) .. '(.*)')
+			p = line:match('[(.*)%]]%s(.*) | ' .. esc_string(o.log_time_text) .. '(.*)')
 			d, n, e = p:match('^(.-)([^\\/]-)%.([^\\/%.]-)%.?$')
 		end
-		t = line:match(' | ' .. esc_string(o.bookmark_time_text) .. '(%d*%.?%d*)(.*)$')
+		t = line:match(' | ' .. esc_string(o.log_time_text) .. '(%d*%.?%d*)(.*)$')
 		s = line:match(' | .* | ' .. esc_string(o.keybind_slot_text) .. '(.*)$')
 		l = line
-		line_pos = line_pos + 1 --1.18#Each read line will be incremented by 1 and then I will return it as a found_sequence
+		line_pos = line_pos + 1
 		return {found_path = p, found_time = t, found_name = n, found_slot = s, found_title = tt, found_line = l, found_sequence = line_pos}
 	end)
 end
@@ -401,9 +405,9 @@ function list_sort(tab, sort)
 		table.sort(tab, function(a, b) return a['found_sequence'] < b['found_sequence'] end) --1.18#sort added-asc/added-desc filter based on the newly created found_sequence 
 	elseif sort == 'added-desc' then
 		table.sort(tab, function(a, b) return a['found_sequence'] > b['found_sequence'] end) --1.18#sort added-asc/added-desc filter based on the newly created found_sequence 
-	elseif sort == 'keybind-asc' and filterName == 'slots' then
+	elseif sort == 'keybind-asc' and filterName == 'keybind_slots' then
 		table.sort(tab, function(a, b) return a['found_slot'] > b['found_slot'] end)
-	elseif sort == 'keybind-desc' and filterName == 'slots' then
+	elseif sort == 'keybind-desc' and filterName == 'keybind_slots' then
 		table.sort(tab, function(a, b) return a['found_slot'] < b['found_slot'] end)
 	elseif sort == 'time-asc' then
 		table.sort(tab, function(a, b) return tonumber(a['found_time']) > tonumber(b['found_time']) end)
@@ -466,41 +470,25 @@ end
 function get_list_contents(filter, sort)
 	if not filter then filter = filterName end
 	
-	local active_sort = sort --1.20#Added active_sort so I can update it with the passed sort (initialized with sort value) (i cant update sort itself because by default it will be updated immediately when no filter is passed)
-	local filtered_table = {} --1.20# rearranged
+	local active_sort = sort
+	local filtered_table = {}
 	
 	list_contents = read_log_table()
-	if not search_active then  --1.22#keep this in the end so that it shows the error of empty filter when filter is applied later-on.
-		if not list_contents or not list_contents[1] then
-			
-			local msg_text
-			if filter ~= 'all' then
-				msg_text = filter .. " filter in Bookmark Empty"
-			else
-				msg_text = "Bookmark Empty"
-			end
-			msg.info(msg_text)
-			if o.osd_messages == true and not list_drawn then
-				mp.osd_message(msg_text)
-			end
-			
-			return
-		end
-	end
+	if not list_contents and not search_active or not list_contents[1] and not search_active then return end --1.25#No error message anymore, display_list now has the ability to trigger error messages
 	
-	if not sort then active_sort = o.list_default_sort end --1.20#If nothing is passed to sort, then update the active_sort with the specific filter sort method
+	if not sort then active_sort = o.list_default_sort end
 	if active_sort ~= 'none' or active_sort ~= '' then
 		list_sort(list_contents, active_sort)
 	end
 	
-	if filter == 'slots' then
+	if filter == 'keybind_slots' then
 		for i = 1, #list_contents do
 			if list_contents[i].found_slot then
 				table.insert(filtered_table, list_contents[i])
 			end
 		end
 		
-		if not sort then active_sort = o.sort_slots_filter end --1.20#If nothing is passed to sort, then update the active_sort with the specific filter sort method
+		if not sort then active_sort = o.sort_keybind_slots_filter end
 		if active_sort ~= 'none' or active_sort ~= '' then
 			list_sort(filtered_table, active_sort)
 		end
@@ -514,7 +502,7 @@ function get_list_contents(filter, sort)
 			end
 		end
 		
-		if not sort then active_sort = o.sort_fileonly_filter end --1.20#If nothing is passed to sort, then update the active_sort with the specific filter sort method
+		if not sort then active_sort = o.sort_fileonly_filter end
 		if active_sort ~= 'none' or active_sort ~= '' then
 			list_sort(filtered_table, active_sort)
 		end
@@ -528,7 +516,7 @@ function get_list_contents(filter, sort)
 			end
 		end
 		
-		if not sort then active_sort = o.sort_timeonly_filter end --1.20#If nothing is passed to sort, then update the active_sort with the specific filter sort method
+		if not sort then active_sort = o.sort_timeonly_filter end
 		if active_sort ~= 'none' or active_sort ~= '' then
 			list_sort(filtered_table, active_sort)
 		end
@@ -542,7 +530,7 @@ function get_list_contents(filter, sort)
 			end
 		end
 		
-		if not sort then active_sort = o.sort_titleonly_filter end --1.20#If nothing is passed to sort, then update the active_sort with the specific filter sort method
+		if not sort then active_sort = o.sort_titleonly_filter end
 		if active_sort ~= 'none' or active_sort ~= '' then
 			list_sort(filtered_table, active_sort)
 		end
@@ -552,12 +540,12 @@ function get_list_contents(filter, sort)
 	
 	if filter == 'protocols' then
 		for i = 1, #list_contents do
-			if starts_protocol(o.protocols, list_contents[i].found_path) then
+			if starts_protocol(o.logging_protocols, list_contents[i].found_path) then
 				table.insert(filtered_table, list_contents[i])
 			end
 		end
 		
-		if not sort then active_sort = o.sort_protocols_filter end --1.20#If nothing is passed to sort, then update the active_sort with the specific filter sort method
+		if not sort then active_sort = o.sort_protocols_filter end
 		if active_sort ~= 'none' or active_sort ~= '' then
 			list_sort(filtered_table, active_sort)
 		end
@@ -572,7 +560,7 @@ function get_list_contents(filter, sort)
 			end
 		end
 		
-		if not sort then active_sort = o.sort_keywords_filter end --1.20#If nothing is passed to sort, then update the active_sort with the specific filter sort method
+		if not sort then active_sort = o.sort_keywords_filter end
 		if active_sort ~= 'none' or active_sort ~= '' then
 			list_sort(filtered_table, active_sort)
 		end
@@ -587,7 +575,7 @@ function get_list_contents(filter, sort)
 			end
 		end
 		
-		if not sort then active_sort = o.sort_playing_filter end --1.20#If nothing is passed to sort, then update the active_sort with the specific filter sort method
+		if not sort then active_sort = o.sort_playing_filter end
 		if active_sort ~= 'none' or active_sort ~= '' then
 			list_sort(filtered_table, active_sort)
 		end
@@ -597,7 +585,7 @@ function get_list_contents(filter, sort)
 	
 	if search_active and search_string ~= '' then
 		filtered_table = {}
-		for i = 1, #list_contents do --1.21#Fixed malformed crash when typing "[" by adding esc_string to search_string
+		for i = 1, #list_contents do
 			if string.lower(list_contents[i].found_path):match(string.lower(esc_string(search_string))) then
 				table.insert(filtered_table, list_contents[i])
 			elseif list_contents[i].found_title and string.lower(list_contents[i].found_title):match(string.lower(esc_string(search_string))) then
@@ -609,7 +597,7 @@ function get_list_contents(filter, sort)
 			end
 		end
 		
-		if not sort then active_sort = o.sort_search_filter end --1.20#If nothing is passed to sort, then update the active_sort with the specific filter sort method
+		if not sort then active_sort = o.sort_search_filter end
 		if active_sort ~= 'none' or active_sort ~= '' then
 			list_sort(filtered_table, active_sort)
 		end
@@ -617,23 +605,8 @@ function get_list_contents(filter, sort)
 		list_contents = filtered_table
 	end
 	
-	if not search_active then --1.22#keep this in the end so that it shows the error of empty filter when filter is applied later-on (or when list_content is available but filter is not).
-		if not list_contents or not list_contents[1] then
-			
-			local msg_text
-			if filter ~= 'all' then
-				msg_text = filter .. " filter in Bookmark Empty"
-			else
-				msg_text = "Bookmark Empty"
-			end
-			msg.info(msg_text)
-			if o.osd_messages == true and not list_drawn then
-				mp.osd_message(msg_text)
-			end
-			
-			return
-		end
-	end
+	if not list_contents and not search_active or not list_contents[1] and not search_active then return end --1.25#No error message anymore, display_list now has the ability to trigger error messages
+	
 end
 
 function draw_list()
@@ -709,7 +682,7 @@ function draw_list()
 		end
 		
 		if list_contents[#list_contents - i].found_slot then
-			osd_msg = osd_msg .. o.slot_seperator .. get_slot_keybind(tonumber(list_contents[#list_contents - i].found_slot))
+			osd_msg = osd_msg .. o.keybind_slots_seperator .. get_slot_keybind(tonumber(list_contents[#list_contents - i].found_slot))
 		end
 		
 		osd_msg = osd_msg .. '\\h\\N\\N' .. osd_msg_end
@@ -722,13 +695,30 @@ function draw_list()
 	mp.set_osd_ass(0, 0, osd_msg)
 end
 
-function display_list(filter)
+function list_empty_error_msg() --1.25#seperate error message for list_contents not available so we call it depending on use case
+	if list_contents ~= nil and list_contents[1] then return end --1.25# list_contents ~= nil solves the error of no log file causes crash as list_contents returns nil
+	local msg_text
+	if filterName ~= 'all' then
+		msg_text = filterName .. " filter in Bookmark Empty"
+	else
+		msg_text = "Bookmark Empty"
+	end
+	msg.info(msg_text)
+	if o.osd_messages == true and not list_drawn then
+		mp.osd_message(msg_text)
+	end
+end
+
+function display_list(filter, osd_hide) --1.25# Add osd_hide option to display_list
 	if not filter then filter = 'all' end
 	
 	local prev_filter = filterName
 	filterName = filter
 	
 	get_list_contents(filter)
+	if not osd_hide then --1.25#Hide error message when triggering display list
+		list_empty_error_msg()
+	end
 	if not list_contents and not search_active or not list_contents[1] and not search_active then return end
 	
 	if not has_value(o.filters_and_sequence, filter) then
@@ -764,7 +754,7 @@ function display_list(filter)
 		if list_pages[i][1] ~= filter then
 			list_pages[i][3] = 0
 		end
-		if list_pages[i][3] == 2 and filter == 'all' and o.bookmark_list_keybind_twice_exits then
+		if list_pages[i][3] == 2 and filter == 'all' and o.main_list_keybind_twice_exits then
 			trigger_close_list = true
 		elseif list_pages[i][3] == 2 and list_pages[1][1] == filter then
 			trigger_close_list = true		
@@ -774,7 +764,7 @@ function display_list(filter)
 	end
 	
 	if trigger_initial_list then
-		display_list(list_pages[1][1])
+		display_list(list_pages[1][1], true)--1.25#hide osd
 		return
 	end
 	
@@ -893,19 +883,44 @@ function list_add_playlist()
 	load(list_cursor, true)
 end
 
-function delete_log_entry()
-	local content = read_log(function(line)
-		if line:find(esc_string(filePath) .. '(.*)' .. esc_string(o.bookmark_time_text) .. seekTime) then
-			return nil
-		else
-			return line
+function delete_log_entry(multiple, round, target_path, target_time) --1.25# New delete_log_entry function allows multiple deletion, rounding time, specifying path and time
+	if not target_path then target_path = filePath end
+	if not target_time then target_time = seekTime end
+	get_list_contents('all','added-asc')
+	if not list_contents or not list_contents[1] then return end --Fix crash when bookmark file is empty
+	
+	if not multiple then --delete only the latest targeted entry 
+		for i = #list_contents, 1, -1 do
+			if not round then --by default does not round and attempts to delete the exact entry
+				if list_contents[i].found_path == target_path and tonumber(list_contents[i].found_time) == target_time then
+					table.remove(list_contents, i)
+					break
+				end
+			else --if option to round is passed, then it will attempt to compare the target_time with the rounded found_time
+				if list_contents[i].found_path == target_path and math.floor(tonumber(list_contents[i].found_time)) == target_time then
+					table.remove(list_contents, i)
+					break
+				end
+			end
 		end
-	end)
+	else --deletes all the targeted found entries
+		for i = #list_contents, 1, -1 do
+			if not round then
+				if list_contents[i].found_path == target_path and tonumber(list_contents[i].found_time) == target_time then
+					table.remove(list_contents, i)
+				end
+			else
+				if list_contents[i].found_path == target_path and math.floor(tonumber(list_contents[i].found_time)) == target_time then
+					table.remove(list_contents, i)
+				end
+			end
+		end
+	end
 	
 	f = io.open(bookmark_log, "w+")
-	if content then
-		for i = 1, #content do
-			f:write(("%s\n"):format(content[i]))
+	if list_contents ~= nil and list_contents[1] then --1.25#added list_contents ~= nil as precaution
+		for i = 1, #list_contents do
+			f:write(("%s\n"):format(list_contents[i].found_line))
 		end
 	end
 	f:close()
@@ -993,7 +1008,7 @@ function select_filter_sequence(pos)
 				end
 			end
 		end
-		display_list(o.filters_and_sequence[target_pos])
+		display_list(o.filters_and_sequence[target_pos], true)--1.25#hide_osd
 	end
 end
 
@@ -1016,7 +1031,7 @@ function get_list_keybinds()
 	bind_keys(o.list_select_keybind, 'list-select', list_select)
 	bind_keys(o.list_add_playlist_keybind, 'list-add-playlist', list_add_playlist)
 	bind_keys(o.list_delete_keybind, 'list-delete', list_delete)
-	bind_keys(o.bookmark_slots_remove_keybind, 'slot-remove', slot_remove)
+	bind_keys(o.keybind_slots_remove_keybind, 'keybind-slot-remove', slot_remove)
 	bind_keys(o.next_filter_sequence_keybind, 'list-filter-next', list_filter_next)
 	bind_keys(o.previous_filter_sequence_keybind, 'list-filter-previous', list_filter_previous)
 	bind_keys(o.list_search_activate_keybind, 'list-search-activate', list_search_activate)
@@ -1025,7 +1040,7 @@ function get_list_keybinds()
 		bind_keys(o.list_close_keybind, 'list-close', list_close_and_trash_collection)
 	end
 	
-	bind_keys(o.slots_filter_inside_list_keybind, 'slots-list-inside', function()display_list('slots') end)
+	bind_keys(o.keybind_slots_filter_inside_list_keybind, 'keybind-slots-list-inside', function()display_list('slots') end)
 	bind_keys(o.fileonly_filter_inside_list_keybind, 'fileonly-list-inside', function()display_list('fileonly') end)
 	bind_keys(o.timeonly_filter_inside_list_keybind, 'timeonly-list-inside', function()display_list('timeonly') end)
 	bind_keys(o.protocols_filter_inside_list_keybind, 'protocols-list-inside', function()display_list('protocols') end)
@@ -1034,7 +1049,7 @@ function get_list_keybinds()
 	bind_keys(o.playing_filter_inside_list_keybind, 'playing-list-inside', function()display_list('playing') end)
 	
 
-	unbind_keys(o.slots_filter_outside_list_keybind, 'slots-list-outside')
+	unbind_keys(o.keybind_slots_filter_outside_list_keybind, 'keybind-slots-list-outside')
 	unbind_keys(o.fileonly_filter_outside_list_keybind, 'fileonly-list-outside')
 	unbind_keys(o.timeonly_filter_outside_list_keybind, 'timeonly-list-outside')
 	unbind_keys(o.protocols_filter_outside_list_keybind, 'protocols-list-outside')
@@ -1067,11 +1082,11 @@ function unbind_list_keys()
 	unbind_keys(o.list_add_playlist_keybind, 'list-add-playlist')
 	unbind_keys(o.list_delete_keybind, 'list-delete')
 	unbind_keys(o.list_close_keybind, 'list-close')
-	unbind_keys(o.bookmark_slots_remove_keybind, 'slot-remove')
+	unbind_keys(o.keybind_slots_remove_keybind, 'keybind-slot-remove')
 	unbind_keys(o.next_filter_sequence_keybind, 'list-filter-next')
 	unbind_keys(o.previous_filter_sequence_keybind, 'list-filter-previous')
 	
-	unbind_keys(o.slots_filter_inside_list_keybind, 'slots-list-inside')
+	unbind_keys(o.keybind_slots_filter_inside_list_keybind, 'keybind-slots-list-inside')
 	unbind_keys(o.fileonly_filter_inside_list_keybind, 'fileonly-list-inside')
 	unbind_keys(o.timeonly_filter_inside_list_keybind, 'timeonly-list-inside')
 	unbind_keys(o.protocols_filter_inside_list_keybind, 'protocols-list-inside')
@@ -1079,7 +1094,7 @@ function unbind_list_keys()
 	unbind_keys(o.keywords_filter_inside_list_keybind, 'keywords-list-inside')
 	unbind_keys(o.playing_filter_inside_list_keybind, 'playing-list-inside')
 	
-	bind_keys(o.slots_filter_outside_list_keybind, 'slots-list-outside', function()display_list('slots') end)
+	bind_keys(o.keybind_slots_filter_outside_list_keybind, 'keybind-slots-list-outside', function()display_list('slots') end)
 	bind_keys(o.fileonly_filter_outside_list_keybind, 'fileonly-list-outside', function()display_list('fileonly') end)
 	bind_keys(o.timeonly_filter_outside_list_keybind, 'timeonly-list-outside', function()display_list('timeonly') end)
 	bind_keys(o.protocols_filter_outside_list_keybind, 'protocols-list-outside', function()display_list('protocols') end)
@@ -1294,7 +1309,7 @@ function bind_search_keys()
 		bind_keys(o.next_filter_sequence_keybind, 'list-filter-next', function() list_filter_next() list_search_not_typing_mode(true) end)
 		bind_keys(o.previous_filter_sequence_keybind, 'list-filter-previous', function() list_filter_previous() list_search_not_typing_mode(true) end)
 		bind_keys(o.list_delete_keybind, 'list-delete', function() list_delete() list_search_not_typing_mode(true) end)
-		bind_keys(o.bookmark_slots_remove_keybind, 'slot-remove', function() slot_remove()  list_search_not_typing_mode(true) end)
+		bind_keys(o.keybind_slots_remove_keybind, 'keybind-slot-remove', function() slot_remove()  list_search_not_typing_mode(true) end)
 	end
 end
 
@@ -1410,7 +1425,7 @@ end
 function remove_slot_log_entry()
 	local content = read_log(function(line)
 		if line:match(' | .* | ' .. esc_string(o.keybind_slot_text) .. slotKeyIndex) then
-			return line:match('(.* | ' .. esc_string(o.bookmark_time_text) .. '%d*%.?%d*)(.*)$')
+			return line:match('(.* | ' .. esc_string(o.log_time_text) .. '%d*%.?%d*)(.*)$')
 		else
 			return line
 		end
@@ -1478,29 +1493,29 @@ function mark_chapter()
 	mp.set_property_native("chapter-list", all_chapters)
 end
 
-function write_log(target_time, keybind_slot) --1.20#renamed to target_time since it passes the desired time
+function write_log(target_time, keybind_slot)
 	if not filePath then return end
-	local prev_seekTime = seekTime --1.21#retain the old seekTime to revert back after writing log
+	local prev_seekTime = seekTime
 
-	seekTime = (mp.get_property_number('time-pos') or 0) --1.20#seekTime now by default contains time-pos and updates with value if available
+	seekTime = (mp.get_property_number('time-pos') or 0)
 	if target_time then
 		seekTime = target_time
 	end
 	if seekTime < 0 then seekTime = 0 end
 	
-	delete_log_entry()
+	delete_log_entry(false, true, filePath, math.floor(seekTime)) --1.25# to not allow for duplicates by removing entries with the same time (rounding parameter is passed into function)
 	if keybind_slot then
 		remove_slot_log_entry()
 	end
 	f = io.open(bookmark_log, "a+")
 	if o.file_title_logging == 'all' then
-		f:write(("[%s] \"%s\" | %s | %s"):format(os.date(o.date_format), fileTitle, filePath, o.bookmark_time_text .. tostring(seekTime)))
-	elseif o.file_title_logging == 'protocols' and (starts_protocol(o.protocols, filePath)) then
-		f:write(("[%s] \"%s\" | %s | %s"):format(os.date(o.date_format), fileTitle, filePath, o.bookmark_time_text .. tostring(seekTime)))
-	elseif o.file_title_logging == 'protocols' and not (starts_protocol(o.protocols, filePath)) then
-		f:write(("[%s] %s | %s"):format(os.date(o.date_format), filePath, o.bookmark_time_text .. tostring(seekTime)))
+		f:write(("[%s] \"%s\" | %s | %s"):format(os.date(o.date_format), fileTitle, filePath, o.log_time_text .. tostring(seekTime)))
+	elseif o.file_title_logging == 'protocols' and (starts_protocol(o.logging_protocols, filePath)) then
+		f:write(("[%s] \"%s\" | %s | %s"):format(os.date(o.date_format), fileTitle, filePath, o.log_time_text .. tostring(seekTime)))
+	elseif o.file_title_logging == 'protocols' and not (starts_protocol(o.logging_protocols, filePath)) then
+		f:write(("[%s] %s | %s"):format(os.date(o.date_format), filePath, o.log_time_text .. tostring(seekTime)))
 	else
-		f:write(("[%s] %s | %s"):format(os.date(o.date_format), filePath, o.bookmark_time_text .. tostring(seekTime)))
+		f:write(("[%s] %s | %s"):format(os.date(o.date_format), filePath, o.log_time_text .. tostring(seekTime)))
 	end
 	if keybind_slot then
 		f:write(' | ' .. o.keybind_slot_text .. slotKeyIndex)
@@ -1508,7 +1523,7 @@ function write_log(target_time, keybind_slot) --1.20#renamed to target_time sinc
 	f:write('\n')
 	f:close()
 	
-	seekTime = prev_seekTime --1.21#revert to the original seekTime after writing log
+	seekTime = prev_seekTime
 end
 
 function write_log_slot_entry()
@@ -1522,7 +1537,7 @@ function write_log_slot_entry()
 	write_log(seekTime, true)
 	get_list_contents()
 	list_move_first()
-	msg.info('Added Keybind:\n' .. fileTitle .. o.time_seperator .. format_time(seekTime) .. o.slot_seperator .. get_slot_keybind(slotKeyIndex))
+	msg.info('Added Keybind:\n' .. fileTitle .. o.time_seperator .. format_time(seekTime) .. o.keybind_slots_seperator .. get_slot_keybind(slotKeyIndex))
 	filePath, fileTitle = get_path()
 end
 
@@ -1535,56 +1550,63 @@ function add_load_slot(key_index)
 	else
 		local slot_taken = false
 		get_list_contents()
-		for i = 1, #list_contents do
-			if tonumber(list_contents[i].found_slot) == slotKeyIndex then
-				filePath = list_contents[i].found_path
-				fileTitle = list_contents[i].found_name
-				seekTime = tonumber(list_contents[i].found_time)
-				slot_taken = true
-				break
-			end
-		end
-		if slot_taken then
-			if file_exists(filePath) or starts_protocol(protocols, filePath) then
-				mp.commandv('loadfile', filePath)
-			else
-				if o.osd_messages == true then
-					mp.osd_message('File Doesn\'t Exist:\n' .. filePath)
+		if list_contents ~= nil and list_contents[1] then --1.25#added list_contents ~= nil and list_contents[1] to fix crash when log file is not created
+			for i = 1, #list_contents do
+				if tonumber(list_contents[i].found_slot) == slotKeyIndex then
+					filePath = list_contents[i].found_path
+					fileTitle = list_contents[i].found_name
+					seekTime = tonumber(list_contents[i].found_time)
+					slot_taken = true
+					break
 				end
-				msg.info('The file below doesn\'t seem to exist:\n' .. filePath)
-				return
 			end
-			if o.slots_auto_resume then
-				resume_selected = true
-			end
-			if o.osd_messages == true then
-				mp.osd_message('Loaded slot:' .. o.slot_seperator .. get_slot_keybind(slotKeyIndex) .. '\n' .. fileTitle .. o.time_seperator .. format_time(seekTime))
-			end
-			msg.info('Loaded slot:' .. o.slot_seperator .. get_slot_keybind(slotKeyIndex) .. '\n' .. fileTitle .. o.time_seperator .. format_time(seekTime))
-		else
-			if o.slots_empty_auto_create then
-				if filePath ~= nil then
-					if o.slots_empty_fileonly then
-						write_log(0, true)
-					else
-						write_log(false, true)
-					end
-					if o.osd_messages == true then
-						mp.osd_message('Bookmarked & Added Keybind:\n' .. fileTitle .. o.time_seperator .. format_time(seekTime) .. o.slot_seperator .. get_slot_keybind(slotKeyIndex))
-					end
-					msg.info('Bookmarked the below & added keybind:\n' .. fileTitle .. o.time_seperator .. format_time(seekTime) .. o.slot_seperator .. get_slot_keybind(slotKeyIndex))
+			if slot_taken then
+				if file_exists(filePath) or starts_protocol(protocols, filePath) then
+					mp.commandv('loadfile', filePath)
 				else
 					if o.osd_messages == true then
-						mp.osd_message('Failed to Bookmark & Auto Create Keybind\nNo Video Found')
+						mp.osd_message('File Doesn\'t Exist:\n' .. filePath)
 					end
-					msg.info("Failed to bookmark & auto create keybind, no video found")
+					msg.info('The file below doesn\'t seem to exist:\n' .. filePath)
+					return
 				end
-			else
+				if o.keybind_slots_auto_resume then
+					resume_selected = true
+				end
 				if o.osd_messages == true then
-					mp.osd_message('No Bookmark Slot For' .. o.slot_seperator .. get_slot_keybind(slotKeyIndex) .. ' Yet')
+					mp.osd_message('Loaded slot:' .. o.keybind_slots_seperator .. get_slot_keybind(slotKeyIndex) .. '\n' .. fileTitle .. o.time_seperator .. format_time(seekTime))
 				end
-				msg.info('No bookmark slot has been assigned for' .. o.slot_seperator .. get_slot_keybind(slotKeyIndex) .. ' keybind yet')
+				msg.info('Loaded slot:' .. o.keybind_slots_seperator .. get_slot_keybind(slotKeyIndex) .. '\n' .. fileTitle .. o.time_seperator .. format_time(seekTime))
+			else
+				if o.keybind_slots_empty_auto_create then
+					if filePath ~= nil then
+						if o.keybind_slots_empty_fileonly then
+							write_log(0, true)
+						else
+							write_log(false, true)
+						end
+						if o.osd_messages == true then
+							mp.osd_message('Bookmarked & Added Keybind:\n' .. fileTitle .. o.time_seperator .. format_time(seekTime) .. o.keybind_slots_seperator .. get_slot_keybind(slotKeyIndex))
+						end
+						msg.info('Bookmarked the below & added keybind:\n' .. fileTitle .. o.time_seperator .. format_time(seekTime) .. o.keybind_slots_seperator .. get_slot_keybind(slotKeyIndex))
+					else
+						if o.osd_messages == true then
+							mp.osd_message('Failed to Bookmark & Auto Create Keybind\nNo Video Found')
+						end
+						msg.info("Failed to bookmark & auto create keybind, no video found")
+					end
+				else
+					if o.osd_messages == true then
+						mp.osd_message('No Bookmark Slot For' .. o.keybind_slots_seperator .. get_slot_keybind(slotKeyIndex) .. ' Yet')
+					end
+					msg.info('No bookmark slot has been assigned for' .. o.keybind_slots_seperator .. get_slot_keybind(slotKeyIndex) .. ' keybind yet')
+				end
 			end
+		else--1.25#show same error message when log file is not created and attempting to load a keybind slot
+			if o.osd_messages == true then
+				mp.osd_message('No Bookmark Slot For' .. o.keybind_slots_seperator .. get_slot_keybind(slotKeyIndex) .. ' Yet')
+			end
+			msg.info('No bookmark slot has been assigned for' .. o.keybind_slots_seperator .. get_slot_keybind(slotKeyIndex) .. ' keybind yet')
 		end
 	end
 	slotKeyIndex = 0
@@ -1598,15 +1620,15 @@ function quicksave_slot(key_index)
 		write_log_slot_entry()
 	else
 		if filePath ~= nil then
-			if o.slots_quicksave_fileonly then
+			if o.keybind_slots_quicksave_fileonly then
 				write_log(0, true)
 			else
 				write_log(false, true)
 			end
 			if o.osd_messages == true then
-				mp.osd_message('Bookmarked & Added Keybind:\n' .. fileTitle .. o.time_seperator .. format_time(seekTime) .. o.slot_seperator .. get_slot_keybind(slotKeyIndex))
+				mp.osd_message('Bookmarked & Added Keybind:\n' .. fileTitle .. o.time_seperator .. format_time(seekTime) .. o.keybind_slots_seperator .. get_slot_keybind(slotKeyIndex))
 			end
-			msg.info('Bookmarked the below & added keybind:\n' .. fileTitle .. o.time_seperator .. format_time(seekTime) .. o.slot_seperator .. get_slot_keybind(slotKeyIndex))
+			msg.info('Bookmarked the below & added keybind:\n' .. fileTitle .. o.time_seperator .. format_time(seekTime) .. o.keybind_slots_seperator .. get_slot_keybind(slotKeyIndex))
 		else
 			if o.osd_messages == true then
 				mp.osd_message('Failed to Bookmark & Auto Create Keybind\nNo Video Found')
@@ -1662,14 +1684,14 @@ function bookmark_fileonly_save()
 end
 
 if o.auto_run_list_idle == 'all'
-	or o.auto_run_list_idle == 'slots'
+	or o.auto_run_list_idle == 'keybind_slots'
 	or o.auto_run_list_idle == 'protocols'
 	or o.auto_run_list_idle == 'fileonly'
 	or o.auto_run_list_idle == 'titleonly'
 	or o.auto_run_list_idle == 'timeonly'
 	or o.auto_run_list_idle == 'keywords' then
 	mp.observe_property("idle-active", "bool", function(_, v)
-		if v then display_list(o.auto_run_list_idle) end
+		if v then display_list(o.auto_run_list_idle, true) end --1.25#hide osd of empty
 	end)
 end
 
@@ -1680,7 +1702,7 @@ mp.register_event('file-loaded', function()
 		mp.commandv('seek', seekTime, 'absolute', 'exact')
 		resume_selected = false
 	end
-	mark_chapter() --#1.21rearrange	
+	mark_chapter()
 end)
 
 
@@ -1688,15 +1710,15 @@ bind_keys(o.bookmark_list_keybind, 'bookmark-list', display_list)
 bind_keys(o.bookmark_save_keybind, 'bookmark-save', bookmark_save)
 bind_keys(o.bookmark_fileonly_keybind, 'bookmark-fileonly', bookmark_fileonly_save)
 
-for i = 1, #o.bookmark_slots_add_load_keybind do
-	mp.add_forced_key_binding(o.bookmark_slots_add_load_keybind[i], 'slot-' .. i, function()add_load_slot(i) end)
+for i = 1, #o.keybind_slots_add_load_keybind do
+	mp.add_forced_key_binding(o.keybind_slots_add_load_keybind[i], 'keybind-slot-' .. i, function()add_load_slot(i) end)
 end
 
-for i = 1, #o.bookmark_slots_quicksave_keybind do
-	mp.add_forced_key_binding(o.bookmark_slots_quicksave_keybind[i], 'slot-save-' .. i, function()quicksave_slot(i) end)
+for i = 1, #o.keybind_slots_quicksave_keybind do
+	mp.add_forced_key_binding(o.keybind_slots_quicksave_keybind[i], 'keybind-slot-save-' .. i, function()quicksave_slot(i) end)
 end
 
-bind_keys(o.slots_filter_outside_list_keybind, 'slots-list-outside', function()display_list('slots') end)
+bind_keys(o.keybind_slots_filter_outside_list_keybind, 'keybind-slots-list-outside', function()display_list('keybind_slots') end)
 bind_keys(o.fileonly_filter_outside_list_keybind, 'fileonly-list-outside', function()display_list('fileonly') end)
 bind_keys(o.timeonly_filter_outside_list_keybind, 'timeonly-list-outside', function()display_list('timeonly') end)
 bind_keys(o.protocols_filter_outside_list_keybind, 'protocols-list-outside', function()display_list('protocols') end)
