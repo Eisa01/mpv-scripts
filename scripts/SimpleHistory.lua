@@ -8,40 +8,65 @@ local o = {
 ---------------------------USER CUSTOMIZATION SETTINGS---------------------------
 --These settings are for users to manually change some options.
 --Changes are recommended to be made in the script-opts directory.
-	
+
 	-----Script Settings----
 	auto_run_list_idle = 'recents', --Auto run the list when opening mpv and there is no video / file loaded. 'none' for disabled. Or choose between: 'all', 'recents', 'distinct', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'keywords'.
-	resume_offset = -0.65, --change to 0 so that selected item resumes from the exact position, or decrease the value so that it gives you a little preview before loading the resume point
+	resume_offset = -0.65, --change to 0 so item resumes from the exact position, or decrease the value so that it gives you a little preview before loading the resume point
 	osd_messages = true, --true is for displaying osd messages when actions occur. Change to false will disable all osd messages generated from this script
-	mark_history_as_chapter = false, --true is for marking the time as a chapter. false disables mark as chapter behavior.
-	resume_notification = true, --true so that when a file that is played previously, a notification to resume to the previous reached time will be triggered
+	resume_notification = false, --true so that when a file that is played previously, a notification to resume to the previous reached time will be triggered
 	resume_notification_threshold = 5, --0 to always show a resume notification when the same video has been played previously, a value such as 5 will only show the resume notification if the last played time starts after 5% of the video and ends before completion by 5%
-	
+	mark_history_as_chapter = false, --true is for marking the time as a chapter. false disables mark as chapter behavior.
+	history_list_keybind=[[
+	["h", "H"]
+	]], --Keybind that will be used to display the main list
+	history_resume_keybind=[[
+	["ctrl+r", "ctrl+R"]
+	]], --Keybind that will be used to immediately load and resume last item when no video is playing. If video is playing it will resume to the last found position
+	history_load_last_keybind=[[
+	["alt+r", "alt+R"]
+	]], --Keybind that will be used to immediately load the last item without resuming when no video is playing. If video is playing then it will add into playlist
+
+	-----Logging Settings-----
+	log_path = '/:dir%mpvconf', --Change to '/:dir%script' for placing it in the same directory of script, OR change to '/:dir%mpvconf' for mpv portable_config directory. OR specify the desired path, e.g.: 'C:\Users\Eisa01\Desktop\'
+	log_file = 'mpvHistory.log', --name+extension of the file that will be used to store the log data
+	date_format = '%d/%m/%y %X', --Date format in the log (see lua date formatting), e.g.:'%d/%m/%y %X' or '%d/%b/%y %X'
+	log_time_text = 'time=', --The text that is stored for the video time inside log file. It can also be left blank.
+	file_title_logging = 'protocols', --Change between 'all', 'protocols', 'none'. This option will store the media title in log file, it is useful for websites / protocols because title cannot be parsed from links alone
+	logging_protocols=[[
+	["https?://", "magnet:", "rtmp:"]
+	]], --add above (after a comma) any protocol you want its title to be stored in the log file. This is valid only for (file_title_logging = 'protocols' or file_title_logging = 'all')
+	prefer_filename_over_title = 'local', --Prefers to log filename over filetitle. Select between 'local', 'protocols', 'all', and 'none'. 'local' prefer filenames for videos that are not protocols. 'protocols' will prefer filenames for protocols only. 'all' will prefer filename over filetitle for both protocols and not protocols videos. 'none' will always use filetitle instead of filename
+
 	-----List Settings-----
 	loop_through_list = false, --true is for going up on the first item loops towards the last item and vise-versa. false disables this behavior.
-	show_paths = false, --Show file paths instead of media-title
 	list_middle_loader = true, --false is for more items to show, then u must reach the end. true is for new items to show after reaching the middle of list.
-	search_not_typing_smartly = true, --To smartly set the search as not typing (when search box is open) without needing to press ctrl+enter.
-	main_list_keybind_twice_exits = true, --Will exit the list when double tapping the main list, even if the list was accessed through a different filter.
+	show_paths = false, --Show file paths instead of media-title
 	show_item_number = true, --Show the number of each item before displaying its name and values.
 	slice_longfilenames = false, --Change to true or false. Slices long filenames per the amount specified below
 	slice_longfilenames_amount = 55, --Amount for slicing long filenames
 	list_show_amount = 10, --Change maximum number to show items at once
 	quickselect_0to9_keybind = true, --Keybind entries from 0 to 9 for quick selection when list is open (list_show_amount = 10 is maximum for this feature to work)
-	
-	-----Filter Settings------
-	--available filters: "all" to display all the items. Or "recents" to display recently added items to history without duplicate. Or "distinct" to show recent saved entries for files in different paths. Or "fileonly" to display files saved without time. Or "timeonly" to display files that have time only. Or "keywords" to display files with matching keywords specified in the configuration. Or "playing" to show list of current playing file.
-	--available sort: 'added-asc' is for the newest added item to show first. Or 'added-desc' for the newest added to show last. Or 'alphanum-asc' is for A to Z approach with filename and episode number lower first. Or 'alphanum-desc' is for its Z to A approach. Or 'time-asc', 'time-desc' to sort the list based on time.
+	main_list_keybind_twice_exits = true, --Will exit the list when double tapping the main list, even if the list was accessed through a different filter.
+	search_not_typing_smartly = true, --To smartly set the search as not typing (when search box is open) without needing to press ctrl+enter.
 
+	-----Filter Settings------
+	--available filters: "all" to display all the items. Or "recents" to display recently added items to log without duplicate. Or "distinct" to show recent saved entries for files in different paths. Or "fileonly" to display files saved without time. Or "timeonly" to display files that have time only. Or "keywords" to display files with matching keywords specified in the configuration. Or "playing" to show list of current playing file.
 	filters_and_sequence=[[
 	["all", "recents", "distinct", "protocols", "playing", "fileonly", "titleonly", "keywords"]
-	]],--Jump to the following filters and in the shown sequence when navigating via left and right keys. You can change the sequence and delete filters that are not needed.
+	]], --Jump to the following filters and in the shown sequence when navigating via left and right keys. You can change the sequence and delete filters that are not needed.
+	next_filter_sequence_keybind=[[
+	["RIGHT", "MBTN_FORWARD"]
+	]], --Keybind that will be used to go to the next available filter based on the filters_and_sequence
+	previous_filter_sequence_keybind=[[
+	["LEFT", "MBTN_BACK"]
+	]], --Keybind that will be used to go to the previous available filter based on the filters_and_sequence
+	loop_through_filters = true, --true is for bypassing the last filter to go to first filter when navigating through filters using arrow keys, and vice-versa. false disables this behavior.
 	keywords_filter_list=[[
 	["youtube.com", "mp4", "naruto", "c:\\users\\eisa01\\desktop"]
 	]], --Create a filter out of your desired 'keywords', e.g.: youtube.com will filter out the videos from youtube. You can also insert a portion of filename or title, or extension or a full path / portion of a path.
-	loop_through_filters = true, --true is for bypassing the last filter to go to first filter when navigating through filters using arrow keys, and vice-versa. false disables this behavior.
 
 	-----Sort Settings------
+	--available sort: 'added-asc' is for the newest added item to show first. Or 'added-desc' for the newest added to show last. Or 'alphanum-asc' is for A to Z approach with filename and episode number lower first. Or 'alphanum-desc' is for its Z to A approach. Or 'time-asc', 'time-desc' to sort the list based on time.
 	list_default_sort = 'none', --the default sorting method for the list. select between 'none', 'added-asc', 'added-desc', 'alphanum-asc', 'alphanum-desc'. description: 'none' defaults to added-asc without requiring to sort
 	sort_recents_filter = 'none',
 	sort_distinct_filter = 'none',	
@@ -52,19 +77,8 @@ local o = {
 	sort_keywords_filter = 'none',
 	sort_playing_filter = 'none',
 	sort_search_filter = 'none',
-	
-	-----Logging Settings-----
-	log_path = '/:dir%mpvconf', --Change to '/:dir%script' for placing it in the same directory of script, OR change to '/:dir%mpvconf' for mpv portable_config directory. OR specify the desired path, e.g.: 'C:\Users\Eisa01\Desktop\'
-	log_file = 'mpvHistory.log', --name+extension of the file that will be used to store the log data
-	date_format = '%d/%m/%y %X', --Date format in the log (see lua date formatting), e.g.:'%d/%m/%y %X' or '%d/%b/%y %X'
-	log_time_text = 'time=', --The text that is stored for the video time inside log file. It can also be left blank.
-	file_title_logging = 'protocols', --Change between 'all', 'protocols, 'none'. This option will store the media title in log file, it is useful for websites / protocols because title cannot be parsed from links alone
-	protocols=[[
-	["https?://", "magnet:", "rtmp:"]
-	]], --add above (after a comma) any protocol you want its title to be stored in the log file. This is valid only for (file_title_logging = 'protocols' or file_title_logging = 'all')
-	prefer_filename_over_title = 'local', --Prefers to log filename over filetitle. Select between 'local', 'protocols', 'all', and 'none'. 'local' prefer filenames for videos that are not protocols. 'protocols' will prefer filenames for protocols only. 'all' will prefer filename over filetitle for both protocols and not protocols videos. 'none' will always use filetitle instead of filename
-	
-	-----History List Design Settings-----
+		
+	-----List Design Settings-----
 	text_color = 'ffffff', --Text color for list in BGR hexadecimal
 	text_scale = 50, --Font size for the text of list
 	text_border = 0.7, --Black border size for the text of list
@@ -74,30 +88,21 @@ local o = {
 	header_text = '⌛ History [%cursor/%total] %prefilter%filter%afterfilter%presearch%search%aftersearch', --Text to be shown as header for the list. %cursor: shows the position of highlighted file. %total: shows the total amount of items. %filter: shows the filter name, %prefilter: user defined text before showing filter, %afterfilter: user defined text after showing filter, %search: shows the typed search, %presearch, %aftersearch: same concept of prefilter and afterfilter.
 	header_filter_pre_text = ' (filtered: ', --Text to be shown before filter in the header
 	header_filter_after_text = ')', --Text to be shown after filter in the header (since filter is inside the header, if you need to add a variable like %%search it will need double %%)
-	header_search_pre_text = '\\h\\N\\N(search=', --text to be shown before search in the header
+	header_search_pre_text = '\\h\\N\\N(search=', --Text to be shown before search in the header
 	header_search_after_text = '..)', --Text to be shown after search in the header
 	header_color = '00bfff', --Header color in BGR hexadecimal
 	search_color_typing = 'ffffaa', --Search color when in typing mode
 	search_color_not_typing = '00bfff', --Search color when not in typing mode and it is active
 	header_scale = 55, --Header text size for the list
 	header_border = 0.8, --Black border size for the Header of list
-	time_seperator = ' 🕒 ', --Time seperator that will be used after title / filename for saved time
+	time_seperator = ' 🕒 ', --Time seperator that will be used before the saved time
 	list_sliced_prefix = '...\\h\\N\\N', --The text that indicates there are more items above. \\h\\N\\N is for new line.
 	list_sliced_suffix = '...', --The text that indicates there are more items below.
 
-	-----Keybind Settings-----
+	-----List Keybind Settings-----
 	--Add below (after a comma) any additional keybind you want to bind. Or change the letter inside the quotes to change the keybind
 	--Example of changing and adding keybinds: --From ["b", "B"] To ["b"]. --From [""] to ["alt+b"]. --From [""] to ["a" "ctrl+a", "alt+a"]
 	
-	history_list_keybind=[[
-	["h", "H"]
-	]], --Keybind that will be used to display the main list
-	history_resume_keybind=[[
-	["ctrl+r", "ctrl+R"]
-	]], --Keybind that will be used to immediately load and resume last item when no video is playing. If video is playing it will resume to the last found position
-	history_load_last_keybind=[[
-	["alt+r", "alt+R"]
-	]], --Keybind that will be used to immediately load the last item without resuming when no video is playing. If video is playing then it will add into playlist
 	list_move_up_keybind=[[
 	["UP", "WHEEL_UP"]
 	]], --Keybind that will be used to navigate up on the list
@@ -135,14 +140,7 @@ local o = {
 	["CTRL+ENTER"]
 	]], --Keybind that will be used to exit typing mode of search while keeping search open
 	
-	-----Filter Keybind Settings-----
-	next_filter_sequence_keybind=[[
-	["RIGHT", "MBTN_FORWARD"]
-	]], --Keybind that will be used to go to the next available filter based on the configured sequence
-	previous_filter_sequence_keybind=[[
-	["LEFT", "MBTN_BACK"]
-	]], --Keybind that will be used to go to the previous available filter based on the configured sequence
-	
+	-----Filter Keybind Settings-----	
 	--Keybind to jump to the specific filter when list is open
 	recents_filter_inside_list_keybind=[[
 	["r", "R"]
@@ -203,7 +201,7 @@ local msg = require 'mp.msg'
 
 o.filters_and_sequence = utils.parse_json(o.filters_and_sequence)
 o.keywords_filter_list = utils.parse_json(o.keywords_filter_list)
-o.protocols = utils.parse_json(o.protocols)
+o.logging_protocols = utils.parse_json(o.logging_protocols)
 o.history_list_keybind = utils.parse_json(o.history_list_keybind)
 o.history_resume_keybind = utils.parse_json(o.history_resume_keybind)
 o.history_load_last_keybind = utils.parse_json(o.history_load_last_keybind)
@@ -309,9 +307,9 @@ function get_path()
 	
 	local title = mp.get_property('media-title'):gsub("\"", "")
 	
-	if starts_protocol(o.protocols, path) and o.prefer_filename_over_title == 'protocols' then
+	if starts_protocol(o.logging_protocols, path) and o.prefer_filename_over_title == 'protocols' then
 		title = mp.get_property('filename'):gsub("\"", "")
-	elseif not starts_protocol(o.protocols, path) and o.prefer_filename_over_title == 'local' then
+	elseif not starts_protocol(o.logging_protocols, path) and o.prefer_filename_over_title == 'local' then
 		title = mp.get_property('filename'):gsub("\"", "")
 	elseif o.prefer_filename_over_title == 'all' then
 		title = mp.get_property('filename'):gsub("\"", "")
@@ -551,7 +549,7 @@ function get_list_contents(filter, sort)
 	
 	if filter == 'protocols' then
 		for i = 1, #list_contents do
-			if starts_protocol(o.protocols, list_contents[i].found_path) then
+			if starts_protocol(o.logging_protocols, list_contents[i].found_path) then
 				table.insert(filtered_table, list_contents[i])
 			end
 		end
@@ -1472,9 +1470,9 @@ function write_log(target_time)--1.20#renamed to target_time since it passes the
 	f = io.open(history_log, "a+")
 	if o.file_title_logging == 'all' then
 		f:write(("[%s] \"%s\" | %s | %s"):format(os.date(o.date_format), fileTitle, filePath, o.log_time_text .. tostring(seekTime)))
-	elseif o.file_title_logging == 'protocols' and (starts_protocol(o.protocols, filePath)) then
+	elseif o.file_title_logging == 'protocols' and (starts_protocol(o.logging_protocols, filePath)) then
 		f:write(("[%s] \"%s\" | %s | %s"):format(os.date(o.date_format), fileTitle, filePath, o.log_time_text .. tostring(seekTime)))
-	elseif o.file_title_logging == 'protocols' and not (starts_protocol(o.protocols, filePath)) then
+	elseif o.file_title_logging == 'protocols' and not (starts_protocol(o.logging_protocols, filePath)) then
 		f:write(("[%s] %s | %s"):format(os.date(o.date_format), filePath, o.log_time_text .. tostring(seekTime)))
 	else
 		f:write(("[%s] %s | %s"):format(os.date(o.date_format), filePath, o.log_time_text .. tostring(seekTime)))
