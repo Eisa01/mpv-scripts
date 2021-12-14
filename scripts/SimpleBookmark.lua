@@ -35,7 +35,7 @@ local o = {
 	["alt+1", "alt+2", "alt+3", "alt+4", "alt+5", "alt+6", "alt+7", "alt+8", "alt+9"]
 	]], --Keybind that will be used to bind list item to a key, as well as to load it. e.g.: Press alt+1 on highlighted item from the list to add it, press alt+1 while list is hidden to load item keybinded into alt+1. (A new slot is automatically created for each keybind. e.g: .."alt+9, alt+0". Where alt+0 creates a new 10th slot.)
 	keybind_slots_quicksave_keybind=[[
-	["alt+!", "alt+@", "alt+#", "alt+$", "alt+%", "alt+^", "alt+&", "alt+*", "alt+)"]
+	["alt+!", "alt+@", "alt+#", "alt+$", "alt+%", "alt+^", "alt+&", "alt+*", "alt+("]
 	]], --To save keybind to a slot without opening the list, to load these keybinds it uses keybind_slots_add_load_keybind
 	keybind_slots_remove_keybind=[[
 	["alt+-", "alt+_"]
@@ -1504,7 +1504,7 @@ function mark_chapter()
 	mp.set_property_native("chapter-list", all_chapters)
 end
 
-function write_log(target_time, keybind_slot)
+function write_log(target_time, keybind_slot, update_seekTime) --1.29#Option to update seekTime globally
 	if not filePath then return end
 	local prev_seekTime = seekTime
 
@@ -1534,7 +1534,9 @@ function write_log(target_time, keybind_slot)
 	f:write('\n')
 	f:close()
 	
-	seekTime = prev_seekTime
+	if not update_seekTime then --1.29# If update_seekTime is passed then it will update globally 
+		seekTime = prev_seekTime
+	end
 end
 
 function write_log_slot_entry()
@@ -1555,6 +1557,7 @@ end
 function add_load_slot(key_index)
 	if not key_index then return end
 	slotKeyIndex = key_index
+	local current_filePath = mp.get_property('path')--1.30# to only seek if its the same file
 	
 	if list_drawn then
 		write_log_slot_entry()
@@ -1573,7 +1576,29 @@ function add_load_slot(key_index)
 			end
 			if slot_taken then
 				if file_exists(filePath) or starts_protocol(protocols, filePath) then
-					mp.commandv('loadfile', filePath)
+					if filePath ~= current_filePath then--1.30# Only load file if its not the same, otherwise seek 
+						mp.commandv('loadfile', filePath)
+						if o.keybind_slots_auto_resume then
+							resume_selected = true
+						end
+					elseif filePath == current_filePath and o.keybind_slots_auto_resume then --1.30#seek only if loading the same file when auto_resume is enabled
+						mp.commandv('seek', seekTime, 'absolute', 'exact')
+						list_close_and_trash_collection()
+					elseif filePath == current_filePath and not o.keybind_slots_auto_resume then --1.30#seek to begining if loading the same file when auto_resume is disabled
+						mp.commandv('seek', 0, 'absolute', 'exact')
+						list_close_and_trash_collection()
+					end
+					if o.keybind_slots_auto_resume then--1.30# Improve notification
+						if o.osd_messages == true then
+							mp.osd_message('Loaded slot:' .. o.keybind_slots_seperator .. get_slot_keybind(slotKeyIndex) .. '\n' .. fileTitle .. o.time_seperator .. format_time(seekTime))
+						end
+						msg.info('Loaded slot:' .. o.keybind_slots_seperator .. get_slot_keybind(slotKeyIndex) .. '\n' .. fileTitle .. o.time_seperator .. format_time(seekTime))						
+					else
+						if o.osd_messages == true then
+							mp.osd_message('Loaded slot:' .. o.keybind_slots_seperator .. get_slot_keybind(slotKeyIndex) .. '\n' .. fileTitle)
+						end
+						msg.info('Loaded slot:' .. o.keybind_slots_seperator .. get_slot_keybind(slotKeyIndex) .. '\n' .. fileTitle)																	
+					end
 				else
 					if o.osd_messages == true then
 						mp.osd_message('File Doesn\'t Exist:\n' .. filePath)
@@ -1581,13 +1606,6 @@ function add_load_slot(key_index)
 					msg.info('The file below doesn\'t seem to exist:\n' .. filePath)
 					return
 				end
-				if o.keybind_slots_auto_resume then
-					resume_selected = true
-				end
-				if o.osd_messages == true then
-					mp.osd_message('Loaded slot:' .. o.keybind_slots_seperator .. get_slot_keybind(slotKeyIndex) .. '\n' .. fileTitle .. o.time_seperator .. format_time(seekTime))
-				end
-				msg.info('Loaded slot:' .. o.keybind_slots_seperator .. get_slot_keybind(slotKeyIndex) .. '\n' .. fileTitle .. o.time_seperator .. format_time(seekTime))
 			else
 				if o.keybind_slots_empty_auto_create then
 					if filePath ~= nil then
@@ -1632,14 +1650,18 @@ function quicksave_slot(key_index)
 	else
 		if filePath ~= nil then
 			if o.keybind_slots_quicksave_fileonly then
-				write_log(0, true)
+				write_log(0, true)--#1.29 Added fileonly notification without time
+				if o.osd_messages == true then
+					mp.osd_message('Bookmarked Fileonly & Added Keybind:\n' .. fileTitle .. o.keybind_slots_seperator .. get_slot_keybind(slotKeyIndex))
+				end
+				msg.info('Bookmarked the below & added keybind:\n' .. fileTitle .. o.keybind_slots_seperator .. get_slot_keybind(slotKeyIndex))
 			else
-				write_log(false, true)
+				write_log(false, true, true) --#1.29 utilize the third true parameter to update seekTime globally for the correct notification
+				if o.osd_messages == true then
+					mp.osd_message('Bookmarked & Added Keybind:\n' .. fileTitle .. o.time_seperator .. format_time(seekTime) .. o.keybind_slots_seperator .. get_slot_keybind(slotKeyIndex))
+				end
+				msg.info('Bookmarked the below & added keybind:\n' .. fileTitle .. o.time_seperator .. format_time(seekTime) .. o.keybind_slots_seperator .. get_slot_keybind(slotKeyIndex))
 			end
-			if o.osd_messages == true then
-				mp.osd_message('Bookmarked & Added Keybind:\n' .. fileTitle .. o.time_seperator .. format_time(seekTime) .. o.keybind_slots_seperator .. get_slot_keybind(slotKeyIndex))
-			end
-			msg.info('Bookmarked the below & added keybind:\n' .. fileTitle .. o.time_seperator .. format_time(seekTime) .. o.keybind_slots_seperator .. get_slot_keybind(slotKeyIndex))
 		else
 			if o.osd_messages == true then
 				mp.osd_message('Failed to Bookmark & Auto Create Keybind\nNo Video Found')
@@ -1652,7 +1674,7 @@ end
 
 function bookmark_save()
 	if filePath ~= nil then
-		write_log(false, false)
+		write_log(false, false, true)--1.29#Updates seekTime globally option ios passed
 		if list_drawn then
 			get_list_contents()
 			select(0)
