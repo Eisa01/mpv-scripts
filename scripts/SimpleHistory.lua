@@ -67,7 +67,7 @@ local o = {
 
 	-----Sort Settings------
 	--available sort: 'added-asc' is for the newest added item to show first. Or 'added-desc' for the newest added to show last. Or 'alphanum-asc' is for A to Z approach with filename and episode number lower first. Or 'alphanum-desc' is for its Z to A approach. Or 'time-asc', 'time-desc' to sort the list based on time.
-	list_default_sort = 'none', --the default sorting method for the list. select between 'none', 'added-asc', 'added-desc', 'alphanum-asc', 'alphanum-desc'. description: 'none' defaults to added-asc without requiring to sort
+	list_default_sort = 'none', --the sorting method for the list. select between 'none', 'added-asc', 'added-desc', 'alphanum-asc', 'alphanum-desc'. description: 'none' defaults to added-asc without requiring to sort
 	sort_recents_filter = 'none',
 	sort_distinct_filter = 'none',	
 	sort_fileonly_filter = 'none', --Sorts the filter. Select between 'none', 'added-asc', 'added-desc', 'alphanum-asc', 'alphanum-desc', 'time-asc', 'time-desc'. description: 'none' is for default ordering
@@ -237,11 +237,11 @@ o.playing_filter_inside_list_keybind = utils.parse_json(o.playing_filter_inside_
 o.playing_filter_outside_list_keybind = utils.parse_json(o.playing_filter_outside_list_keybind)
 
 if o.log_path == '/:dir%mpvconf' then
-	o.log_path = mp.find_config_file('.') --1.23#Add support for mpv.net
+	o.log_path = mp.find_config_file('.')
 elseif o.log_path == '/:dir%script' then
 	o.log_path = debug.getinfo(1).source:match('@?(.*/)')
 end
-local history_log = utils.join_path(o.log_path, o.log_file) --1.25#Add support for mpv.net using utils.join_path
+local history_log = utils.join_path(o.log_path, o.log_file)
 
 local protocols = {'https?://', 'magnet:', 'rtmp:'}
 local search_string = ''
@@ -445,7 +445,7 @@ function get_list_contents(filter, sort)
 	local filtered_table = {}
 	
 	list_contents = read_log_table()
-	if not list_contents and not search_active or not list_contents[1] and not search_active then return end --1.25#No error message anymore, display_list now has the ability to trigger error messages
+	if not list_contents and not search_active or not list_contents[1] and not search_active then return end
 	
 	if not sort then active_sort = o.list_default_sort end
 	if active_sort ~= 'none' or active_sort ~= '' then
@@ -453,21 +453,21 @@ function get_list_contents(filter, sort)
 	end
 	
 	if filter == 'recents' then
-		table.sort(list_contents, function(a, b) return a['found_sequence'] < b['found_sequence'] end) --sort by added-asc this way the loop below will insert latest items even if the sorting was not added-asc for list_contents
+		table.sort(list_contents, function(a, b) return a['found_sequence'] < b['found_sequence'] end)
 		local unique_values = {}
 		local list_total = #list_contents
 		
-		if filePath == list_contents[#list_contents].found_path and tonumber(list_contents[#list_contents].found_time) == 0 then --if the current video is the topmost in the history and without time then reduce the list_contents so that it is removed from recents
+		if filePath == list_contents[#list_contents].found_path and tonumber(list_contents[#list_contents].found_time) == 0 then
 			list_total = list_total -1
 		end
 	
-		for i = list_total, 1, -1 do --Made it list_total since this will not add the playing video into recents
-			if not has_value(unique_values, list_contents[i].found_path) then --If the path doesn't exist in the unique_table then add it to our unique and filtered_table (no need to check for time anymore and now it uses list_total to not add playing into recents)
-				table.insert(unique_values, list_contents[i].found_path) --Update the unique values for the check needed in the loop
-				table.insert(filtered_table, list_contents[i]) --Insert whenever the check passes
+		for i = list_total, 1, -1 do
+			if not has_value(unique_values, list_contents[i].found_path) then
+				table.insert(unique_values, list_contents[i].found_path)
+				table.insert(filtered_table, list_contents[i])
 			end
 		end
-		table.sort(filtered_table, function(a, b) return a['found_sequence'] < b['found_sequence'] end) --make the default sort by added-asc
+		table.sort(filtered_table, function(a, b) return a['found_sequence'] < b['found_sequence'] end)
 		
 		if not sort then active_sort = o.sort_recents_filter end
 		if active_sort ~= 'none' or active_sort ~= '' then
@@ -479,21 +479,21 @@ function get_list_contents(filter, sort)
 	end
 	
 	if filter == 'distinct' then
-		table.sort(list_contents, function(a, b) return a['found_sequence'] < b['found_sequence'] end) --sort by added-asc this way the loop below will insert latest items even if the sorting was not added-asc for list_contents
+		table.sort(list_contents, function(a, b) return a['found_sequence'] < b['found_sequence'] end)
 		local unique_values = {}
 		local list_total = #list_contents
 		
-		if filePath == list_contents[#list_contents].found_path and tonumber(list_contents[#list_contents].found_time) == 0 then --if the current video is the topmost in the history and without time then reduce the list_contents so that it is removed from recents
+		if filePath == list_contents[#list_contents].found_path and tonumber(list_contents[#list_contents].found_time) == 0 then
 			list_total = list_total -1
 		end
 	
-		for i = list_total, 1, -1 do --Made it list_total since this will not add the playing video into recents (added and not starts_protocol to make it only for local path)
-			if not has_value(unique_values, list_contents[i].found_directory) and not starts_protocol(protocols, list_contents[i].found_path) then --If the directory doesn't exist in the unique_table then add it to our unique and filtered_table (no need to check for time anymore and now it uses list_total to not add playing into recents)
-				table.insert(unique_values, list_contents[i].found_directory) --Update the unique values for the check needed in the loop
-				table.insert(filtered_table, list_contents[i]) --Insert whenever the check passes
+		for i = list_total, 1, -1 do
+			if not has_value(unique_values, list_contents[i].found_directory) and not starts_protocol(protocols, list_contents[i].found_path) then
+				table.insert(unique_values, list_contents[i].found_directory)
+				table.insert(filtered_table, list_contents[i])
 			end
 		end
-		table.sort(filtered_table, function(a, b) return a['found_sequence'] < b['found_sequence'] end) --make the default sort by added-asc
+		table.sort(filtered_table, function(a, b) return a['found_sequence'] < b['found_sequence'] end)
 		
 		if not sort then active_sort = o.sort_recents_filter end
 		if active_sort ~= 'none' or active_sort ~= '' then
@@ -612,7 +612,7 @@ function get_list_contents(filter, sort)
 		list_contents = filtered_table
 	end
 	
-	if not list_contents and not search_active or not list_contents[1] and not search_active then return end --1.25#No error message anymore, display_list now has the ability to trigger error messages
+	if not list_contents and not search_active or not list_contents[1] and not search_active then return end
 	
 end
 
@@ -698,8 +698,8 @@ function draw_list()
 	mp.set_osd_ass(0, 0, osd_msg)
 end
 
-function list_empty_error_msg() --1.25#seperate error message for list_contents not available so we call it depending on use case
-	if list_contents ~= nil and list_contents[1] then return end --1.25# list_contents ~= nil solves the error of no log file causes crash as list_contents returns nil
+function list_empty_error_msg()
+	if list_contents ~= nil and list_contents[1] then return end
 	local msg_text
 	if filterName ~= 'all' then
 		msg_text = filterName .. " filter in History Empty"
@@ -719,7 +719,7 @@ function display_list(filter, osd_hide)
 	filterName = filter
 	
 	get_list_contents(filter)
-	if not osd_hide then --1.25#Hide error message when triggering display list
+	if not osd_hide then
 		list_empty_error_msg()
 	end
 	if not list_contents and not search_active or not list_contents[1] and not search_active then return end
@@ -848,29 +848,29 @@ end
 --End of LogReaderManager Navigation--
 
 --LogReaderManager Actions--
-function load(list_cursor, add_playlist, target_time)--1.27#Added optional target_time to specify a different time when loading an entry
+function load(list_cursor, add_playlist, target_time)
 	if not list_contents or not list_contents[1] then return end
-	if not target_time then --1.27#If target_time is not specified then get the entry seekTime
+	if not target_time then
 		seekTime = tonumber(list_contents[#list_contents - list_cursor + 1].found_time) + o.resume_offset
 		if (seekTime < 0) then
 			seekTime = 0
 		end
-	else --1.27#If target_time is specified then update seekTime as per the specified target_time
+	else
 		seekTime = target_time
 	end
 	if file_exists(list_contents[#list_contents - list_cursor + 1].found_path) or starts_protocol(protocols, list_contents[#list_contents - list_cursor + 1].found_path) then
 		if not add_playlist then
-			if filePath ~= list_contents[#list_contents - list_cursor + 1].found_path then --#1.27 Only update the file, if it is different, otherwise just seek
+			if filePath ~= list_contents[#list_contents - list_cursor + 1].found_path then
 				mp.commandv('loadfile', list_contents[#list_contents - list_cursor + 1].found_path)
 				resume_selected = true
-			else--1.27# Only seek when same file and close the list
+			else
 				mp.commandv('seek', seekTime, 'absolute', 'exact')
 				list_close_and_trash_collection()
 			end
 			if o.osd_messages == true then
-				mp.osd_message('Loaded:\n' .. list_contents[#list_contents - list_cursor + 1].found_name.. o.time_seperator .. format_time(seekTime))--1.27# use seekTime istead to handle target_time
+				mp.osd_message('Loaded:\n' .. list_contents[#list_contents - list_cursor + 1].found_name.. o.time_seperator .. format_time(seekTime))
 			end
-			msg.info('Loaded the below file:\n' .. list_contents[#list_contents - list_cursor + 1].found_name  .. ' | '.. format_time(seekTime))--1.27# use seekTime istead to handle target_time
+			msg.info('Loaded the below file:\n' .. list_contents[#list_contents - list_cursor + 1].found_name  .. ' | '.. format_time(seekTime))
 		else
 			mp.commandv('loadfile', list_contents[#list_contents - list_cursor + 1].found_path, 'append-play')
 			if o.osd_messages == true then
@@ -899,23 +899,23 @@ function delete_log_entry(multiple, round, target_path, target_time)
 	if not target_path then target_path = filePath end
 	if not target_time then target_time = seekTime end
 	get_list_contents('all','added-asc')
-	if not list_contents or not list_contents[1] then return end --Fix crash when history file is empty
+	if not list_contents or not list_contents[1] then return end
 	
-	if not multiple then --delete only the latest targeted entry 
+	if not multiple then
 		for i = #list_contents, 1, -1 do
-			if not round then --by default does not round and attempts to delete the exact entry
+			if not round then
 				if list_contents[i].found_path == target_path and tonumber(list_contents[i].found_time) == target_time then
 					table.remove(list_contents, i)
 					break
 				end
-			else --if option to round is passed, then it will attempt to compare the target_time with the rounded found_time
+			else
 				if list_contents[i].found_path == target_path and math.floor(tonumber(list_contents[i].found_time)) == target_time then
 					table.remove(list_contents, i)
 					break
 				end
 			end
 		end
-	else --deletes all the targeted found entries
+	else
 		for i = #list_contents, 1, -1 do
 			if not round then
 				if list_contents[i].found_path == target_path and tonumber(list_contents[i].found_time) == target_time then
@@ -930,7 +930,7 @@ function delete_log_entry(multiple, round, target_path, target_time)
 	end
 	
 	f = io.open(history_log, "w+")
-	if list_contents ~= nil and list_contents[1] then --1.25#added list_contents ~= nil as precaution
+	if list_contents ~= nil and list_contents[1] then
 		for i = 1, #list_contents do
 			f:write(("%s\n"):format(list_contents[i].found_line))
 		end
@@ -990,7 +990,7 @@ function select_filter_sequence(pos)
 	if curr_pos and pos > -1 then
 		for i = curr_pos, #o.filters_and_sequence do
 			get_list_contents(o.filters_and_sequence[i + pos])
-			if list_contents ~= nil and list_contents[1] then --1.25 list_contents ~= nil as precuation
+			if list_contents ~= nil and list_contents[1] then
 				target_pos = i + pos
 				break
 			end
@@ -998,7 +998,7 @@ function select_filter_sequence(pos)
 	elseif curr_pos and pos < 0 then
 		for i = curr_pos, 0, -1 do
 			get_list_contents(o.filters_and_sequence[i + pos])
-			if list_contents ~= nil and list_contents[1] then --1.25 list_contents ~= nil as precuation
+			if list_contents ~= nil and list_contents[1] then
 				target_pos = i + pos
 				break
 			end
@@ -1013,7 +1013,7 @@ function select_filter_sequence(pos)
 			if target_pos < 1 then
 				for i = #o.filters_and_sequence, 1, -1 do 
 					get_list_contents(o.filters_and_sequence[i])
-					if list_contents ~= nil and list_contents[1] then --1.25 list_contents ~= nil as precuation
+					if list_contents ~= nil and list_contents[1] then
 						target_pos = i
 						break
 					end		
@@ -1464,17 +1464,17 @@ function mark_chapter()
 	mp.set_property_native("chapter-list", all_chapters)
 end
 
-function write_log(target_time)--1.20#renamed to target_time since it passes the desired time
+function write_log(target_time)
 	if not filePath then return end
-	local prev_seekTime = seekTime --1.21#retain the old seekTime to revert back after writing log
+	local prev_seekTime = seekTime
 	
-	seekTime = (mp.get_property_number('time-pos') or 0) --1.20#seekTime now by default contains time-pos and updates with value if available
+	seekTime = (mp.get_property_number('time-pos') or 0)
 	if target_time then
 		seekTime = target_time
 	end
 	if seekTime < 0 then seekTime = 0 end
 	
-	delete_log_entry(false, true, filePath, math.floor(seekTime)) --1.24# to not allow for duplicates by removing entries with the same time (rounding parameter is passed into function)
+	delete_log_entry(false, true, filePath, math.floor(seekTime))
 
 	f = io.open(history_log, "a+")
 	if o.file_title_logging == 'all' then
@@ -1490,26 +1490,26 @@ function write_log(target_time)--1.20#renamed to target_time since it passes the
 	f:write('\n')
 	f:close()
 	
-	seekTime = prev_seekTime --1.21#revert to the original seekTime after writing log
+	seekTime = prev_seekTime
 end
 
 function history_resume_notification()
-	if not o.resume_notification or not o.osd_messages then return end --only if osd messages are enabled or resume_notification
+	if not o.resume_notification or not o.osd_messages then return end
 	local video_time = mp.get_property_number('time-pos')
-	if video_time > 0 then return end --If the video is not played from the begining then do not show the notification
+	if video_time > 0 then return end
 	local logged_time = 0
 	local percentage = 0
 	local video_duration = mp.get_property_number('duration')
-	get_list_contents('all', 'added-asc') --Get contents sorted by added first
-	if not list_contents or not list_contents[1] then return end --1.25# return instead if no list_contents
-	for i = #list_contents, 1, -1 do --Do a reverse loop and get the found_time based on playing file and time > 0. Once found break loop
+	get_list_contents('all', 'added-asc')
+	if not list_contents or not list_contents[1] then return end
+	for i = #list_contents, 1, -1 do
 		if list_contents[i].found_path == filePath and tonumber(list_contents[i].found_time) > 0 then
 			logged_time = tonumber(list_contents[i].found_time) + o.resume_offset
 			break
 		end
 	end
 	if logged_time > 0 then
-		percentage = math.floor((logged_time / video_duration) * 100 + 0.5) --+0.5 is round up so the percentage can reach 100%
+		percentage = math.floor((logged_time / video_duration) * 100 + 0.5)
 		if percentage > o.resume_notification_threshold and percentage < (100-o.resume_notification_threshold) or o.resume_notification_threshold == 0 then
 			mp.osd_message('⌨ [' .. string.upper(o.history_resume_keybind[1]) .. '] Resumes To' .. o.time_seperator .. format_time(logged_time),3)
 		end
@@ -1517,7 +1517,7 @@ function history_resume_notification()
 end
 
 function history_save()
-	if filePath ~= nil then --If there is file loaded, then write to log with reached time
+	if filePath ~= nil then
 		write_log(false)
 		if list_drawn then
 			get_list_contents()
@@ -1530,7 +1530,7 @@ function history_save()
 end
 
 function history_fileonly_save()
-	if filePath ~= nil then --If there is file loaded, then write to log with time = 0
+	if filePath ~= nil then
 		write_log(0)
 		if list_drawn then
 			get_list_contents()
@@ -1544,25 +1544,25 @@ end
 
 function history_resume()
 	if filePath == nil then
-		get_list_contents('all', 'added-asc') --1.20#After fixing sort, now I can pass the correct filter thanks to added-asc for loading the first item
+		get_list_contents('all', 'added-asc')
 		load(1)
 	elseif filePath ~= nil then
-		get_list_contents('all', 'added-asc') --Get contents sorted by added first
-		if list_contents ~= nil and list_contents[1] then --1.25#Fixes crash if there is no log file
-			for i = #list_contents, 1, -1 do --Do a reverse loop and get the found_time based on playing file and time > 0. Once found break loop
+		get_list_contents('all', 'added-asc')
+		if list_contents ~= nil and list_contents[1] then
+			for i = #list_contents, 1, -1 do
 				if list_contents[i].found_path == filePath and tonumber(list_contents[i].found_time) > 0 then
 					seekTime = tonumber(list_contents[i].found_time) + o.resume_offset
 					break
 				end
 			end
 		end
-		if seekTime > 0 then --Only if there is seekTime then resume
+		if seekTime > 0 then
 			mp.commandv('seek', seekTime, 'absolute', 'exact')
 			if (o.osd_messages == true) then
 				mp.osd_message('Resumed To Last Played Position\n' .. o.time_seperator .. format_time(seekTime))
 			end
 			msg.info('Resumed to the last played position')
-		else --Else display an error
+		else
 			if (o.osd_messages == true) then
 				mp.osd_message('No Resume Position Found For This Video')
 			end
@@ -1572,10 +1572,10 @@ function history_resume()
 end
 
 function history_load_last()
-	if filePath == nil then--If no file is loaded then get_list_contents, load the first item and do not resume
+	if filePath == nil then
 		get_list_contents('all', 'added-asc')
-		load(1, false, 0)--1.27#Load with seek time set to 0
-	elseif filePath ~= nil then --1.01#If there is file loaded then get_list_contents and add the second item into playlist, because first item is the current loaded item
+		load(1, false, 0)
+	elseif filePath ~= nil then
 		get_list_contents('all', 'added-asc')
 		load(2, true)
 	end
@@ -1601,14 +1601,14 @@ mp.register_event('file-loaded', function()
 		mp.commandv('seek', seekTime, 'absolute', 'exact')
 		resume_selected = false
 	end
-	mp.add_timeout(0,history_resume_notification)--1.25#instead of moving it to bottom, we can add a 0 seconds timeout so the function gets the updated time-pos. This way notification shows only if started from time = 0
+	mp.add_timeout(0,history_resume_notification)
 	mark_chapter()
 	history_fileonly_save()
 end)
 
 mp.add_hook('on_unload', 50, function()
-	delete_log_entry(filePath, 0) --delete the added entry where time is 0, so each episode is only saved once with the added time
-	history_save() --save the new entry after deletion, so now even if saving with time is 0 it will add it, or it will override the previous 0
+	delete_log_entry(filePath, 0)
+	history_save()
 end)
 
 
