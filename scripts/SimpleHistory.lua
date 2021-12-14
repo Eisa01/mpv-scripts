@@ -1464,7 +1464,7 @@ function mark_chapter()
 	mp.set_property_native("chapter-list", all_chapters)
 end
 
-function write_log(target_time)
+function write_log(target_time, update_seekTime) --1.29#Option to update seekTime globally
 	if not filePath then return end
 	local prev_seekTime = seekTime
 	
@@ -1490,7 +1490,9 @@ function write_log(target_time)
 	f:write('\n')
 	f:close()
 	
-	seekTime = prev_seekTime
+	if not update_seekTime then --1.29# If update_seekTime is passed then it will update globally 
+		seekTime = prev_seekTime
+	end
 end
 
 function history_resume_notification()
