@@ -848,20 +848,29 @@ end
 --End of LogReaderManager Navigation--
 
 --LogReaderManager Actions--
-function load(list_cursor, add_playlist)
+function load(list_cursor, add_playlist, target_time)--1.27#Added optional target_time to specify a different time when loading an entry
 	if not list_contents or not list_contents[1] then return end
-	seekTime = tonumber(list_contents[#list_contents - list_cursor + 1].found_time) + o.resume_offset
-	if (seekTime < 0) then
-		seekTime = 0
+	if not target_time then --1.27#If target_time is not specified then get the entry seekTime
+		seekTime = tonumber(list_contents[#list_contents - list_cursor + 1].found_time) + o.resume_offset
+		if (seekTime < 0) then
+			seekTime = 0
+		end
+	else --1.27#If target_time is specified then update seekTime as per the specified target_time
+		seekTime = target_time
 	end
 	if file_exists(list_contents[#list_contents - list_cursor + 1].found_path) or starts_protocol(protocols, list_contents[#list_contents - list_cursor + 1].found_path) then
-		if not add_playlist then 
-			mp.commandv('loadfile', list_contents[#list_contents - list_cursor + 1].found_path)
-			resume_selected = true
-			if o.osd_messages == true then
-				mp.osd_message('Loaded:\n' .. list_contents[#list_contents - list_cursor + 1].found_name.. o.time_seperator .. format_time(list_contents[#list_contents - list_cursor + 1].found_time))
+		if not add_playlist then
+			if filePath ~= list_contents[#list_contents - list_cursor + 1].found_path then --#1.27 Only update the file, if it is different, otherwise just seek
+				mp.commandv('loadfile', list_contents[#list_contents - list_cursor + 1].found_path)
+				resume_selected = true
+			else--1.27# Only seek when same file and close the list
+				mp.commandv('seek', seekTime, 'absolute', 'exact')
+				list_close_and_trash_collection()
 			end
-			msg.info('Loaded the below file:\n' .. list_contents[#list_contents - list_cursor + 1].found_name  .. ' | '.. format_time(list_contents[#list_contents - list_cursor + 1].found_time))
+			if o.osd_messages == true then
+				mp.osd_message('Loaded:\n' .. list_contents[#list_contents - list_cursor + 1].found_name.. o.time_seperator .. format_time(seekTime))--1.27# use seekTime istead to handle target_time
+			end
+			msg.info('Loaded the below file:\n' .. list_contents[#list_contents - list_cursor + 1].found_name  .. ' | '.. format_time(seekTime))--1.27# use seekTime istead to handle target_time
 		else
 			mp.commandv('loadfile', list_contents[#list_contents - list_cursor + 1].found_path, 'append-play')
 			if o.osd_messages == true then
@@ -1565,8 +1574,7 @@ end
 function history_load_last()
 	if filePath == nil then--If no file is loaded then get_list_contents, load the first item and do not resume
 		get_list_contents('all', 'added-asc')
-		load(1)
-		resume_selected = false
+		load(1, false, 0)--1.27#Load with seek time set to 0
 	elseif filePath ~= nil then --1.01#If there is file loaded then get_list_contents and add the second item into playlist, because first item is the current loaded item
 		get_list_contents('all', 'added-asc')
 		load(2, true)
