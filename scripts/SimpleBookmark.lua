@@ -11,7 +11,7 @@ local o = {
 
 	-----Script Settings----
 	auto_run_list_idle = 'none', --Auto run the list when opening mpv and there is no video / file loaded. 'none' for disabled. Or choose between: 'all', 'keybind_slots', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'keywords'.
-	resume_offset = -0.65, --change to 0 so resumes from the exact position, or decrease the value so that it gives you a little preview before loading the resume point
+	resume_offset = -0.65, --change to 0 so item resumes from the exact position, or decrease the value so that it gives you a little preview before loading the resume point
 	osd_messages = true, --true is for displaying osd messages when actions occur. Change to false will disable all osd messages generated from this script
 	bookmark_loads_last_idle = true, --When attempting to bookmark, if there is no video / file loaded, it will instead jump to your last bookmarked item and resume it.
 	bookmark_fileonly_loads_last_idle = true, --When attempting to bookmark fileonly, if there is no video / file loaded, it will instead jump to your last bookmarked item without resuming.
@@ -248,11 +248,11 @@ o.playing_filter_inside_list_keybind = utils.parse_json(o.playing_filter_inside_
 o.playing_filter_outside_list_keybind = utils.parse_json(o.playing_filter_outside_list_keybind)
 
 if o.log_path == '/:dir%mpvconf' then
-	o.log_path = mp.find_config_file('.') --1.23#Add support for mpv.net
+	o.log_path = mp.find_config_file('.')
 elseif o.log_path == '/:dir%script' then
 	o.log_path = debug.getinfo(1).source:match('@?(.*/)')
 end
-local bookmark_log = utils.join_path(o.log_path, o.log_file) --1.25#Add support for mpv.net using utils.join_path
+local bookmark_log = utils.join_path(o.log_path, o.log_file)
 
 local protocols = {'https?://', 'magnet:', 'rtmp:'}
 local search_string = ''
@@ -403,9 +403,9 @@ end
 
 function list_sort(tab, sort)
 	if sort == 'added-asc' then
-		table.sort(tab, function(a, b) return a['found_sequence'] < b['found_sequence'] end) --1.18#sort added-asc/added-desc filter based on the newly created found_sequence 
+		table.sort(tab, function(a, b) return a['found_sequence'] < b['found_sequence'] end)
 	elseif sort == 'added-desc' then
-		table.sort(tab, function(a, b) return a['found_sequence'] > b['found_sequence'] end) --1.18#sort added-asc/added-desc filter based on the newly created found_sequence 
+		table.sort(tab, function(a, b) return a['found_sequence'] > b['found_sequence'] end)
 	elseif sort == 'keybind-asc' and filterName == 'keybind_slots' then
 		table.sort(tab, function(a, b) return a['found_slot'] > b['found_slot'] end)
 	elseif sort == 'keybind-desc' and filterName == 'keybind_slots' then
@@ -475,7 +475,7 @@ function get_list_contents(filter, sort)
 	local filtered_table = {}
 	
 	list_contents = read_log_table()
-	if not list_contents and not search_active or not list_contents[1] and not search_active then return end --1.25#No error message anymore, display_list now has the ability to trigger error messages
+	if not list_contents and not search_active or not list_contents[1] and not search_active then return end
 	
 	if not sort then active_sort = o.list_default_sort end
 	if active_sort ~= 'none' or active_sort ~= '' then
@@ -606,7 +606,7 @@ function get_list_contents(filter, sort)
 		list_contents = filtered_table
 	end
 	
-	if not list_contents and not search_active or not list_contents[1] and not search_active then return end --1.25#No error message anymore, display_list now has the ability to trigger error messages
+	if not list_contents and not search_active or not list_contents[1] and not search_active then return end
 	
 end
 
@@ -696,8 +696,8 @@ function draw_list()
 	mp.set_osd_ass(0, 0, osd_msg)
 end
 
-function list_empty_error_msg() --1.25#seperate error message for list_contents not available so we call it depending on use case
-	if list_contents ~= nil and list_contents[1] then return end --1.25# list_contents ~= nil solves the error of no log file causes crash as list_contents returns nil
+function list_empty_error_msg()
+	if list_contents ~= nil and list_contents[1] then return end
 	local msg_text
 	if filterName ~= 'all' then
 		msg_text = filterName .. " filter in Bookmark Empty"
@@ -710,14 +710,14 @@ function list_empty_error_msg() --1.25#seperate error message for list_contents 
 	end
 end
 
-function display_list(filter, osd_hide) --1.25# Add osd_hide option to display_list
+function display_list(filter, osd_hide)
 	if not filter then filter = 'all' end
 	
 	local prev_filter = filterName
 	filterName = filter
 	
 	get_list_contents(filter)
-	if not osd_hide then --1.25#Hide error message when triggering display list
+	if not osd_hide then
 		list_empty_error_msg()
 	end
 	if not list_contents and not search_active or not list_contents[1] and not search_active then return end
@@ -765,7 +765,7 @@ function display_list(filter, osd_hide) --1.25# Add osd_hide option to display_l
 	end
 	
 	if trigger_initial_list then
-		display_list(list_pages[1][1], true)--1.25#hide osd
+		display_list(list_pages[1][1], true)
 		return
 	end
 	
@@ -846,30 +846,30 @@ end
 --End of LogReaderManager Navigation--
 
 --LogReaderManager Actions--
-function load(list_cursor, add_playlist, target_time)--1.27#Added optional target_time to specify a different time when loading an entry
+function load(list_cursor, add_playlist, target_time)
 	if not list_contents or not list_contents[1] then return end
-	if not target_time then --1.27#If target_time is not specified then get the entry seekTime
+	if not target_time then
 		seekTime = tonumber(list_contents[#list_contents - list_cursor + 1].found_time) + o.resume_offset
 		if (seekTime < 0) then
 			seekTime = 0
 		end
-	else --1.27#If target_time is specified then update seekTime as per the specified target_time
+	else
 		seekTime = target_time
 	end
 	
 	if file_exists(list_contents[#list_contents - list_cursor + 1].found_path) or starts_protocol(protocols, list_contents[#list_contents - list_cursor + 1].found_path) then
 		if not add_playlist then
-			if filePath ~= list_contents[#list_contents - list_cursor + 1].found_path then --#1.27 Only update the file, if it is different, otherwise just seek
+			if filePath ~= list_contents[#list_contents - list_cursor + 1].found_path then
 				mp.commandv('loadfile', list_contents[#list_contents - list_cursor + 1].found_path)
 				resume_selected = true
-			else--1.27# Only seek when same file and close the list
+			else
 				mp.commandv('seek', seekTime, 'absolute', 'exact')
 				list_close_and_trash_collection()
 			end
-			if o.osd_messages == true then --1.16#Notification for Loaded
-				mp.osd_message('Loaded:\n' .. list_contents[#list_contents - list_cursor + 1].found_name.. o.time_seperator .. format_time(seekTime))--1.27# use seekTime istead to handle target_time
+			if o.osd_messages == true then
+				mp.osd_message('Loaded:\n' .. list_contents[#list_contents - list_cursor + 1].found_name.. o.time_seperator .. format_time(seekTime))
 			end
-			msg.info('Loaded the below file:\n' .. list_contents[#list_contents - list_cursor + 1].found_name  .. ' | '.. format_time(seekTime))--1.27# use seekTime istead to handle target_time
+			msg.info('Loaded the below file:\n' .. list_contents[#list_contents - list_cursor + 1].found_name  .. ' | '.. format_time(seekTime))
 		else
 			mp.commandv('loadfile', list_contents[#list_contents - list_cursor + 1].found_path, 'append-play')
 			if o.osd_messages == true then
@@ -894,27 +894,27 @@ function list_add_playlist()
 	load(list_cursor, true)
 end
 
-function delete_log_entry(multiple, round, target_path, target_time) --1.25# New delete_log_entry function allows multiple deletion, rounding time, specifying path and time
+function delete_log_entry(multiple, round, target_path, target_time)
 	if not target_path then target_path = filePath end
 	if not target_time then target_time = seekTime end
 	get_list_contents('all','added-asc')
-	if not list_contents or not list_contents[1] then return end --Fix crash when bookmark file is empty
+	if not list_contents or not list_contents[1] then return end
 	
-	if not multiple then --delete only the latest targeted entry 
+	if not multiple then
 		for i = #list_contents, 1, -1 do
-			if not round then --by default does not round and attempts to delete the exact entry
+			if not round then
 				if list_contents[i].found_path == target_path and tonumber(list_contents[i].found_time) == target_time then
 					table.remove(list_contents, i)
 					break
 				end
-			else --if option to round is passed, then it will attempt to compare the target_time with the rounded found_time
+			else
 				if list_contents[i].found_path == target_path and math.floor(tonumber(list_contents[i].found_time)) == target_time then
 					table.remove(list_contents, i)
 					break
 				end
 			end
 		end
-	else --deletes all the targeted found entries
+	else
 		for i = #list_contents, 1, -1 do
 			if not round then
 				if list_contents[i].found_path == target_path and tonumber(list_contents[i].found_time) == target_time then
@@ -929,7 +929,7 @@ function delete_log_entry(multiple, round, target_path, target_time) --1.25# New
 	end
 	
 	f = io.open(bookmark_log, "w+")
-	if list_contents ~= nil and list_contents[1] then --1.25#added list_contents ~= nil as precaution
+	if list_contents ~= nil and list_contents[1] then
 		for i = 1, #list_contents do
 			f:write(("%s\n"):format(list_contents[i].found_line))
 		end
@@ -1019,7 +1019,7 @@ function select_filter_sequence(pos)
 				end
 			end
 		end
-		display_list(o.filters_and_sequence[target_pos], true)--1.25#hide_osd
+		display_list(o.filters_and_sequence[target_pos], true)
 	end
 end
 
@@ -1514,7 +1514,7 @@ function write_log(target_time, keybind_slot)
 	end
 	if seekTime < 0 then seekTime = 0 end
 	
-	delete_log_entry(false, true, filePath, math.floor(seekTime)) --1.25# to not allow for duplicates by removing entries with the same time (rounding parameter is passed into function)
+	delete_log_entry(false, true, filePath, math.floor(seekTime))
 	if keybind_slot then
 		remove_slot_log_entry()
 	end
@@ -1561,7 +1561,7 @@ function add_load_slot(key_index)
 	else
 		local slot_taken = false
 		get_list_contents()
-		if list_contents ~= nil and list_contents[1] then --1.25#added list_contents ~= nil and list_contents[1] to fix crash when log file is not created
+		if list_contents ~= nil and list_contents[1] then
 			for i = 1, #list_contents do
 				if tonumber(list_contents[i].found_slot) == slotKeyIndex then
 					filePath = list_contents[i].found_path
@@ -1613,7 +1613,7 @@ function add_load_slot(key_index)
 					msg.info('No bookmark slot has been assigned for' .. o.keybind_slots_seperator .. get_slot_keybind(slotKeyIndex) .. ' keybind yet')
 				end
 			end
-		else--1.25#show same error message when log file is not created and attempting to load a keybind slot
+		else
 			if o.osd_messages == true then
 				mp.osd_message('No Bookmark Slot For' .. o.keybind_slots_seperator .. get_slot_keybind(slotKeyIndex) .. ' Yet')
 			end
@@ -1662,7 +1662,7 @@ function bookmark_save()
 		end
 		msg.info('Added the below to bookmarks\n' .. fileTitle .. o.time_seperator .. format_time(seekTime))
 	elseif filePath == nil and o.bookmark_loads_last_idle then
-		get_list_contents('all', 'added-asc') --1.20#After fixing sort, now I can pass the correct filter thanks to added-asc for loading the first item
+		get_list_contents('all', 'added-asc')
 		load(1)
 	else
 		if o.osd_messages == true then
@@ -1684,8 +1684,8 @@ function bookmark_fileonly_save()
 		end
 		msg.info('Added the below to bookmarks\n' .. fileTitle)
 	elseif filePath == nil and o.bookmark_fileonly_loads_last_idle then
-		get_list_contents('all', 'added-asc') --1.20#After fixing sort, now I can pass the correct filter thanks to added-asc for loading the first item
-		load(1, false, 0)--1.27#Load with seek time set to 0
+		get_list_contents('all', 'added-asc')
+		load(1, false, 0)
 	else
 		if o.osd_messages == true then
 			mp.osd_message('Failed to Bookmark\nNo Video Found')
@@ -1702,7 +1702,7 @@ if o.auto_run_list_idle == 'all'
 	or o.auto_run_list_idle == 'timeonly'
 	or o.auto_run_list_idle == 'keywords' then
 	mp.observe_property("idle-active", "bool", function(_, v)
-		if v then display_list(o.auto_run_list_idle, true) end --1.25#hide osd of empty
+		if v then display_list(o.auto_run_list_idle, true) end
 	end)
 end
 
