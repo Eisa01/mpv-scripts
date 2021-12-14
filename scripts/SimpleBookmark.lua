@@ -13,7 +13,8 @@ local o = {
 	auto_run_list_idle = 'none', --Auto run the list when opening mpv and there is no video / file loaded. 'none' for disabled. Or choose between: 'all', 'keybind_slots', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'keywords'.
 	resume_offset = -0.65, --change to 0 so resumes from the exact position, or decrease the value so that it gives you a little preview before loading the resume point
 	osd_messages = true, --true is for displaying osd messages when actions occur. Change to false will disable all osd messages generated from this script
-	bookmark_loads_last_idle = true, --When attempting to bookmark, if there is no video / file loaded, it will instead jump to your last bookmarked item
+	bookmark_loads_last_idle = true, --When attempting to bookmark, if there is no video / file loaded, it will instead jump to your last bookmarked item and resume it.
+	bookmark_fileonly_loads_last_idle = true, --When attempting to bookmark fileonly, if there is no video / file loaded, it will instead jump to your last bookmarked item without resuming.
 	mark_bookmark_as_chapter = false, --true is for marking the time as a chapter. false disables mark as chapter behavior.
 	bookmark_list_keybind=[[
 	["b", "B"]
@@ -845,20 +846,30 @@ end
 --End of LogReaderManager Navigation--
 
 --LogReaderManager Actions--
-function load(list_cursor, add_playlist)
+function load(list_cursor, add_playlist, target_time)--1.27#Added optional target_time to specify a different time when loading an entry
 	if not list_contents or not list_contents[1] then return end
-	seekTime = tonumber(list_contents[#list_contents - list_cursor + 1].found_time) + o.resume_offset
-	if (seekTime < 0) then
-		seekTime = 0
+	if not target_time then --1.27#If target_time is not specified then get the entry seekTime
+		seekTime = tonumber(list_contents[#list_contents - list_cursor + 1].found_time) + o.resume_offset
+		if (seekTime < 0) then
+			seekTime = 0
+		end
+	else --1.27#If target_time is specified then update seekTime as per the specified target_time
+		seekTime = target_time
 	end
+	
 	if file_exists(list_contents[#list_contents - list_cursor + 1].found_path) or starts_protocol(protocols, list_contents[#list_contents - list_cursor + 1].found_path) then
-		if not add_playlist then 
-			mp.commandv('loadfile', list_contents[#list_contents - list_cursor + 1].found_path)
-			resume_selected = true
-			if o.osd_messages == true then --1.16#Notification for Loaded
-				mp.osd_message('Loaded:\n' .. list_contents[#list_contents - list_cursor + 1].found_name.. o.time_seperator .. format_time(list_contents[#list_contents - list_cursor + 1].found_time))
+		if not add_playlist then
+			if filePath ~= list_contents[#list_contents - list_cursor + 1].found_path then --#1.27 Only update the file, if it is different, otherwise just seek
+				mp.commandv('loadfile', list_contents[#list_contents - list_cursor + 1].found_path)
+				resume_selected = true
+			else--1.27# Only seek when same file and close the list
+				mp.commandv('seek', seekTime, 'absolute', 'exact')
+				list_close_and_trash_collection()
 			end
-			msg.info('Loaded the below file:\n' .. list_contents[#list_contents - list_cursor + 1].found_name  .. ' | '.. format_time(list_contents[#list_contents - list_cursor + 1].found_time))
+			if o.osd_messages == true then --1.16#Notification for Loaded
+				mp.osd_message('Loaded:\n' .. list_contents[#list_contents - list_cursor + 1].found_name.. o.time_seperator .. format_time(seekTime))--1.27# use seekTime istead to handle target_time
+			end
+			msg.info('Loaded the below file:\n' .. list_contents[#list_contents - list_cursor + 1].found_name  .. ' | '.. format_time(seekTime))--1.27# use seekTime istead to handle target_time
 		else
 			mp.commandv('loadfile', list_contents[#list_contents - list_cursor + 1].found_path, 'append-play')
 			if o.osd_messages == true then
@@ -1672,9 +1683,9 @@ function bookmark_fileonly_save()
 			mp.osd_message('Bookmarked File Only:\n' .. fileTitle)
 		end
 		msg.info('Added the below to bookmarks\n' .. fileTitle)
-	elseif filePath == nil and o.bookmark_loads_last_idle then
+	elseif filePath == nil and o.bookmark_fileonly_loads_last_idle then
 		get_list_contents('all', 'added-asc') --1.20#After fixing sort, now I can pass the correct filter thanks to added-asc for loading the first item
-		load(1)
+		load(1, false, 0)--1.27#Load with seek time set to 0
 	else
 		if o.osd_messages == true then
 			mp.osd_message('Failed to Bookmark\nNo Video Found')
