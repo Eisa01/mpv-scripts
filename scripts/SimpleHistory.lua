@@ -902,19 +902,6 @@ function delete_log_entry(multiple, round, target_path, target_time, entry_limit
 	get_list_contents('all','added-asc')
 	if not list_contents or not list_contents[1] then return end
 	
-	if entry_limit and entry_limit > -1 then --1.30# if entry_limit is passed and it is larger than -1 then remove the duplicates
-		local entries_found = 0
-		for i = #list_contents, 1, -1 do--1.30#loop in opposite order so newest is first
-			if list_contents[i].found_path == target_path and entries_found < entry_limit then --1.30# whenever we find an entry we increase the value, if it reaches the limit then we stop
-				print(format_time(tonumber(list_contents[i].found_time))..'should not be removed')
-				entries_found = entries_found + 1--1.30# increase the entries found so we delete other entries that surpass the limit
-			elseif list_contents[i].found_path == target_path and entries_found >= entry_limit then --1.30#Once the entries_found reach limit then we delete those entries
-				print(format_time(tonumber(list_contents[i].found_time))..'should be removed')
-				table.remove(list_contents,i)
-			end
-		end
-	end
-	
 	if not multiple then
 		for i = #list_contents, 1, -1 do
 			if not round then
@@ -939,6 +926,20 @@ function delete_log_entry(multiple, round, target_path, target_time, entry_limit
 				if list_contents[i].found_path == target_path and math.floor(tonumber(list_contents[i].found_time)) == target_time then
 					table.remove(list_contents, i)
 				end
+			end
+		end
+	end
+	
+	--1.31# moved after deletion, to fix saving without time could replace the next bookmark instead of updating
+	if entry_limit and entry_limit > -1 then --1.30# if entry_limit is passed and it is larger than -1 then remove the duplicates
+		local entries_found = 0
+		for i = #list_contents, 1, -1 do--1.30#loop in opposite order so newest is first
+			if list_contents[i].found_path == target_path and entries_found < entry_limit then --1.30# whenever we find an entry we increase the value, if it reaches the limit then we stop
+				print(format_time(tonumber(list_contents[i].found_time))..'should not be removed')
+				entries_found = entries_found + 1--1.30# increase the entries found so we delete other entries that surpass the limit
+			elseif list_contents[i].found_path == target_path and entries_found >= entry_limit then --1.30#Once the entries_found reach limit then we delete those entries
+				print(format_time(tonumber(list_contents[i].found_time))..'should be removed')
+				table.remove(list_contents,i)
 			end
 		end
 	end
