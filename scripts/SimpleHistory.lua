@@ -13,8 +13,8 @@ local o = {
 	auto_run_list_idle = 'recents', --Auto run the list when opening mpv and there is no video / file loaded. 'none' for disabled. Or choose between: 'all', 'recents', 'distinct', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'keywords'.
 	resume_offset = -0.65, --change to 0 so item resumes from the exact position, or decrease the value so that it gives you a little preview before loading the resume point
 	osd_messages = true, --true is for displaying osd messages when actions occur. Change to false will disable all osd messages generated from this script
-	resume_notification = false, --true so that when a file that is played previously, a notification to resume to the previous reached time will be triggered
-	resume_notification_threshold = 5, --0 to always show a resume notification when the same video has been played previously, a value such as 5 will only show the resume notification if the last played time starts after 5% of the video and ends before completion by 5%
+	resume_notification = true, --true so that when a file that is played previously, a notification to resume to the previous reached time will be triggered
+	resume_notification_threshold = 2, --0 to always show a resume notification when the same video has been played previously, a value such as 5 will only show the resume notification if the last played time starts after 5% of the video and ends before completion by 5%
 	mark_history_as_chapter = false, --true is for marking the time as a chapter. false disables mark as chapter behavior.
 	history_list_keybind=[[
 	["h", "H"]
@@ -36,6 +36,7 @@ local o = {
 	["https?://", "magnet:", "rtmp:"]
 	]], --add above (after a comma) any protocol you want its title to be stored in the log file. This is valid only for (file_title_logging = 'protocols' or file_title_logging = 'all')
 	prefer_filename_over_title = 'local', --Prefers to log filename over filetitle. Select between 'local', 'protocols', 'all', and 'none'. 'local' prefer filenames for videos that are not protocols. 'protocols' will prefer filenames for protocols only. 'all' will prefer filename over filetitle for both protocols and not protocols videos. 'none' will always use filetitle instead of filename
+	same_entry_limit = 2, --Limit saving entries with same path: -1 for unlimited, 0 will always update entries of same path, e.g. value of 3 will have the limit of 3 then it will start updating old values on the 4th entry.
 
 	-----List Settings-----
 	loop_through_list = false, --true is for going up on the first item loops towards the last item and vise-versa. false disables this behavior.
@@ -895,11 +896,24 @@ function list_add_playlist()
 	load(list_cursor, true)
 end
 
-function delete_log_entry(multiple, round, target_path, target_time)
+function delete_log_entry(multiple, round, target_path, target_time, entry_limit)
 	if not target_path then target_path = filePath end
 	if not target_time then target_time = seekTime end
 	get_list_contents('all','added-asc')
 	if not list_contents or not list_contents[1] then return end
+	
+	if entry_limit and entry_limit > -1 then --1.30# if entry_limit is passed and it is larger than -1 then remove the duplicates
+		local entries_found = 0
+		for i = #list_contents, 1, -1 do--1.30#loop in opposite order so newest is first
+			if list_contents[i].found_path == target_path and entries_found < entry_limit then --1.30# whenever we find an entry we increase the value, if it reaches the limit then we stop
+				print(format_time(tonumber(list_contents[i].found_time))..'should not be removed')
+				entries_found = entries_found + 1--1.30# increase the entries found so we delete other entries that surpass the limit
+			elseif list_contents[i].found_path == target_path and entries_found >= entry_limit then --1.30#Once the entries_found reach limit then we delete those entries
+				print(format_time(tonumber(list_contents[i].found_time))..'should be removed')
+				table.remove(list_contents,i)
+			end
+		end
+	end
 	
 	if not multiple then
 		for i = #list_contents, 1, -1 do
@@ -1464,17 +1478,16 @@ function mark_chapter()
 	mp.set_property_native("chapter-list", all_chapters)
 end
 
-function write_log(target_time, update_seekTime) --1.29#Option to update seekTime globally
+function write_log(target_time, update_seekTime, entry_limit) --1.30# added entry_limit to limit entries based on value passed
 	if not filePath then return end
 	local prev_seekTime = seekTime
-	
 	seekTime = (mp.get_property_number('time-pos') or 0)
 	if target_time then
 		seekTime = target_time
 	end
 	if seekTime < 0 then seekTime = 0 end
 	
-	delete_log_entry(false, true, filePath, math.floor(seekTime))
+	delete_log_entry(false, true, filePath, math.floor(seekTime), entry_limit) --1.30#Pass the entry_limit passed to the delete_log
 
 	f = io.open(history_log, "a+")
 	if o.file_title_logging == 'all' then
@@ -1520,7 +1533,7 @@ end
 
 function history_save()
 	if filePath ~= nil then
-		write_log(false)
+		write_log(false, false, o.same_entry_limit)
 		if list_drawn then
 			get_list_contents()
 			select(0)
@@ -1533,7 +1546,7 @@ end
 
 function history_fileonly_save()
 	if filePath ~= nil then
-		write_log(0)
+		write_log(0, false)
 		if list_drawn then
 			get_list_contents()
 			select(0)
@@ -1609,7 +1622,7 @@ mp.register_event('file-loaded', function()
 end)
 
 mp.add_hook('on_unload', 50, function()
-	delete_log_entry(filePath, 0)
+	delete_log_entry(false, false, filePath, 0)--1.30#added false, false in the beginning, no clue how it was working without it o-o
 	history_save()
 end)
 
