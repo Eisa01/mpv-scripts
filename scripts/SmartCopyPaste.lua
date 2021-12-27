@@ -192,6 +192,7 @@ function os.capture(cmd)
   local f = assert(io.popen(cmd, 'r'))
   local s = assert(f:read('*a'))
   f:close()
+  return s--3.01# line was missing
 end
 
 function make_raw(s)
@@ -310,7 +311,7 @@ function set_clipboard(text)
 end
 
 function parse_clipboard(text)
-	if not text then return end
+	if not text then msg.error('Error: text is null' .. text) return end --3.01# Add error messages
 	
 	local clip, clip_file, clip_time, pre_attribute
 	clip = text
@@ -527,8 +528,8 @@ function paste()
 	msg.info("Pasting...")
 
 	clip = get_clipboard(clip)
+	if not clip then msg.error('Error: clip is null' .. clip) return end --3.01# Add error messages
 	clip, clip_file, clip_time = parse_clipboard(clip)
-	if not clip then return end
 	
 	local currentVideoExtension = string.lower(get_extension(clip_file))
 	
