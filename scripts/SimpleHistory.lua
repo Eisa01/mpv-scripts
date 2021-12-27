@@ -330,7 +330,7 @@ function bind_keys(keys, name, func, opts)
 	end
 	
 	for i = 1, #keys do--3.06# to make name consistent without 1 for script binding
-		if i == 1 then 
+		if i == 1 then
 			mp.add_forced_key_binding(keys[i], name, func, opts)
 		else
 			mp.add_forced_key_binding(keys[i], name .. i, func, opts)
@@ -344,8 +344,12 @@ function unbind_keys(keys, name)
 		return
 	end
 	
-	for i = 1, #keys do
-		mp.remove_key_binding(name .. i)
+	for i = 1, #keys do --3.09# fixes unbinding keys
+		if i == 1 then
+			mp.remove_key_binding(name)
+		else
+			mp.remove_key_binding(name .. i)
+		end
 	end
 end
 
