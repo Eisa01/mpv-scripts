@@ -46,7 +46,7 @@ local o = {
 	["ctrl+alt+v", "ctrl+alt+V", "meta+alt+v", "meta+alt+V"]
 	]], --Keybind that will be used to paste based on the paste behavior specified
 	paste_protocols=[[
-	["https?://" ,"magnet:", "rtmp:"]
+	["https?://", "magnet:", "rtmp:"]
 	]], --add above (after a comma) any protocol you want paste to work with; e.g: ,'ftp://'. Or set it as "" by deleting all defined protocols to make paste works with any protocol.
 	paste_extensions=[[
 	["ac3", "a52", "eac3", "mlp", "dts", "dts-hd", "dtshd", "true-hd", "thd", "truehd", "thd+ac3", "tta", "pcm", "wav", "aiff", "aif",  "aifc", "amr", "awb", "au", "snd", "lpcm", "yuv", "y4m", "ape", "wv", "shn", "m2ts", "m2t", "mts", "mtv", "ts", "tsv", "tsa", "tts", "trp", "adts", "adt", "mpa", "m1a", "m2a", "mp1", "mp2", "mp3", "mpeg", "mpg", "mpe", "mpeg2", "m1v", "m2v", "mp2v", "mpv", "mpv2", "mod", "tod", "vob", "vro", "evob", "evo", "mpeg4", "m4v", "mp4", "mp4v", "mpg4", "m4a", "aac", "h264", "avc", "x264", "264", "hevc", "h265", "x265", "265", "flac", "oga", "ogg", "opus", "spx", "ogv", "ogm", "ogx", "mkv", "mk3d", "mka", "webm", "weba", "avi", "vfw", "divx", "3iv", "xvid", "nut", "flic", "fli", "flc", "nsv", "gxf", "mxf", "wma", "wm", "wmv", "asf", "dvr-ms", "dvr", "wtv", "dv", "hdv", "flv","f4v", "f4a", "qt", "mov", "hdmov", "rm", "rmvb", "ra", "ram", "3ga", "3ga2", "3gpp", "3gp", "3gp2", "3g2", "ay", "gbs", "gym", "hes", "kss", "nsf", "nsfe", "sap", "spc", "vgm", "vgz", "m3u", "m3u8", "pls", "cue",
@@ -62,7 +62,7 @@ local o = {
 	
 	-----Logging Settings-----
 	log_path = '/:dir%mpvconf', --Change to '/:dir%script' for placing it in the same directory of script, OR change to '/:dir%mpvconf' for mpv portable_config directory. OR specify the desired path, e.g.: 'C:\Users\Eisa01\Desktop\'
-	log_file = 'mpvClipboard.log', --name+extension of the file that will be used to store the log data
+	log_file = 'mpvClip.log', --name+extension of the file that will be used to store the log data
 	date_format = '%d/%m/%y %X', --Date format in the log (see lua date formatting), e.g.:'%d/%m/%y %X' or '%d/%b/%y %X'
 	log_time_text = 'time=', --The text that is stored for the video time inside log file. It can also be left blank.
 	clipboard_log_text = 'clip=', --The text that is stored for the clipboard action inside log file. It can also be left blank.
@@ -70,7 +70,7 @@ local o = {
 	logging_protocols=[[
 	["https?://", "magnet:", "rtmp:"]
 	]], --add above (after a comma) any protocol you want its title to be stored in the log file. This is valid only for (file_title_logging = 'protocols' or file_title_logging = 'all')
-	prefer_filename_over_title = 'local', --Prefers to log filename over filetitle. Select between 'local', 'protocols', 'all', and 'none'. 'local' prefer filenames for videos that are not protocols. 'protocols' will prefer filenames for protocols only. 'all' will prefer filename over filetitle for both protocols and not protocols videos. 'none' will always use filetitle instead of filename
+	prefer_filename_over_title = 'local', --Prefers to copy and log filename over filetitle. Select between 'local', 'protocols', 'all', and 'none'. 'local' prefer filenames for videos that are not protocols. 'protocols' will prefer filenames for protocols only. 'all' will prefer filename over filetitle for both protocols and not protocols videos. 'none' will always use filetitle instead of filename
 	same_entry_limit = 4, --Limit saving entries with same path: -1 for unlimited, 0 will always update entries of same path, e.g. value of 3 will have the limit of 3 then it will start updating old values on the 4th entry.
 
 	-----List Settings-----
@@ -86,7 +86,7 @@ local o = {
 	search_not_typing_smartly = true, --To smartly set the search as not typing (when search box is open) without needing to press ctrl+enter.
 
 	-----Filter Settings------
-	--available filters: "all" to display all the items. Or "recents" to display recently added items to log without duplicate. Or "distinct" to show recent saved entries for files in different paths. Or "fileonly" to display files saved without time. Or "timeonly" to display files that have time only. Or "keywords" to display files with matching keywords specified in the configuration. Or "playing" to show list of current playing file.
+	--available filters: "all" to display all the items. Or "copy" to display copied items. Or "paste" to display pasted items. Or "recents" to display recently added items to log without duplicate. Or "distinct" to show recent saved entries for files in different paths. Or "fileonly" to display files saved without time. Or "timeonly" to display files that have time only. Or "keywords" to display files with matching keywords specified in the configuration. Or "playing" to show list of current playing file.
 	filters_and_sequence=[[
 	["all", "copy", "paste", "recents", "distinct", "protocols", "playing", "fileonly", "titleonly", "keywords"]
 	]], --Jump to the following filters and in the shown sequence when navigating via left and right keys. You can change the sequence and delete filters that are not needed.
@@ -406,8 +406,12 @@ function unbind_keys(keys, name)
 		return
 	end
 	
-	for i = 1, #keys do
-		mp.remove_key_binding(name .. i)
+	for i = 1, #keys do --3.09# fixes unbinding keys
+		if i == 1 then
+			mp.remove_key_binding(name)
+		else
+			mp.remove_key_binding(name .. i)
+		end
 	end
 end
 
@@ -1678,6 +1682,7 @@ function os.capture(cmd)
   local f = assert(io.popen(cmd, 'r'))
   local s = assert(f:read('*a'))
   f:close()
+  return s --3.09# line was missing
 end
 
 function make_raw(s)
@@ -2017,8 +2022,8 @@ function paste()
 	msg.info("Pasting...")
 
 	clip = get_clipboard(clip) --3.0# update global clipboard variable
+	if not clip then msg.error('Error: clip is null' .. clip) return end --3.09# Add error messages	
 	clip, clip_file, clip_time = parse_clipboard(clip) --3.0# update all 3 clipboard variables
-	if not clip then return end --3.0#4 handle if no value was passed
 	
 	local currentVideoExtension = string.lower(get_extension(clip_file))
 	
@@ -2088,6 +2093,7 @@ function paste_specific(action)
 	msg.info("Pasting...")
 	
 	clip = get_clipboard(clip) --3.0# update global clipboard variable
+	if not clip then msg.error('Error: clip is null' .. clip) return end --3.09# Add error messages	
 	clip, clip_file, clip_time = parse_clipboard(clip) --3.0# update all 3 clipboard variables
 	local currentVideoExtension = string.lower(get_extension(clip_file))
 	
@@ -2136,6 +2142,7 @@ mp.register_event('file-loaded', function()
 	filePath, fileTitle = get_path()
 	if clipboard_pasted == true then
 		clip = get_clipboard(clip) --3.0# update global clipboard variable
+		if not clip then msg.error('Error: clip is null' .. clip) return end --3.09# Add error messages		
 		clip, clip_file, clip_time = parse_clipboard(clip) --3.0# update all 3 clipboard variables
 		local video_duration = mp.get_property_number('duration')
 		
