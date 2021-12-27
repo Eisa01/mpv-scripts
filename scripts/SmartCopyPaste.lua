@@ -1,90 +1,211 @@
 -- Copyright (c) 2021, Eisa AlAwadhi
 -- License: BSD 2-Clause License
-
 -- Creator: Eisa AlAwadhi
 -- Project: SmartCopyPaste
--- Version: 2.6
+-- Version: 3.0
 
+local o = {
+---------------------------USER CUSTOMIZATION SETTINGS---------------------------
+--These settings are for users to manually change some options.
+--Changes are recommended to be made in the script-opts directory.
+
+	-----Script Settings----
+	device = 'auto', --'auto' is for automatic device detection, or manually change to: 'windows' or 'mac' or 'linux'
+	linux_copy = 'xclip -silent -selection clipboard -in', --copy command that will be used in Linux. OR write a different command
+	linux_paste = 'xclip -selection clipboard -o', --paste command that will be used in Linux. OR write a different command
+	mac_copy = 'pbcopy', --copy command that will be used in MAC. OR write a different command
+	mac_paste = 'pbpaste', --paste command that will be used in MAC. OR write a different command
+	windows_copy = 'powershell', --'powershell' is for using windows powershell to copy. OR write the copy command, e.g: ' clip'
+	windows_paste = 'powershell', --'powershell' is for using windows powershell to paste. OR write the paste command
+	resume_offset = -0.65, --change to 0 so item resumes from the exact position, or decrease the value so that it gives you a little preview before loading the resume point
+	osd_messages = true, --true is for displaying osd messages when actions occur. Change to false will disable all osd messages generated from this script
+	time_seperator = ' 🕒 ', --Time seperator that will be shown before the saved time in osd messages
+	prefer_filename_over_title = 'local', --Prefers to copy filename over filetitle. Select between 'local', 'protocols', 'all', and 'none'. 'local' prefer filenames for videos that are not protocols. 'protocols' will prefer filenames for protocols only. 'all' will prefer filename over filetitle for both protocols and not protocols videos. 'none' will always use filetitle instead of filename
+	copy_time_method = 'all', --Option to copy time with video, 'none' for disabled, 'all' to copy time for all videos, 'protocols' for copying time only for protocols, 'specifics' to copy time only for websites defined below, 'local' to copy time for videos that are not protocols
+	specific_time_attributes = [[
+	[ ["twitter", "?t=", ""], ["twitch", "?t=", "s"], ["youtube", "&t=", "s"] ]
+	]], --The time attributes which will be added when copying protocols of specific websites from this list. Additional attributes can be added following the same format.
+	protocols_time_attribute = '&t=', --The text that will be copied before the seek time when copying a protocol video from mpv 
+	local_time_attribute = '&time=', --The text that will be copied before the seek time when copying a local video from mpv
+	pastable_time_attributes = [[
+	[" | time="]
+	]], --The time attributes that can be pasted for resume, specific_time_attributes, protocols_time_attribute, local_time_attribute are automatically added
+	copy_keybind=[[
+	["ctrl+c", "ctrl+C", "meta+c", "meta+C"]
+	]], --Keybind that will be used to copy
+	running_paste_behavior = 'playlist', --The priority of paste behavior when a video is running. select between 'playlist', 'timestamp', 'force'.
+	paste_keybind=[[
+	["ctrl+v", "ctrl+V", "meta+v", "meta+V"]
+	]], --Keybind that will be used to paste
+	copy_specific_behavior = 'path', --Copy behavior when using copy_specific_keybind. select between 'title', 'path', 'timestamp', 'path&timestamp'.
+	copy_specific_keybind=[[
+	["ctrl+alt+c", "ctrl+alt+C", "meta+alt+c", "meta+alt+C"]
+	]], --Keybind that will be used to copy based on the copy behavior specified
+	paste_specific_behavior = 'playlist', --Paste behavior when using paste_specific_keybind. select between 'playlist', 'timestamp', 'force'.
+	paste_specific_keybind=[[
+	["ctrl+alt+v", "ctrl+alt+V", "meta+alt+v", "meta+alt+V"]
+	]], --Keybind that will be used to paste based on the paste behavior specified
+	paste_protocols=[[
+	["https?://" ,"magnet:", "rtmp:"]
+	]], --add above (after a comma) any protocol you want paste to work with; e.g: ,'ftp://'. Or set it as "" by deleting all defined protocols to make paste works with any protocol.
+	paste_extensions=[[
+	["ac3", "a52", "eac3", "mlp", "dts", "dts-hd", "dtshd", "true-hd", "thd", "truehd", "thd+ac3", "tta", "pcm", "wav", "aiff", "aif",  "aifc", "amr", "awb", "au", "snd", "lpcm", "yuv", "y4m", "ape", "wv", "shn", "m2ts", "m2t", "mts", "mtv", "ts", "tsv", "tsa", "tts", "trp", "adts", "adt", "mpa", "m1a", "m2a", "mp1", "mp2", "mp3", "mpeg", "mpg", "mpe", "mpeg2", "m1v", "m2v", "mp2v", "mpv", "mpv2", "mod", "tod", "vob", "vro", "evob", "evo", "mpeg4", "m4v", "mp4", "mp4v", "mpg4", "m4a", "aac", "h264", "avc", "x264", "264", "hevc", "h265", "x265", "265", "flac", "oga", "ogg", "opus", "spx", "ogv", "ogm", "ogx", "mkv", "mk3d", "mka", "webm", "weba", "avi", "vfw", "divx", "3iv", "xvid", "nut", "flic", "fli", "flc", "nsv", "gxf", "mxf", "wma", "wm", "wmv", "asf", "dvr-ms", "dvr", "wtv", "dv", "hdv", "flv","f4v", "f4a", "qt", "mov", "hdmov", "rm", "rmvb", "ra", "ram", "3ga", "3ga2", "3gpp", "3gp", "3gp2", "3g2", "ay", "gbs", "gym", "hes", "kss", "nsf", "nsfe", "sap", "spc", "vgm", "vgz", "m3u", "m3u8", "pls", "cue",
+	"ase", "art", "bmp", "blp", "cd5", "cit", "cpt", "cr2", "cut", "dds", "dib", "djvu", "egt", "exif", "gif", "gpl", "grf", "icns", "ico", "iff", "jng", "jpeg", "jpg", "jfif", "jp2", "jps", "lbm", "max", "miff", "mng", "msp", "nitf", "ota", "pbm", "pc1", "pc2", "pc3", "pcf", "pcx", "pdn", "pgm", "PI1", "PI2", "PI3", "pict", "pct", "pnm", "pns", "ppm", "psb", "psd", "pdd", "psp", "px", "pxm", "pxr", "qfx", "raw", "rle", "sct", "sgi", "rgb", "int", "bw", "tga", "tiff", "tif", "vtf", "xbm", "xcf", "xpm", "3dv", "amf", "ai", "awg", "cgm", "cdr", "cmx", "dxf", "e2d", "egt", "eps", "fs", "gbr", "odg", "svg", "stl", "vrml", "x3d", "sxd", "v2d", "vnd", "wmf", "emf", "art", "xar", "png", "webp", "jxr", "hdp", "wdp", "cur", "ecw", "iff", "lbm", "liff", "nrrd", "pam", "pcx", "pgf", "sgi", "rgb", "rgba", "bw", "int", "inta", "sid", "ras", "sun", "tga",
+	"torrent"]
+	]], --add above (after a comma) any extension you want paste to work with; e.g: ,'pdf'. Or set it as "" by deleting all defined extension to make paste works with any extension.
+	paste_subtitles=[[
+	["aqt", "gsub", "jss", "sub", "ttxt", "pjs", "psb", "rt", "smi", "slt", "ssf", "srt", "ssa", "ass", "usf", "idx", "vtt"]
+	]], --add above (after a comma) any extension you want paste to attempt to add as a subtitle file, e.g.:'txt'. Or set it as "" by deleting all defined extension to make paste attempt to add any subtitle.
+	
+---------------------------END OF USER CUSTOMIZATION SETTINGS---------------------------
+}
+	
+(require 'mp.options').read_options(o)
 local utils = require 'mp.utils'
 local msg = require 'mp.msg'
-local protocols
-local extensions
-local pasted = false
 
-----------------------------USER CUSTOMIZATION SETTINGS-----------------------------------
---These settings are for users to manually change some options in the script.
---Keybinds can be defined in the bottom of the script.
+o.copy_keybind = utils.parse_json(o.copy_keybind)
+o.paste_keybind = utils.parse_json(o.paste_keybind)
+o.copy_specific_keybind = utils.parse_json(o.copy_specific_keybind)
+o.paste_specific_keybind = utils.parse_json(o.paste_specific_keybind)
+o.paste_protocols = utils.parse_json(o.paste_protocols)
+o.paste_extensions = utils.parse_json(o.paste_extensions)
+o.paste_subtitles = utils.parse_json(o.paste_subtitles)
+o.specific_time_attributes = utils.parse_json(o.specific_time_attributes)
+o.pastable_time_attributes = utils.parse_json(o.pastable_time_attributes)
 
-local device = nil --nil is for automatic device detection, or manually change to: 'windows' or 'mac' or 'linux'
+local protocols = {'https?://', 'magnet:', 'rtmp:'}
+local seekTime = 0
+local clip, clip_time, clip_file, filePath, fileTitle
+local clipboard_pasted = false
 
-local linux_copy = 'xclip -silent -selection clipboard -in' --copy command that will be used in Linux. OR write a different command
-local linux_paste = 'xclip -selection clipboard -o' --paste command that will be used in Linux. OR write a different command
-
-local mac_copy = 'pbcopy' --copy command that will be used in MAC. OR write a different command
-local mac_paste = 'pbpaste' --paste command that will be used in MAC. OR write a different command
-
-local windows_copy = 'powershell' --'powershell' is for using windows powershell to copy. OR write the copy command, e.g: ' clip'
-local windows_paste = 'powershell' --'powershell' is for using windows powershell to paste. OR write the paste command
-
-local offset = -0.65 --change to 0 so that pasting resumes from the exact position, or decrease the value so that it gives you a little preview before reaching the exact pasted position
-
-local osd_messages = true --true is for displaying osd messages when actions occur, Change to false will disable all osd messages generated from this script
-
-local paste_anything = false --false is for specific paste based on the specified extensions and protocols. Change to true so paste accepts anything (not recommended to change this).
-
-if not paste_anything then
-	protocols = { --add below (after a comma) any protocol you want SmartCopyPaste to work with; e.g: ,'ftp://'
-		'https?://' ,'magnet:', 'rtmp:'
-	}
-	extensions = { --add below (after a comma) any extension you want SmartCopyPaste to work with; e.g: ,'pdf'
-		--video & audio
-		'ac3', 'a52', 'eac3', 'mlp', 'dts', 'dts-hd', 'dtshd', 'true-hd', 'thd', 'truehd', 'thd+ac3', 'tta', 'pcm', 'wav', 'aiff', 'aif',  'aifc', 'amr', 'awb', 'au', 'snd', 'lpcm', 'yuv', 'y4m', 'ape', 'wv', 'shn', 'm2ts', 'm2t', 'mts', 'mtv', 'ts', 'tsv', 'tsa', 'tts', 'trp', 'adts', 'adt', 'mpa', 'm1a', 'm2a', 'mp1', 'mp2', 'mp3', 'mpeg', 'mpg', 'mpe', 'mpeg2', 'm1v', 'm2v', 'mp2v', 'mpv', 'mpv2', 'mod', 'tod', 'vob', 'vro', 'evob', 'evo', 'mpeg4', 'm4v', 'mp4', 'mp4v', 'mpg4', 'm4a', 'aac', 'h264', 'avc', 'x264', '264', 'hevc', 'h265', 'x265', '265', 'flac', 'oga', 'ogg', 'opus', 'spx', 'ogv', 'ogm', 'ogx', 'mkv', 'mk3d', 'mka', 'webm', 'weba', 'avi', 'vfw', 'divx', '3iv', 'xvid', 'nut', 'flic', 'fli', 'flc', 'nsv', 'gxf', 'mxf', 'wma', 'wm', 'wmv', 'asf', 'dvr-ms', 'dvr', 'wtv', 'dv', 'hdv', 'flv','f4v', 'f4a', 'qt', 'mov', 'hdmov', 'rm', 'rmvb', 'ra', 'ram', '3ga', '3ga2', '3gpp', '3gp', '3gp2', '3g2', 'ay', 'gbs', 'gym', 'hes', 'kss', 'nsf', 'nsfe', 'sap', 'spc', 'vgm', 'vgz', 'm3u', 'm3u8', 'pls', 'cue',
-		--images
-		"ase", "art", "bmp", "blp", "cd5", "cit", "cpt", "cr2", "cut", "dds", "dib", "djvu", "egt", "exif", "gif", "gpl", "grf", "icns", "ico", "iff", "jng", "jpeg", "jpg", "jfif", "jp2", "jps", "lbm", "max", "miff", "mng", "msp", "nitf", "ota", "pbm", "pc1", "pc2", "pc3", "pcf", "pcx", "pdn", "pgm", "PI1", "PI2", "PI3", "pict", "pct", "pnm", "pns", "ppm", "psb", "psd", "pdd", "psp", "px", "pxm", "pxr", "qfx", "raw", "rle", "sct", "sgi", "rgb", "int", "bw", "tga", "tiff", "tif", "vtf", "xbm", "xcf", "xpm", "3dv", "amf", "ai", "awg", "cgm", "cdr", "cmx", "dxf", "e2d", "egt", "eps", "fs", "gbr", "odg", "svg", "stl", "vrml", "x3d", "sxd", "v2d", "vnd", "wmf", "emf", "art", "xar", "png", "webp", "jxr", "hdp", "wdp", "cur", "ecw", "iff", "lbm", "liff", "nrrd", "pam", "pcx", "pgf", "sgi", "rgb", "rgba", "bw", "int", "inta", "sid", "ras", "sun", "tga",
-		--other types
-		'torrent'
-	}
----------------------------END OF USER CUSTOMIZATION SETTINGS------------------------
-else
-	protocols = {''}
-	extensions = {''}
+function has_value(tab, val)
+	for index, value in ipairs(tab) do
+		if value == val then
+			return true
+		end
+	end
+	
+	return false
 end
 
-if not device then
+--3.0.6#pastable_time_attributes after making it user optional
+table.insert(o.pastable_time_attributes, o.protocols_time_attribute)
+table.insert(o.pastable_time_attributes, o.local_time_attribute)
+for i = 1, #o.specific_time_attributes do--3.0.6#add missing specific_time_attributes to pastable_time_attributes automatically
+	if not has_value(o.pastable_time_attributes, o.specific_time_attributes[i][2]) then
+		table.insert(o.pastable_time_attributes, o.specific_time_attributes[i][2])
+	end
+end
+
+if not o.device or o.device == 'auto' then
 	if os.getenv('windir') ~= nil then
-		device = 'windows'
+		o.device = 'windows'
 	elseif os.execute '[ -d "/Applications" ]' == 0 and os.execute '[ -d "/Library" ]' == 0 or os.execute '[ -d "/Applications" ]' == true and os.execute '[ -d "/Library" ]' == true then
-		device = 'mac'
+		o.device = 'mac'
 	else
-		device = 'linux'
+		o.device = 'linux'
   end
+end
+
+function starts_protocol(tab, val)
+	for index, value in ipairs(tab) do
+		if (val:find(value) == 1) then
+			return true
+		end
+	end
+	return false
+end
+
+function contain_value(tab, val)
+	if not tab then return end --3.0#4 handle if no value was passed
+	if not val then return end --3.0#4 handle if no value was passed
+
+	for index, value in ipairs(tab) do
+		if value.match(string.lower(val), string.lower(value)) then
+			return true
+		end
+	end
+	
+	return false
+end
+
+function file_exists(name)
+	local f = io.open(name, "r")
+	if f ~= nil then io.close(f) return true else return false end
+end
+
+function format_time(duration)
+	local total_seconds = math.floor(duration)
+	local hours = (math.floor(total_seconds / 3600))
+	total_seconds = (total_seconds % 3600)
+	local minutes = (math.floor(total_seconds / 60))
+	local seconds = (total_seconds % 60)
+	return string.format("%02d:%02d:%02d", hours, minutes, seconds)
+end
+
+function get_path()
+	local path = mp.get_property('path')
+	if not path then return end
+	
+	local title = mp.get_property('media-title'):gsub("\"", "")
+	
+	if starts_protocol(protocols, path) and o.prefer_filename_over_title == 'protocols' then
+		title = mp.get_property('filename'):gsub("\"", "")
+	elseif not starts_protocol(protocols, path) and o.prefer_filename_over_title == 'local' then
+		title = mp.get_property('filename'):gsub("\"", "")
+	elseif o.prefer_filename_over_title == 'all' then
+		title = mp.get_property('filename'):gsub("\"", "")
+	end
+	
+	return path, title
+end
+
+function bind_keys(keys, name, func, opts)
+	if not keys then
+		mp.add_forced_key_binding(keys, name, func, opts)
+		return
+	end
+	
+	for i = 1, #keys do--3.06# to make name consistent without 1 for script binding
+		if i == 1 then 
+			mp.add_forced_key_binding(keys[i], name, func, opts)
+		else
+			mp.add_forced_key_binding(keys[i], name .. i, func, opts)
+		end
+	end
 end
 
 function handleres(res, args)
-  if not res.error and res.status == 0 then
-      return res.stdout
-  else
-    msg.error("There was an error getting "..device.." clipboard: ")
-    msg.error("  Status: "..(res.status or ""))
-    msg.error("  Error: "..(res.error or ""))
-    msg.error("  stdout: "..(res.stdout or ""))
-    msg.error("args: "..utils.to_string(args))
-    return ''
-  end
+	if not res.error and res.status == 0 then
+		return res.stdout
+	else
+		msg.error("There was an error getting "..o.device.." clipboard: ")
+		msg.error("  Status: "..(res.status or ""))
+		msg.error("  Error: "..(res.error or ""))
+		msg.error("  stdout: "..(res.stdout or ""))
+		msg.error("args: "..utils.to_string(args))
+		return ''
+	end
 end
 
-function os.capture(cmd, raw)
+function os.capture(cmd)
   local f = assert(io.popen(cmd, 'r'))
   local s = assert(f:read('*a'))
   f:close()
-  if raw then return s end
-  s = string.gsub(s, '^%s+', '')
-  s = string.gsub(s, '%s+$', '')
-  s = string.gsub(s, '[\n\r]+', ' ')
-  return s
 end
 
-local function get_extension(path)
+function make_raw(s)
+	if not s then return end --3.0#4 handle if no value was passed
+	s = string.gsub(s, '^%s+', '')
+	s = string.gsub(s, '%s+$', '')
+	s = string.gsub(s, '[\n\r]+', ' ')
+	return s
+end
+
+function get_extension(path)
+	if not path then return end --3.0#4 handle if no value was passed
+
     match = string.match(path, '%.([^%.]+)$' )
     if match == nil then
         return 'nomatch'
@@ -93,80 +214,79 @@ local function get_extension(path)
     end
 end
 
-local function get_extentionpath(path)
-    match = string.match(path,'(.*)%.([^%.]+)$')
-    if match == nil then
-        return 'nomatch'
-    else
-        return match
-    end
+
+function get_specific_attribute(target_path) --3.0#function to get the specific attribute based on specific link, protocol, or local.
+		local pre_attribute = ''
+		local after_attribute = ''
+		if not starts_protocol(protocols, target_path) then
+			pre_attribute = o.local_time_attribute
+		elseif starts_protocol(protocols, target_path) then
+			pre_attribute = o.protocols_time_attribute
+			for i = 1, #o.specific_time_attributes do--3.0#change the protocol attribute to the specific attribute for the website found
+				if contain_value({o.specific_time_attributes[i][1]}, target_path) then --3.0#added pre_time attribute inside curly brackets{} to convert it into table for contain_value
+					pre_attribute = o.specific_time_attributes[i][2]
+					after_attribute = o.specific_time_attributes[i][3] --3.0#get the after attribute, which is specified in the o.specific_time_attributes table
+					break
+				end
+			end
+		end
+	return pre_attribute, after_attribute
 end
 
-local function has_extension (tab, val)
-    for index, value in ipairs(tab) do
-        if value == val then
-            return true
-        end
-    end
-
-    return false
-end
-
-local function starts_protocol (tab, val)
-    for index, value in ipairs(tab) do
-        if (val:find(value) == 1) then
-            return true
-        end
+function get_time_attribute(target_path)
+	local pre_attribute = ''
+	for i = 1, #o.pastable_time_attributes do--3.0#accept any protocol defined in the pre_time_attributes
+		if contain_value({o.pastable_time_attributes[i]}, target_path) then --3.0#added pre_time attribute inside curly brackets{} to convert it into table for contain_value
+			pre_attribute = o.pastable_time_attributes[i]
+			break
+		end
 	end
-    return false
+	return pre_attribute
 end
 
 
 function get_clipboard()
-local clip
-  if device == 'linux' then
-	clip = os.capture(linux_paste, false)
-	return clip
-  elseif device == 'windows' then
-	if windows_paste == 'powershell' then
-		local args = {
-		  'powershell', '-NoProfile', '-Command', [[& {
-				Trap {
-					Write-Error -ErrorRecord $_
-					Exit 1
-				}
-				$clip = Get-Clipboard -Raw -Format Text -TextFormatType UnicodeText
-				if ($clip) {
-					$clip = $clip
+	local clipboard
+	if o.device == 'linux' then
+		clipboard = os.capture(o.linux_paste)
+		return clipboard
+	elseif o.device == 'windows' then
+		if o.windows_paste == 'powershell' then
+			local args = {--3.0# updated script to use -not
+				'powershell', '-NoProfile', '-Command', [[& {
+					Trap {
+						Write-Error -ErrorRecord $_
+						Exit 1
 					}
-				else {
-					$clip = Get-Clipboard -Raw -Format FileDropList
-				}
-				$u8clip = [System.Text.Encoding]::UTF8.GetBytes($clip)
-				[Console]::OpenStandardOutput().Write($u8clip, 0, $u8clip.Length)
-			}]]
-		}
-		return handleres(utils.subprocess({ args =  args, cancellable = false }), args)
-	else
-		clip = os.capture(windows_paste, false)
-		return clip
+					$clip = Get-Clipboard -Raw -Format Text -TextFormatType UnicodeText
+					if (-not $clip) {
+						$clip = Get-Clipboard -Raw -Format FileDropList
+					}
+					$u8clip = [System.Text.Encoding]::UTF8.GetBytes($clip)
+					[Console]::OpenStandardOutput().Write($u8clip, 0, $u8clip.Length)
+				}]]
+			}
+			return handleres(utils.subprocess({ args =  args, cancellable = false }), args)
+		else
+			clipboard = os.capture(o.windows_paste)
+			return clipboard
+		end
+	elseif o.device == 'mac' then
+		clipboard = os.capture(o.mac_paste)
+		return clipboard
 	end
-  elseif device == 'mac' then
-	clip = os.capture(mac_paste, false)
-	return clip
-  end
-  return ''
+	return ''
 end
 
 
 function set_clipboard(text)
 	local pipe
-	if device == 'linux' then
-		pipe = io.popen(linux_copy, 'w')
+	if o.device == 'linux' then
+		pipe = io.popen(o.linux_copy, 'w')
 		pipe:write(text)
 		pipe:close()
-	elseif device == 'windows' then
-		if windows_copy == 'powershell' then
+	elseif o.device == 'windows' then
+		if o.windows_copy == 'powershell' then
 			local res = utils.subprocess({ args = {
 				'powershell', '-NoProfile', '-Command', string.format([[& {
 					Trap {
@@ -178,211 +298,380 @@ function set_clipboard(text)
 				}]], text)
 			} })
 		else
-			pipe = io.popen(windows_copy,'w')
+			pipe = io.popen(o.windows_copy,'w')
 			pipe:write(text)
 			pipe:close()
 		end
-	elseif device == 'mac' then
-		pipe = io.popen(mac_copy,'w')
+	elseif o.device == 'mac' then
+		pipe = io.popen(o.mac_copy,'w')
 		pipe:write(text)
 		pipe:close()
-	  end
-  return ''
+	end
+	return ''
+end
+
+function parse_clipboard(text) --3.0# made parsing clipboard with clipboard, clip_file and clip_time a function, since the code was repeated multiple times, I also made them global variables as part of creating trigger_paste_action function and I didnt want to pass it to the function again and to define local variables again and everytime since they are repeated
+	if not text then return end --3.0#4 handle if no value was passed
+	
+	local clip, clip_file, clip_time, pre_attribute
+	clip = text
+	
+	clip = make_raw(clip)
+	pre_attribute = get_time_attribute(clip)--3.0#get the found time attribute, from list of acceptable ones.
+
+	if string.match(clip, '(.*)'..pre_attribute) then
+		clip_file = string.match(clip, '(.*)'..pre_attribute)
+		clip_time = tonumber(string.match(clip, pre_attribute..'(%d*%.?%d*)'))--3.0#Update to only get time and ignore string that is after time (fixes issue that the after_attribute of twitch for example doesn't allow pasting time)
+	elseif string.match(clip, '^\"(.*)\"$') then
+		clip_file = string.match(clip, '^\"(.*)\"$')
+	else
+		clip_file = clip
+	end
+
+	return clip, clip_file, clip_time
+end
+
+function copy() --3.0# changed to function from local function
+	if filePath ~= nil then
+		if o.copy_time_method == 'none' or copy_time_method == '' then --3.0#If set to none, then just copy path and return outside this function
+			copy_specific('path')
+			return
+		elseif o.copy_time_method == 'protocols' and not starts_protocol(protocols, filePath) then --3.0#If set to protocols and its a local video, then just copy path and return
+			copy_specific('path')
+			return
+		elseif o.copy_time_method == 'local' and starts_protocol(protocols, filePath) then --3.0# If set to local and its a protocol video, then just copy path and return 
+			copy_specific('path')
+			return
+		elseif o.copy_time_method == 'specifics' then--3.06# specifics to only copy the defined urls
+			if not starts_protocol(protocols, filePath) then --3.06#if its a local video then just copy path
+				copy_specific('path')
+				return
+			else --3.06#if its protocol then try to get the url
+				for i = 1, #o.specific_time_attributes do --3.06# Added specifics to copy time only for the specific urls in the specific_time_attributes array
+					if contain_value({o.specific_time_attributes[i][1]}, filePath) then--3.06#if url is found then copy path and time then return
+						copy_specific('path&timestamp')
+						return
+					end
+				end
+				--3.06#If the loop finished and url is not found then copy path only and return since it will be an empty protocol
+				copy_specific('path')
+				return
+			end
+		else --3.06# used copy_specific function instead 
+			copy_specific('path&timestamp')
+			return
+		end
+	else
+		if o.osd_messages == true then
+			mp.osd_message('Failed to Copy\nNo Video Found')
+		end
+		msg.info('Failed to copy, no video found')
+	end
 end
 
 
-local function copy()
-    local filePath = mp.get_property_native('path')
-	if (filePath ~= nil) then
-		local time = math.floor(mp.get_property_number('time-pos'))
-		if (osd_messages == true) then
-			mp.osd_message("Copied:\n"..filePath..' |time='..tostring(time))
-		end
-		set_clipboard(filePath..' |time='..tostring(time))
-		msg.info("Copied the below into clipboard:\n"..filePath..' |time='..tostring(time))
-	else
-		if (osd_messages == true) then
+function copy_specific(action)--3.0#3 changed copy to support different actions
+	if not action then return end
+
+	if filePath == nil then
+		if o.osd_messages == true then
 			mp.osd_message('Failed to Copy\nNo Video Found')
 		end
 		msg.info("Failed to copy, no video found")
+		return
+	else
+		if action == 'title' then
+			if o.osd_messages == true then
+				mp.osd_message("Copied:\n"..fileTitle)
+			end
+			set_clipboard(fileTitle)
+			msg.info("Copied the below into clipboard:\n"..fileTitle)
+		end
+		if action == 'path' then
+			if o.osd_messages == true then
+				mp.osd_message("Copied:\n"..filePath)
+			end
+			set_clipboard(filePath)
+			msg.info("Copied the below into clipboard:\n"..filePath)
+		end
+		if action == 'timestamp' then
+			local pre_attribute, after_attribute = get_specific_attribute(filePath) --3.0#get the attribute based on the url we are in or whether it is local or not
+			local video_time = mp.get_property_number('time-pos')
+			if o.osd_messages == true then
+				mp.osd_message("Copied"..o.time_seperator..format_time(video_time))
+			end
+			set_clipboard(pre_attribute..math.floor(video_time)..after_attribute)
+			msg.info('Copied the below into clipboard:\n'..pre_attribute..math.floor(video_time)..after_attribute)
+		end
+		if action == 'path&timestamp' then
+			local pre_attribute, after_attribute = get_specific_attribute(filePath) --3.0#get the attribute based on the url we are in or whether it is local or not
+			local video_time = mp.get_property_number('time-pos')
+			if o.osd_messages == true then
+				mp.osd_message("Copied:\n" .. fileTitle .. o.time_seperator .. format_time(video_time))
+			end
+			set_clipboard(filePath..pre_attribute..math.floor(video_time)..after_attribute)
+			msg.info('Copied the below into clipboard:\n'..filePath..pre_attribute..math.floor(video_time)..after_attribute)
+		end
 	end
 end
 
-
-local function copy_path()
-    local filePath = mp.get_property_native('path')
-	if (filePath ~= nil) then
-		if (osd_messages == true) then
-			mp.osd_message("Copied Video Only:\n"..filePath)
+function trigger_paste_action(action) --3.0#Use paste action function instead of repeating the actions when paste condition is there
+	if not action then return end
+	
+	if action == 'load-file' then
+		if o.osd_messages == true then
+			if clip_time ~= nil then
+				mp.osd_message("Pasted:\n"..clip_file .. o.time_seperator .. format_time(clip_time))
+				msg.info("Pasted the below file into mpv:\n"..clip_file .. format_time(clip_time))
+			else
+				mp.osd_message("Pasted:\n"..clip_file)
+				msg.info("Pasted the below file into mpv:\n"..clip_file)
+			end
 		end
-		set_clipboard(filePath)
-		msg.info("Copied the below into clipboard:\n"..filePath)
-	else
-		if (osd_messages == true) then
-			mp.osd_message('Failed to Copy Path\nNo Video Found')
-		end
-		msg.info("Failed to copy video path, no video found")
-	end
-end
-
-
-function paste()
-	if (osd_messages == true) then
-		mp.osd_message("Pasting...")
-	end
-	msg.info("Pasting...")
-
-	local clip = get_clipboard()
-	clip = string.gsub(clip, "[\r\n]" , "")
-
-	local filePath = mp.get_property_native('path')
-	local time
-
-	if string.match(clip, '(.*) |time=') then
-		videoFile = string.match(clip, '(.*) |time=')
-		time = string.match(clip, ' |time=(.*)')
-	elseif string.match(clip, '^\"(.*)\"$') then
-		videoFile = string.match(clip, '^\"(.*)\"$')
-	else
-		videoFile = clip
+		mp.commandv('loadfile', clip_file)
+		clipboard_pasted = true --3.0.5#clipboard pasted for resume only when loading file		
 	end
 	
-	local currentVideoExtension = string.lower(get_extension(videoFile))
-	local currentVideoExtensionPath = (get_extentionpath(videoFile))
+	if action == 'load-subtitle' then
+		if o.osd_messages == true then
+			mp.osd_message("Pasted Subtitle:\n"..clip_file)
+		end
+		mp.commandv('sub-add', clip_file, 'select')
+		msg.info("Pasted the below subtitle into mpv:\n"..clip_file)
+	end
 	
-	local seekTime
-	
-	if (filePath == nil) and has_extension(extensions, currentVideoExtension) and (currentVideoExtensionPath~= '') then
-		if (osd_messages == true) then
-			mp.osd_message("Pasted:\n"..videoFile)
-		end
-		mp.commandv('loadfile', videoFile)
-		msg.info("Pasted the below into mpv:\n"..videoFile)
-	elseif (filePath == nil) and (starts_protocol(protocols, videoFile)) then
-		if (osd_messages == true) then
-			mp.osd_message("Pasted:\n"..videoFile)
-		end
-		mp.commandv('loadfile', videoFile)
-		msg.info("Pasted the below into mpv:\n"..videoFile)
-	elseif (filePath ~= nil) and (filePath ~= videoFile) and has_extension(extensions, currentVideoExtension) and (currentVideoExtensionPath~= '') or (starts_protocol(protocols, videoFile)) and (filePath ~= videoFile) then
-		if (osd_messages == true) then
-			mp.osd_message('Pasted Into Playlist:\n'..videoFile)
-		end
-		mp.commandv('loadfile', videoFile, 'append-play')
-		msg.info("Pasted the below into playlist:\n"..videoFile)
-	elseif (filePath == videoFile) and (time == nil) then
-		if (osd_messages == true) then
-			mp.osd_message('Same file is already running:\n'..clip)
-		end
-		msg.info("Pasted file shown below is already running:\n"..videoFile)
-	elseif (filePath == videoFile) and (time ~= nil) then
-		if (osd_messages == true) then
-			mp.osd_message('Resumed to Pasted Time')
-		end
-		seekTime = time + offset
+	if action == 'file-seek' then
+		local video_duration = mp.get_property_number('duration')
+		seekTime = clip_time + o.resume_offset
+		
+		if seekTime > video_duration then 
+			if o.osd_messages == true then
+				mp.osd_message('Time Paste Exceeds Video Length' .. o.time_seperator .. format_time(clip_time))
+			end
+			msg.info("The time pasted exceeds the video length:\n"..format_time(clip_time))
+			return
+		end 
+		
 		if (seekTime < 0) then
 			seekTime = 0
 		end
 	
+		if o.osd_messages == true then
+			mp.osd_message('Resumed to Pasted Time' .. o.time_seperator .. format_time(clip_time))
+		end
 		mp.commandv('seek', seekTime, 'absolute', 'exact')
-		msg.info("Resumed to the pasted time")
-	else
-		if (osd_messages == true) then
+		msg.info("Resumed to the pasted time" .. o.time_seperator .. format_time(clip_time))
+	end
+	
+	if action == 'add-playlist' then
+		if o.osd_messages == true then
+			mp.osd_message('Pasted Into Playlist:\n'..clip_file)
+		end
+		mp.commandv('loadfile', clip_file, 'append-play')
+		msg.info("Pasted the below into playlist:\n"..clip_file)
+	end
+	
+	--3.0#Error Messages
+	
+	if action == 'error-subtitle' then
+		if o.osd_messages == true then
+			mp.osd_message('Subtitle Paste Requires Running Video:\n'..clip_file)
+		end
+		msg.info('Subtitles can only be pasted if a video is running:\n'..clip_file)
+	end
+	
+	if action == 'error-unsupported' then
+		if o.osd_messages == true then
 			mp.osd_message('Failed to Paste\nPasted Unsupported Item:\n'..clip)
 		end
 		msg.info('Failed to paste into mpv, pasted item shown below is unsupported:\n'..clip)
 	end
 	
-	pasted = true
+	if action == 'error-missing' then
+		if o.osd_messages == true then
+			mp.osd_message('File Doesn\'t Exist:\n' .. clip_file)
+		end
+		msg.info('The file below doesn\'t seem to exist:\n' .. clip_file)
+	end
+	
+	if action == 'error-time' then
+		if o.osd_messages == true then
+			if clip_time ~= nil then
+				mp.osd_message('Time Paste Requires Running Video' .. o.time_seperator .. format_time(clip_time))
+				msg.info('Time can only be pasted if a video is running:\n'.. format_time(clip_time))
+			else
+				mp.osd_message('Time Paste Requires Running Video')
+				msg.info('Time can only be pasted if a video is running')
+			end
+		end
+	end
+	
+	if action == 'error-missingtime' then
+		if o.osd_messages == true then
+			mp.osd_message('Clipboard does not contain time for seeking:\n'..clip)
+		end
+		msg.info("Clipboard does not contain the time attribute and time for seeking:\n"..clip)
+	end
+	
+	if action == 'error-samefile' then
+		if o.osd_messages == true then
+			mp.osd_message('Pasted file is already running:\n'..clip)
+		end
+		msg.info("Pasted file shown below is already running:\n"..clip)
+	end
+
 end
 
-
-function paste_playlist()
-	if (osd_messages == true) then
+function paste()
+	if o.osd_messages == true then
 		mp.osd_message("Pasting...")
 	end
 	msg.info("Pasting...")
 
-	local clip = get_clipboard()
-	clip = string.gsub(clip, "[\r\n]" , "")
+	clip = get_clipboard(clip) --3.0# update global clipboard variable
+	clip, clip_file, clip_time = parse_clipboard(clip) --3.0# update all 3 clipboard variables
+	if not clip then return end --3.0#4 handle if no value was passed
 	
-	local filePath = mp.get_property_native('path')
-
-	if string.match(clip, '(.*) |time=') then
-		videoFile = string.match(clip, '(.*) |time=')
-	elseif string.match(clip, '^\"(.*)\"$') then
-		videoFile = string.match(clip, '^\"(.*)\"$')
-	else
-		videoFile = clip
-	end
-	local currentVideoExtension = string.lower(get_extension(videoFile))
-	local currentVideoExtensionPath = (get_extentionpath(videoFile))
+	local currentVideoExtension = string.lower(get_extension(clip_file))
 	
-	if has_extension(extensions, currentVideoExtension) and (currentVideoExtensionPath~= '') or (starts_protocol(protocols, videoFile)) then
-		if (osd_messages == true) then
-			mp.osd_message('Pasted Into Playlist:\n'..videoFile)
+	if filePath == nil then --3.0#Change the paste mechanism to be filePath is empty or if a file is running
+		if file_exists(clip_file) and has_value(o.paste_extensions, currentVideoExtension) 
+		or starts_protocol(o.paste_protocols, clip_file) then
+			trigger_paste_action('load-file')
+		elseif file_exists(clip_file) and has_value(o.paste_subtitles, currentVideoExtension) then --3.0# Error message if loading subtitle when no video is running
+			trigger_paste_action('error-subtitle')
+		elseif not has_value(o.paste_extensions, currentVideoExtension) then --3.0# If pasting unsupported item then error message
+			trigger_paste_action('error-unsupported')
+		elseif not file_exists(clip_file) then --3.0# Error message if file doesn't exist --The condition above it ensures that this paste is supported extension
+			trigger_paste_action('error-missing')
 		end
-		mp.commandv('loadfile', videoFile, 'append-play')
-		msg.info("Pasted the below into playlist:\n"..videoFile)
-	else
-		if (osd_messages == true) then
-			mp.osd_message('Failed to Add Into Playlist\nPasted Unsupported Item:\n'..clip)
+	else --3.0# If pasting while file is running
+		if file_exists(clip_file) and has_value(o.paste_subtitles, currentVideoExtension) then --3.0#Option to paste subtitle files (the general stuff first that doesn't require checking paste_behavior)
+			trigger_paste_action('load-subtitle')
+		elseif o.running_paste_behavior == 'playlist' then --3.0#If paste behavior is playlist
+			if filePath ~= clip_file and file_exists(clip_file) and has_value(o.paste_extensions, currentVideoExtension) --3.0# Pasting different files = add them to playlist
+			or filePath ~= clip_file and starts_protocol(o.paste_protocols, clip_file) --3.0# If its a protocol then accept it
+			or filePath == clip_file and file_exists(clip_file) and has_value(o.paste_extensions, currentVideoExtension) and clip_time == nil  --3.0#If pasting same file without time then add it to playlist, however if its samefile and there is time then prefer time as per below
+			or filePath == clip_file and starts_protocol(o.paste_protocols, clip_file) and clip_time == nil then --3.0#If pasting same protocol without time then add it to playlist, however if its samefile and there is time then prefer time as per below
+				trigger_paste_action('add-playlist')
+			elseif clip_time ~= nil then --3.0# Seek if file doesn't exist or if clip_time exists from clipboard
+				trigger_paste_action('file-seek')
+			elseif not has_value(o.paste_extensions, currentVideoExtension) then --3.0# If pasting unsupported item then error message
+				trigger_paste_action('error-unsupported')
+			elseif not file_exists(clip_file) then --3.0# Error message if file doesn't exist --The condition above it ensures that this paste is supported extension
+				trigger_paste_action('error-missing')
+			end
+		elseif o.running_paste_behavior == 'timestamp' then--3.0# If the method is timestamp
+			if clip_time ~= nil then --3.0#jump to copied time when pasting '?t=10' alone should work, or if clipboard has a different video but contains time then go to that time
+				trigger_paste_action('file-seek')
+			elseif file_exists(clip_file) and has_value(o.paste_extensions, currentVideoExtension) 
+			or starts_protocol(o.paste_protocols, clip_file) then --3.0#Add pasted file to playlist when no copied item is found (this will only trigger if no time in clipboard because of the above)
+				trigger_paste_action('add-playlist')
+			elseif not has_value(o.paste_extensions, currentVideoExtension) then --3.0# If pasting unsupported item then error message
+				trigger_paste_action('error-unsupported')
+			elseif not file_exists(clip_file) then --3.0# Error message if file doesn't exist --The condition above it ensures that this paste is supported extension
+				trigger_paste_action('error-missing')
+			end
+		elseif o.running_paste_behavior == 'force' then
+			if filePath ~= clip_file and file_exists(clip_file) and has_value(o.paste_extensions, currentVideoExtension) 
+			or filePath ~= clip_file and starts_protocol(o.paste_protocols, clip_file) then --3.0# If pasting a different file then immediately go to it 
+				trigger_paste_action('load-file')
+			elseif clip_time ~= nil then --3.0# Jump to copied time when pasting same file
+				trigger_paste_action('file-seek')
+			elseif file_exists(clip_file) and filePath == clip_file 
+			or filePath == clip_file and starts_protocol(o.paste_protocols, clip_file) then --3.0# If its the same file, then add to playlist if there is no time (no need to check time == nil because the above handles finding the time)
+				trigger_paste_action('add-playlist')
+			elseif not has_value(o.paste_extensions, currentVideoExtension) then --3.0# If pasting unsupported item then error message
+				trigger_paste_action('error-unsupported')
+			elseif not file_exists(clip_file) then --3.0# Error message if file doesn't exist --The condition above it ensures that this paste is supported extension
+				trigger_paste_action('error-missing')
+			end
 		end
-		msg.info('Failed to paste into playlist, pasted item shown below is unsupported:\n'..clip)
 	end
-	
-	pasted = true
 end
 
 
-mp.register_event('end-file', function()
-	pasted = false
-end)
-
+function paste_specific(action)
+	if not action then return end --3.0#3 handle action not specified
+	
+	if o.osd_messages == true then
+		mp.osd_message("Pasting...")
+	end
+	msg.info("Pasting...")
+	
+	clip = get_clipboard(clip) --3.0# update global clipboard variable
+	clip, clip_file, clip_time = parse_clipboard(clip) --3.0# update all 3 clipboard variables
+	local currentVideoExtension = string.lower(get_extension(clip_file))
+	
+	if action == 'playlist' then
+		if file_exists(clip_file) and has_value(o.paste_extensions, currentVideoExtension)
+		or starts_protocol(o.paste_protocols, clip_file) then --3.0# Updated if statement simply stolen the if statement from the above load-file action
+			trigger_paste_action('add-playlist')
+		elseif not has_value(o.paste_extensions, currentVideoExtension) then --3.0# If pasting unsupported item then error message
+			trigger_paste_action('error-unsupported')
+		elseif not file_exists(clip_file) then --3.0# Error message if file doesn't exist --The condition above it ensures that this paste is supported extension
+			trigger_paste_action('error-missing')
+		end
+	end
+	
+	if action == 'timestamp' then
+		if filePath == nil then
+			trigger_paste_action('error-time')
+		elseif clip_time ~= nil then --3.0#jump to copied time when pasting '?t=10' alone should work, or if clipboard has a different video but contains time then go to that time
+			trigger_paste_action('file-seek')
+		elseif clip_time == nil then
+			trigger_paste_action('error-missingtime')
+		elseif not has_value(o.paste_extensions, currentVideoExtension) then --3.0# If pasting unsupported item then error message
+			trigger_paste_action('error-unsupported')
+		elseif not file_exists(clip_file) then --3.0# Error message if file doesn't exist --The condition above it ensures that this paste is supported extension
+			trigger_paste_action('error-missing')
+		end
+	end
+	
+	if action == 'force' then
+		if filePath ~= clip_file and file_exists(clip_file) and has_value(o.paste_extensions, currentVideoExtension) 
+		or filePath ~= clip_file and starts_protocol(o.paste_protocols, clip_file) then --3.0# If pasting a different file then immediately go to it 
+			trigger_paste_action('load-file')
+		elseif file_exists(clip_file) and filePath == clip_file 
+		or filePath == clip_file and starts_protocol(o.paste_protocols, clip_file) then --3.0# If its the same file, then trigger error to not override running video
+			trigger_paste_action('error-samefile')
+		elseif not has_value(o.paste_extensions, currentVideoExtension) then --3.0# If pasting unsupported item then error message
+			trigger_paste_action('error-unsupported')
+		elseif not file_exists(clip_file) then --3.0# Error message if file doesn't exist --The condition above it ensures that this paste is supported extension
+			trigger_paste_action('error-missing')
+		end
+	end
+end
 
 mp.register_event('file-loaded', function()
-	if (pasted == true) then
-		local clip = get_clipboard()
-		local time = string.match(clip, ' |time=(.*)')
-		local videoFile = string.match(clip, '(.*) |time=')
-		local filePath = mp.get_property_native('path')
-
-		local seekTime
-
-		if (filePath == videoFile) and (time ~= nil) then
+	filePath, fileTitle = get_path()
+	if clipboard_pasted == true then
+		clip = get_clipboard(clip) --3.0# update global clipboard variable
+		clip, clip_file, clip_time = parse_clipboard(clip) --3.0# update all 3 clipboard variables
+		
+		if filePath == clip_file and clip_time ~= nil then
+			local video_duration = mp.get_property_number('duration')
+			seekTime = clip_time + o.resume_offset
 			
-			seekTime = time + offset
-			if (seekTime < 0) then
+			if seekTime > video_duration then 
+				if o.osd_messages == true then
+					mp.osd_message('Time Paste Exceeds Video Length' .. o.time_seperator .. format_time(clip_time))
+				end
+				msg.info("The time pasted exceeds the video length:\n"..format_time(clip_time))
+				return
+			end 
+
+			if seekTime < 0 then
 				seekTime = 0
 			end
 		
 			mp.commandv('seek', seekTime, 'absolute', 'exact')
+			clipboard_pasted = false--3.0# instead of end-file, just set it to false after seeking
 		end
-	else
-		return false
 	end
 end)
 
----------------------------KEYBINDS CUSTOMIZATION SETTINGS---------------------------------
-if device == 'mac' then --MAC OS Keybinds
-	mp.add_key_binding('Meta+c', 'copy', copy)
-	mp.add_key_binding('Meta+C', 'copyCaps', copy)
-	mp.add_key_binding('Meta+v', 'paste', paste)
-	mp.add_key_binding('Meta+V', 'pasteCaps', paste)
-
-	mp.add_key_binding('Meta+alt+c', 'copy-path', copy_path)
-	mp.add_key_binding('Meta+alt+C', 'copy-pathCaps', copy_path)
-	mp.add_key_binding('Meta+alt+v', 'paste-playlist', paste_playlist)
-	mp.add_key_binding('Meta+alt+V', 'paste-playlistCaps', paste_playlist)
-else --Windows and Linux Keybinds
-	mp.add_key_binding('ctrl+c', 'copy', copy)
-	mp.add_key_binding('ctrl+C', 'copyCaps', copy)
-	mp.add_key_binding('ctrl+v', 'paste', paste)
-	mp.add_key_binding('ctrl+V', 'pasteCaps', paste)
-
-	mp.add_key_binding('ctrl+alt+c', 'copy-path', copy_path)
-	mp.add_key_binding('ctrl+alt+C', 'copy-pathCaps', copy_path)
-	mp.add_key_binding('ctrl+alt+v', 'paste-playlist', paste_playlist)
-	mp.add_key_binding('ctrl+alt+V', 'paste-playlistCaps', paste_playlist)
-end
----------------------END OF KEYBINDS CUSTOMIZATION SETTINGS---------------------------------
+bind_keys(o.copy_keybind, 'copy', copy)
+bind_keys(o.copy_specific_keybind, 'copy-specific', function()copy_specific(o.copy_specific_behavior)end)
+bind_keys(o.paste_keybind, 'paste', paste)
+bind_keys(o.paste_specific_keybind, 'paste-specific', function()paste_specific(o.paste_specific_behavior)end)
