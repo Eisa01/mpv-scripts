@@ -192,7 +192,7 @@ function os.capture(cmd)
   local f = assert(io.popen(cmd, 'r'))
   local s = assert(f:read('*a'))
   f:close()
-  return s--3.01# line was missing
+  return s --3.09# line was missing
 end
 
 function make_raw(s)
@@ -311,7 +311,7 @@ function set_clipboard(text)
 end
 
 function parse_clipboard(text)
-	if not text then msg.error('Error: text is null' .. text) return end --3.01# Add error messages
+	if not text then return end
 	
 	local clip, clip_file, clip_time, pre_attribute
 	clip = text
@@ -418,6 +418,7 @@ function trigger_paste_action(action)
 	if not action then return end
 	
 	if action == 'load-file' then
+		filePath = clip_file --3.10# Update filePath immediately so the next paste adds to playlist
 		if o.osd_messages == true then
 			if clip_time ~= nil then
 				mp.osd_message("Pasted:\n"..clip_file .. o.time_seperator .. format_time(clip_time))
@@ -528,7 +529,7 @@ function paste()
 	msg.info("Pasting...")
 
 	clip = get_clipboard(clip)
-	if not clip then msg.error('Error: clip is null' .. clip) return end --3.01# Add error messages
+	if not clip then msg.error('Error: clip is null' .. clip) return end --3.09# Add error messages
 	clip, clip_file, clip_time = parse_clipboard(clip)
 	
 	local currentVideoExtension = string.lower(get_extension(clip_file))
@@ -599,6 +600,7 @@ function paste_specific(action)
 	msg.info("Pasting...")
 	
 	clip = get_clipboard(clip)
+	if not clip then msg.error('Error: clip is null' .. clip) return end --3.09# Add error messages	
 	clip, clip_file, clip_time = parse_clipboard(clip)
 	local currentVideoExtension = string.lower(get_extension(clip_file))
 	
@@ -646,12 +648,13 @@ mp.register_event('file-loaded', function()
 	filePath, fileTitle = get_path()
 	if clipboard_pasted == true then
 		clip = get_clipboard(clip)
+		if not clip then msg.error('Error: clip is null' .. clip) return end --3.09# Add error messages		
 		clip, clip_file, clip_time = parse_clipboard(clip)
-		
+
 		if filePath == clip_file and clip_time ~= nil then
 			local video_duration = mp.get_property_number('duration')
 			seekTime = clip_time + o.resume_offset
-			
+
 			if seekTime > video_duration then 
 				if o.osd_messages == true then
 					mp.osd_message('Time Paste Exceeds Video Length' .. o.time_seperator .. format_time(clip_time))
@@ -663,7 +666,7 @@ mp.register_event('file-loaded', function()
 			if seekTime < 0 then
 				seekTime = 0
 			end
-		
+
 			mp.commandv('seek', seekTime, 'absolute', 'exact')
 			clipboard_pasted = false
 		end
