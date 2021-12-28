@@ -1911,6 +1911,7 @@ function trigger_paste_action(action) --3.0#Use paste action function instead of
 	if not action then return end
 	
 	if action == 'load-file' then
+		filePath = clip_file --3.10# Update filePath immediately so the next paste adds to playlist
 		if o.osd_messages == true then
 			if clip_time ~= nil then
 				mp.osd_message("Pasted:\n"..clip_file .. o.time_seperator .. format_time(clip_time))
