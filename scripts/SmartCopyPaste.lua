@@ -22,12 +22,12 @@ local o = {
 	time_seperator = ' 🕒 ', --Time seperator that will be shown before the saved time in osd messages
 	prefer_filename_over_title = 'local', --Prefers to copy filename over filetitle. Select between 'local', 'protocols', 'all', and 'none'. 'local' prefer filenames for videos that are not protocols. 'protocols' will prefer filenames for protocols only. 'all' will prefer filename over filetitle for both protocols and not protocols videos. 'none' will always use filetitle instead of filename
 	copy_time_method = 'all', --Option to copy time with video, 'none' for disabled, 'all' to copy time for all videos, 'protocols' for copying time only for protocols, 'specifics' to copy time only for websites defined below, 'local' to copy time for videos that are not protocols
-	specific_time_attributes = [[
+	specific_time_attributes=[[
 	[ ["twitter", "?t=", ""], ["twitch", "?t=", "s"], ["youtube", "&t=", "s"] ]
 	]], --The time attributes which will be added when copying protocols of specific websites from this list. Additional attributes can be added following the same format.
 	protocols_time_attribute = '&t=', --The text that will be copied before the seek time when copying a protocol video from mpv 
 	local_time_attribute = '&time=', --The text that will be copied before the seek time when copying a local video from mpv
-	pastable_time_attributes = [[
+	pastable_time_attributes=[[
 	[" | time="]
 	]], --The time attributes that can be pasted for resume, specific_time_attributes, protocols_time_attribute, local_time_attribute are automatically added
 	copy_keybind=[[
@@ -59,7 +59,7 @@ local o = {
 	
 ---------------------------END OF USER CUSTOMIZATION SETTINGS---------------------------
 }
-	
+
 (require 'mp.options').read_options(o)
 local utils = require 'mp.utils'
 local msg = require 'mp.msg'
@@ -192,7 +192,7 @@ function os.capture(cmd)
   local f = assert(io.popen(cmd, 'r'))
   local s = assert(f:read('*a'))
   f:close()
-  return s --3.09# line was missing
+  return s
 end
 
 function make_raw(s)
@@ -418,7 +418,7 @@ function trigger_paste_action(action)
 	if not action then return end
 	
 	if action == 'load-file' then
-		filePath = clip_file --3.10# Update filePath immediately so the next paste adds to playlist
+		filePath = clip_file
 		if o.osd_messages == true then
 			if clip_time ~= nil then
 				mp.osd_message("Pasted:\n"..clip_file .. o.time_seperator .. format_time(clip_time))
@@ -470,8 +470,6 @@ function trigger_paste_action(action)
 		mp.commandv('loadfile', clip_file, 'append-play')
 		msg.info("Pasted the below into playlist:\n"..clip_file)
 	end
-	
-	--3.0#Error Messages
 	
 	if action == 'error-subtitle' then
 		if o.osd_messages == true then
@@ -529,7 +527,7 @@ function paste()
 	msg.info("Pasting...")
 
 	clip = get_clipboard(clip)
-	if not clip then msg.error('Error: clip is null' .. clip) return end --3.09# Add error messages
+	if not clip then msg.error('Error: clip is null' .. clip) return end
 	clip, clip_file, clip_time = parse_clipboard(clip)
 	
 	local currentVideoExtension = string.lower(get_extension(clip_file))
@@ -600,7 +598,7 @@ function paste_specific(action)
 	msg.info("Pasting...")
 	
 	clip = get_clipboard(clip)
-	if not clip then msg.error('Error: clip is null' .. clip) return end --3.09# Add error messages	
+	if not clip then msg.error('Error: clip is null' .. clip) return end
 	clip, clip_file, clip_time = parse_clipboard(clip)
 	local currentVideoExtension = string.lower(get_extension(clip_file))
 	
@@ -648,7 +646,7 @@ mp.register_event('file-loaded', function()
 	filePath, fileTitle = get_path()
 	if clipboard_pasted == true then
 		clip = get_clipboard(clip)
-		if not clip then msg.error('Error: clip is null' .. clip) return end --3.09# Add error messages		
+		if not clip then msg.error('Error: clip is null' .. clip) return end
 		clip, clip_file, clip_time = parse_clipboard(clip)
 
 		if filePath == clip_file and clip_time ~= nil then
