@@ -127,7 +127,7 @@ Accidentally seeked? No worries, simply undo..
 </details>
 
 # UndoRedo Script
-Undo is not enough to fix your accidental seek accident? Well now you can redo as well..
+Undo is not enough to fix your accidental seek? Well now you can redo as well..
 
 ![UndoRedo Demo](https://raw.githubusercontent.com/Eisa01/mpv-scripts/master/.misc/undoredo_demo1.webp)
 <details>
