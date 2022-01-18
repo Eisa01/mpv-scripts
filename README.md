@@ -1,117 +1,150 @@
 # Introduction
-This repository contain scripts I have made for [mpv media player](https://github.com/mpv-player/mpv/). To add scripts from this repository, download the desired script in your `mpv/scripts/` directory (click [here](https://mpv.io/manual/master/#lua-scripting) to know more about mpv scripts).
+This repository contain scripts I have made for [mpv media player](https://github.com/mpv-player/mpv/).
+To add scripts from this repository, download the desired script in your `mpv/scripts/` directory, for user customizable settings download the related conf file in your `mpv/script-opts/` directory.
 
-**This repository contain the following scripts:**
-- [**SmartCopyPaste Script 2.5**](https://github.com/Eisa01/mpv-scripts#smartcopypaste-script)
-- [**SmartCopyPaste-II Script 2.5**](https://github.com/Eisa01/mpv-scripts#smartcopypaste-ii-script)
-- [**SmartHistory Script 1.9**](https://github.com/Eisa01/mpv-scripts#smarthistory-script)
-- [**SimpleUndo Script 3.2**](https://github.com/Eisa01/mpv-scripts#simpleundo-script)
-- [**UndoRedo Script 2.2**](https://github.com/Eisa01/mpv-scripts#undoredo-script)
+**Scripts available in this repository:**
+ [SmartCopyPaste Script 3.0](https://github.com/Eisa01/mpv-scripts#smartcopypaste-script), [SmartCopyPaste_II Script 3.0](https://github.com/Eisa01/mpv-scripts#smartcopypaste_ii-script), [SimpleHistory Script 1.0](https://github.com/Eisa01/mpv-scripts#simplehistory-script), [SimpleBookmark Script 1.0](https://github.com/Eisa01/mpv-scripts#simplebookmark-script), [SimpleUndo Script 3.2](https://github.com/Eisa01/mpv-scripts#simpleundo-script), [UndoRedo Script 2.2](https://github.com/Eisa01/mpv-scripts#undoredo-script)
 
-**The following scripts can conflict with each other:**
-- Either install SmartCopyPaste or SmartCopyPaste-II.
-- Either install SimpleUndo or UndoRedo.
 # SmartCopyPaste Script
-SmartCopyPaste is a script for mpv media player, the script adds a smart copy paste experience to mpv. It gives mpv the ability to load videos simply by pasting them into mpv. As for copying, pressing <kbd>Ctrl</kbd>+<kbd>c</kbd> on a video, copies the video path and its time to clipboard, which enables paste to resume or to access video with the copied time by pasting. For installation, download *`SmartCopyPaste.lua`* file into your `mpv/scripts/` directory. 
-### SmartCopyPaste Main Features
-- **Copy and Paste:** Adds ability to copy and paste any type of video to mpv, like (urls, video paths, or local videos)
+Gives mpv the capability to copy and paste while being smart and customizable... 
+
+![SmartCopyPaste Demo](https://raw.githubusercontent.com/Eisa01/mpv-scripts/master/.misc/smartcopypaste_demo1.webp)
+<details>
+<Summary>Click for more details!</Summary>
+
+### Default Keybinds
+- <kbd>Ctrl</kbd>+<kbd>c</kbd> copies file path with resume time
+- <kbd>Ctrl</kbd>+<kbd>v</kbd> pastes and run file into mpv
+- <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>c</kbd> copies the file path without time
+- <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>v</kbd> appends the video file into playlist
+- MAC OS will also use <kbd>Command</kbd> key for copy and paste
+### Main Features
+- **Copy and Paste:** Adds copy and paste to mpv for any file, like (urls, torrents, images, subtitles, audio files, video paths)
 - **youtube-dl Extension Support:** Immediately paste links without finding exact video address for youtube and any other youtube-dl extension supported sites.
-- **Peerflix Extension Support:** Immediately paste torrent links or magnet links when proper peerflix extensions are installed. 
-- **Customization:** In the script there are user customizable settings, such as the option to change the copy and paste command for each platform, option to add or remove file extensions and protocols that you want copying and pasting to accept, option of setting device OS manually if automatic detection fails, option to change / add more keyboard shortcuts (keybinds), and more...
+- **Peerflix / WebTorrent Extension Support:** Immediately paste torrent links or magnet links when proper extensions are installed.
+- **Customization:** Tons of user customizable settings that can even change the behavior and priority of copy and paste actions.
 - **OSD** (On Screen Display): Displays any SmartCopyPaste action within mpv.
-### SmartCopyPaste Usage Guide
-**While running a video:**
-- <kbd>Ctrl</kbd>+<kbd>c</kbd> to copy video path with resume time
-- *<kbd>Ctrl</kbd>+<kbd>v</kbd> does the following:*
-	- To jump to the copied time
-	- Or when different video is copied, <kbd>ctrl</kbd>+<kbd>v</kbd> will add it into playlist
-- <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>c</kbd> to copy video path without resume time
-- <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>v</kbd> to add video into playlist to play it next
-
-**While `NOT` running a video:**
-- <kbd>Ctrl</kbd>+<kbd>v</kbd> to play the copied video with resume time _if available_
-
-**Sidenote:**
-- MAC OS will automatically use <kbd>Command</kbd> instead of <kbd>Ctrl</kbd> key
-### SmartCopyPaste Compatibility
+- **More:** This is not all! Explore the conf file to learn more about the possibilities you are missing out...
+### Compatibility
 - Windows OS (default powershell, customizable / can be changed in the settings inside the script).
 - MAC OS (default pbcopy and pbpaste, customizable / can be changed in the settings inside the script).
 - Linux OS (default xclip, customizable / can be changed in the settings inside the script).
-# SmartCopyPaste-II Script
-SmartCopyPaste is a script for mpv media player, the script adds a smart copy paste experience to mpv. It gives mpv the ability to load videos simply by pasting them into mpv. As for copying, pressing <kbd>Ctrl</kbd>+<kbd>c</kbd> on a video, copies the video path and its time to clipboard, which enables paste to resume or to access video with the copied time by pasting. 
-The **II** version contain additional features which saves your clipboard into a log file. The log adds the option to paste at any time even if clipboard was overwritten or cleared. 
+</details>
 
-Basically,  the **II**  version is enhanced with a bookmark feature, copying a video will bookmark the video and time, while pasting will access the bookmark (even if clipboard is cleared). For installation, download *`SmartCopyPaste-II.lua`* file into your `mpv/scripts/` directory. 
-### SmartCopyPaste-II Main Features
-- **Copy and Paste:** Adds ability to copy and paste any type of video to mpv, like (urls, video paths, or local videos)
-- **Bookmark:** Any copy in a video is also a bookmark point, to access the bookmark simply paste.
-- **Saves Clipboard to a Log File:** The copies from mpv, and the pastes into mpv will be kept in a log file; log file location for Windows OS: `%APPDATA%\mpv\mpvClipboard.log`, for Linux OS and MAC OS: `~\.config\mpv\mpvClipboard.log`. This is necessary for the bookmark feature.
+# SmartCopyPaste_II Script
+Just like SmartCopyPaste but logs your clipboard and makes use of it...
+
+![SmartCopyPaste_II Demo](https://raw.githubusercontent.com/Eisa01/mpv-scripts/master/.misc/smartcopypaste_ii_demo1.webp)
+<details>
+<Summary>Click for more details!</Summary>
+
+### Default Keybinds
+- <kbd>Ctrl</kbd>+<kbd>c</kbd> copies file path with resume time
+- <kbd>Ctrl</kbd>+<kbd>v</kbd> pastes and run file into mpv
+- <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>c</kbd> copies the file path without time
+- <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>v</kbd> appends the video file into playlist
+- MAC OS will also use <kbd>Command</kbd> key for copy and paste
+- <kbd>c</kbd> opens Clipboard list (Log Manager)
+### Main Features
+- **Copy and Paste:** Adds copy and paste to mpv for any file, like (urls, torrents, images, subtitles, audio files, video paths)
 - **youtube-dl Extension Support:** Immediately paste links without finding exact video address for youtube and any other youtube-dl extension supported sites.
-- **Peerflix Extension Support:** Immediately paste torrent links or magnet links when proper peerflix extensions are installed. 
-- **Customization:** In the script there are user customizable settings, such as the option to change the copy and paste command for each platform, option to add or remove file extensions and protocols that you want copying and pasting to accept, option of setting device OS manually if automatic detection fails, option to change / add more keyboard shortcuts (keybinds), and more...
-- **OSD:** Displays any SmartCopyPaste action within mpv.
-### SmartCopyPaste-II Usage Guide
-**While running a video:**
-- <kbd>Ctrl</kbd>+<kbd>c</kbd> to copy video path with resume time and bookmark it
-- *<kbd>Ctrl</kbd>+<kbd>v</kbd> does the following:*
-	- To jump to the copied time
-	- Or to jump to the bookmarked position in the bookmarked video (resume)
-- <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>c</kbd> to copy video path without resume time and bookmark
-- <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>v</kbd> to add video into playlist to play it next
-	
-**While `NOT` running a video:**
-- *<kbd>Ctrl</kbd>+<kbd>v</kbd> does the following:*
-	- To play the copied video with resume time _if available_
-	- Or when no video is currently copied, <kbd>Ctrl</kbd>+<kbd>v</kbd> will find and play your last copied or pasted video
-	
-**Sidenote:**
-- MAC OS will automatically use <kbd>Command</kbd> instead of <kbd>Ctrl</kbd> key
-### SmartCopyPaste-II Compatibility
+- **Peerflix / WebTorrent Extension Support:** Immediately paste torrent links or magnet links when proper extensions are installed.
+- **Saves Clipboard to a Log File:** The copies from mpv, and the pastes into mpv will be kept in a log file; log file location is mpv config directory, default for Windows OS: `%APPDATA%\mpv\mpvClipboard.log`, for Linux OS and MAC OS: `~\.config\mpv\mpvClipboard.log`.
+- **Log Manager:** Reads the log file directly in mpv, giving access to navigate, play files, add to playlist, delete, search, and filter the content.
+- **Customization:** Tons of user customizable settings that can even change the behavior and priority of copy and paste actions, as well as everything about Log Manager.
+- **OSD:** Displays any SmartCopyPaste_II action within mpv.
+- **More:** This is not all! Explore the conf file to learn more about the possibilities you are missing out...
+### Compatibility
 - Windows OS (default powershell, customizable / can be changed in the settings inside the script).
 - MAC OS (default pbcopy and pbpaste, customizable / can be changed in the settings inside the script).
 - Linux OS (default xclip, customizable / can be changed in the settings inside the script).
-# SmartHistory Script
-SmartHistory is a script for mpv media player, the script adds a smart history functionality to mpv. It logs videos that you opened into a log file along with the time you have reached on each video; log file location for Windows OS: `%APPDATA%\mpv\mpvHistory.log`, for Linux OS and MAC OS: `~\.config\mpv\mpvHistory.log`. The script uses the log to provide you with various features. More details about SmartHistory are explained in the sections below. For installation, download *`SmartHistory.lua`* file into your `mpv/scripts/` directory. 
-### SmartHistory Main Features
-- **Remember Last Video:** It will always remember your last played video, and <kbd>Ctrl</kbd>+<kbd>l</kbd> will jump to your last played video.
-- **Auto Bookmark:** When you exit video, it will always remember position and <kbd>Ctrl</kbd>+<kbd>r</kbd> will resume. 
-- **Logs Opened Videos to a Log File:** All videos opened in mpv will be logged to create a history file; log file location for Windows OS: `%APPDATA%\mpv\mpvHistory.log`, for Linux OS and MAC OS: `~\.config\mpv\mpvHistory.log`. The format is: [date and time] of accessing video, the path, then | reached video time. This is necessary for Remember Last Video and Auto Bookmark features.
-- **OSD:** Displays any SmartHistory action within mpv.
-### SmartHistory Usage Guide
-**While running a video:**
-- <kbd>Ctrl</kbd>+<kbd>r</kbd> to resume in any previously closed videos
-- <kbd>Ctrl</kbd>+<kbd>l</kbd> to add previously closed video into playlist  
-	- Useful for cases when you opened another video by accident and you want to get back to the last video
+</details>
 
-**While `NOT` running a video:**
-- <kbd>Ctrl</kbd>+<kbd>l</kbd> to load last closed video
-- <kbd>Ctrl</kbd>+<kbd>r</kbd> to load and resume last closed video 
-### SmartHistory Compatibility
+# SimpleHistory Script
+Stores whatever you open in a history file and abuses it with features! Continue watching your last played or resume previously played videos, manage and play from your history, and more...
+
+![SimpleHistory Demo](https://raw.githubusercontent.com/Eisa01/mpv-scripts/master/.misc/simplehistory_demo1.webp)
+<details>
+<Summary>Click for more details!</Summary>
+
+### Default Keybinds
+- <kbd>Ctrl</kbd>+<kbd>r</kbd> resume in any previously closed videos / idle: loads and resumes last played video
+- <kbd>Alt</kbd>+<kbd>r</kbd> add last closed video into playlist / idle: loads last closed video without resuming
+- <kbd>h</kbd> opens History list (Log Manager)
+- <kbd>r</kbd> opens History list - filtered with recent items (Log Manager)
+### Main Features
+- **Last Played:** Immediately jumps to your last played video so you continue watching
+- **Video Resume:** It saves the position of all videos you are watching so you can easily resume
+- **Saves History to a Log File:** The files and position of files played will be kept in a log file; log file location is mpv config directory, default for Windows OS: `%APPDATA%\mpv\mpvHistory.log`, for Linux OS and MAC OS: `~\.config\mpv\mpvHistory.log`.
+- **Log Manager:** Reads the log file directly in mpv, giving access to navigate, play files, add to playlist, delete, search, and filter the content (I personally like the distinct filter). It lists the last episode played of each different show.
+- **Customization:** Tons of user customizable settings, you can change almost everything. Hate the resume notification? Then just disable it. Hate recents list automatically loading? Then just disable it, and so on so forth...
+- **OSD:** Displays any SmartHistory action within mpv.
+- **More:** This is not all! Explore the conf file to learn more about the possibilities you are missing out...
+### Compatibility
 - Works on all of mpv supported platforms.
+</details>
+
+# SimpleBookmark
+Bookmark with a key, then list and access your bookmarks with a key. Assign your favorites to a keybind then access your favorites with that same keybind. Simple as that...
+
+![SimpleBookmark Demo](https://raw.githubusercontent.com/Eisa01/mpv-scripts/master/.misc/simplebookmark_demo1.webp)
+<details>
+<Summary>Click for more details!</Summary>
+
+### Default Keybinds
+- <kbd>Ctrl</kbd>+<kbd>b</kbd> bookmarks file along with time reached
+- <kbd>Alt</kbd>+<kbd>b</kbd> bookmarks file only
+- <kbd>b</kbd> opens Bookmark list (Log Manager)
+- <kbd>k</kbd> opens Bookmark list - filtered with files assigned to keybinds (Log Manager)
+- <kbd>Alt + 1</kbd> - <kbd>Alt + 9</kbd> assigns file to keybind when list is open / loads the  assigned when list is closed
+- <kbd>Alt</kbd>+<kbd>-</kbd> when list is open it removes the assigned keybind from the bookmark
+### Main Features
+- **Bookmark:** Adds bookmark functionality to mpv, simply press the bookmark keybind and you are done.
+- **Assign Bookmark to Keybind:** Press the keybind slot when displaying bookmarks will assign the bookmark to a keybind, making it easy to jump to the bookmark at anytime when pressing the same keybind.
+- **Log Manager:** Reads the bookmark log file, giving mpv easy access to all of your bookmarks with the functionality to navigate, play files, add to playlist, delete, search, and filter the content.
+- **Saves Bookmark to a Log File:** The bookmarks will be kept in a log file; log file location is mpv config directory, default for Windows OS: `%APPDATA%\mpv\mpvBookmark.log`, for Linux OS and MAC OS: `~\.config\mpv\mpvBookmark.log`.
+- **Customization:** Tons of user customizable settings that can even change the behavior of bookmarking, assigning video to a keybind, and the Log Manager itself.
+- **OSD:** Displays any SimpleBookmark action within mpv.
+- **More:** This is not all! Seriously I am too lazy to write down all the features neatly ;) Explore the conf file to learn more about the possibilities you are missing out...
+### Compatibility
+- Works on all of mpv supported platforms.
+</details>
+
 # SimpleUndo Script
-SimpleUndo is a script for mpv media player, the script adds a simple undo functionality into mpv. If you accidentally seek/jump to a different time in the video, press undo <kbd>Ctrl</kbd>+<kbd>z</kbd> to return to your previous time and vice-versa. For installation, download *`SimpleUndo.lua`* file into your `mpv/scripts/` directory. 
-### SimpleUndo Main Features
-- **Simple Undo:** Undo accidental time jumps in videos by pressing <kbd>Ctrl</kbd>+<kbd>z</kbd> and press again to return to previous position.
-- **OSD:** Displays any SimpleUndo action within mpv.
-### SimpleUndo Usage Guide
+Accidentally seeked? No worries, simply undo..
+
+![SimpleUndo Demo](https://raw.githubusercontent.com/Eisa01/mpv-scripts/master/.misc/simpleundo_demo1.webp)
+<details>
+<Summary>Click for more details!</Summary>
+
+### Default Keybinds
 - <kbd>Ctrl</kbd>+<kbd>z</kbd> to undo accidental seek by returning to previous time and vise-versa.
-### SimpleUndo Compatibility
-- Works on all of mpv supported platforms.
-# UndoRedo Script
-UndoRedo is a script for mpv media player, the script adds undo, and redo functionality into mpv. If you seek/jump to a different time in the video, press undo <kbd>Ctrl</kbd>+<kbd>z</kbd> to linearly undo the seeks/jumps in the video, and press redo <kbd>Ctrl</kbd>+<kbd>y</kbd> to linearly return to previous undo positions. For installation, download *`UndoRedo.lua`* file into your `mpv/scripts/` directory. 
-### UndoRedo Main Features
-- **Undo and Redo:** Undo any accident time jumps in the video by pressing <kbd>ctrl</kbd>+<kbd>z</kbd> and redo the jumps by <kbd>ctrl</kbd>+<kbd>y</kbd>.
-- **Simple Undo:** Undo accidental time jumps in videos by pressing <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>z</kbd> and press again to return to previous position.
+### Main Features
+- **Simple Undo:** Undo accidental time jumps in videos by pressing undo keybind and press again to return to previous position.
 - **OSD:** Displays any SimpleUndo action within mpv.
-### UndoRedo Usage Guide
-- <kbd>Ctrl</kbd>+<kbd>z</kbd> to undo by returning to previous times. 
-	- Example: from second 30 jumped to minute 5, then 10, then 15. Undo will return to 10, undo again to return to 5, undo again to return to second 30.
-- <kbd>Ctrl</kbd>+<kbd>y</kbd> to redo by restoring undo times. 
-	- Example: from second 30 jumped to minute 5, then 10. Undo twice for second 30. Redo will restore to 5, redo again to restore to 10.
-- <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>z</kbd> loop between last undo and redo.
-	- This is for quick undo & redo (Just like **SimpleUndo**) it loops between the last undo & redo.
-### UndoRedo Compatibility
+### Compatibility
 - Works on all of mpv supported platforms.
+</details>
+
+# UndoRedo Script
+Undo is not enough to fix your accidental seek accident? Well now you can redo as well..
+
+![UndoRedo Demo](https://raw.githubusercontent.com/Eisa01/mpv-scripts/master/.misc/undoredo_demo1.webp)
+<details>
+<Summary>Click for more details!</Summary>
+
+### Default Keybinds
+- <kbd>Ctrl</kbd>+<kbd>z</kbd> to undo by returning to previous time.
+- <kbd>Ctrl</kbd>+<kbd>y</kbd> to redo by restoring the undo time.
+- <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>z</kbd> undo accidental seek by returning to previous time and vise-versa.
+### Main Features
+- **Undo and Redo:** Undo any accident time jumps in the video by pressing the undo keybind and redo the jumps by pressing the redo keybind.
+- **Simple Undo:** Undo accidental time jumps in videos by pressing Simple Undo keybind and press again to return to previous position.
+- **OSD:** Displays any UndoRedo action within mpv.
+### Compatibility
+- Works on all of mpv supported platforms.
+</details>
+
 # Misc
 ### Visitors
 ![:Vistors](https://count.getloli.com/get/@236d2c6a-efc0-447d-9008-8ecc754f8606?theme=gelbooru)
@@ -119,11 +152,10 @@ UndoRedo is a script for mpv media player, the script adds undo, and redo functi
 Counting since `2021-09-25T19:04:24Z` (ISO 8601)
 ### MPV.net Support
 [MPV.net](https://github.com/stax76/mpv.net) users must change the option `input-default-bindings = no` to `input-default-bindings = yes` located in `MPV.net/mpv.conf` 
-### To-Do List
-- I am open to suggestions! Have an idea... let me know.. ;)
 ### Changelog
-- [Here](https://github.com/Eisa01/mpv-scripts/blob/master/.doc/changelog.md) you can find the full changelog for all the scripts in this repository.
+- [Here](https://github.com/Eisa01/mpv-scripts/blob/master/.misc/changelog.md) you can find the full changelog for all the scripts in this repository.
 ### Special Thanks
 Below is list of contributors/ honorable mentions.
-- **SmartCopyPaste Script:** For the handlers that are used inside the script, which added compatibility for newer mpv versions, the method was originally forked and edited from [@jonniek](https://github.com/jonniek) appendURL script. Specical thanks for his work. 
+- **SmartCopyPaste Script:** For the handlers that are used inside the script, which added compatibility for newer mpv versions, the method was originally forked and edited from [@jonniek](https://github.com/jonniek) appendURL script. Specical thanks for his work.
+- **LogManager**: [@jonniek](https://github.com/jonniek) mpv-playlistmanager script and [@hacel](https://github.com/hacel) recents script, both scripts were forked and modified to help me in developing the LogManager which is used inside the script. Specials thanks for their work.
 - **UndoRedo Script:** Credits and special thanks to [@Banz99](https://github.com/Banz99) for forking SimpleUndo script and enhance it by a table to store undo and redo values.
