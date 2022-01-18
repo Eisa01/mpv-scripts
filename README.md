@@ -152,8 +152,6 @@ Undo is not enough to fix your accidental seek? Well now you can redo as well..
 Counting since `2021-09-25T19:04:24Z` (ISO 8601)
 ### MPV.net Support
 [MPV.net](https://github.com/stax76/mpv.net) users must change the option `input-default-bindings = no` to `input-default-bindings = yes` located in `MPV.net/mpv.conf` 
-### Changelog
-- [Here](https://github.com/Eisa01/mpv-scripts/blob/master/.misc/changelog.md) you can find the full changelog for all the scripts in this repository.
 ### Special Thanks
 Below is list of contributors/ honorable mentions.
 - **SmartCopyPaste Script:** For the handlers that are used inside the script, which added compatibility for newer mpv versions, the method was originally forked and edited from [@jonniek](https://github.com/jonniek) appendURL script. Specical thanks for his work.
