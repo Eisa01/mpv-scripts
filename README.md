@@ -3,9 +3,9 @@ This repository contain scripts I have made for [mpv media player](https://githu
 To add scripts from this repository, download the desired script in your `mpv/scripts/` directory, for user customizable settings download the related conf file in your `mpv/script-opts/` directory.
 
 **Scripts available in this repository:**
- [SmartCopyPaste Script 3.0](https://github.com/Eisa01/mpv-scripts#smartcopypaste-script), [SmartCopyPaste_II Script 3.0](https://github.com/Eisa01/mpv-scripts#smartcopypaste_ii-script), [SimpleHistory Script 1.0](https://github.com/Eisa01/mpv-scripts#simplehistory-script), [SimpleBookmark Script 1.0](https://github.com/Eisa01/mpv-scripts#simplebookmark-script), [SimpleUndo Script 3.2](https://github.com/Eisa01/mpv-scripts#simpleundo-script), [UndoRedo Script 2.2](https://github.com/Eisa01/mpv-scripts#undoredo-script)
+ [SmartCopyPaste Script 3.0](https://github.com/Eisa01/mpv-scripts#smartcopypaste), [SmartCopyPaste_II Script 3.0](https://github.com/Eisa01/mpv-scripts#smartcopypaste_ii), [SimpleHistory Script 1.0](https://github.com/Eisa01/mpv-scripts#simplehistory), [SimpleBookmark Script 1.0](https://github.com/Eisa01/mpv-scripts#simplebookmark), [SimpleUndo Script 3.2](https://github.com/Eisa01/mpv-scripts#simpleundo), [UndoRedo Script 2.2](https://github.com/Eisa01/mpv-scripts#undoredo)
 
-# SmartCopyPaste Script
+# SmartCopyPaste
 Gives mpv the capability to copy and paste while being smart and customizable... 
 
 ![SmartCopyPaste Demo](https://raw.githubusercontent.com/Eisa01/mpv-scripts/master/.misc/smartcopypaste_demo1.webp)
@@ -31,7 +31,7 @@ Gives mpv the capability to copy and paste while being smart and customizable...
 - Linux OS (default xclip, customizable / can be changed in the settings inside the script).
 </details>
 
-# SmartCopyPaste_II Script
+# SmartCopyPaste_II
 Just like SmartCopyPaste but logs your clipboard and makes use of it...
 
 ![SmartCopyPaste_II Demo](https://raw.githubusercontent.com/Eisa01/mpv-scripts/master/.misc/smartcopypaste_ii_demo1.webp)
@@ -60,7 +60,7 @@ Just like SmartCopyPaste but logs your clipboard and makes use of it...
 - Linux OS (default xclip, customizable / can be changed in the settings inside the script).
 </details>
 
-# SimpleHistory Script
+# SimpleHistory
 Stores whatever you open in a history file and abuses it with features! Continue watching your last played or resume previously played videos, manage and play from your history, and more...
 
 ![SimpleHistory Demo](https://raw.githubusercontent.com/Eisa01/mpv-scripts/master/.misc/simplehistory_demo1.webp)
@@ -78,7 +78,7 @@ Stores whatever you open in a history file and abuses it with features! Continue
 - **Saves History to a Log File:** The files and position of files played will be kept in a log file; log file location is mpv config directory, default for Windows OS: `%APPDATA%\mpv\mpvHistory.log`, for Linux OS and MAC OS: `~\.config\mpv\mpvHistory.log`.
 - **Log Manager:** Reads the log file directly in mpv, giving access to navigate, play files, add to playlist, delete, search, and filter the content (I personally like the distinct filter). It lists the last episode played of each different show.
 - **Customization:** Tons of user customizable settings, you can change almost everything. Hate the resume notification? Then just disable it. Hate recents list automatically loading? Then just disable it, and so on so forth...
-- **OSD:** Displays any SmartHistory action within mpv.
+- **OSD:** Displays any SimpleHistory action within mpv.
 - **More:** This is not all! Explore the conf file to learn more about the possibilities you are missing out...
 ### Compatibility
 - Works on all of mpv supported platforms.
@@ -110,7 +110,7 @@ Bookmark with a key, then list and access your bookmarks with a key. Assign your
 - Works on all of mpv supported platforms.
 </details>
 
-# SimpleUndo Script
+# SimpleUndo
 Accidentally seeked? No worries, simply undo..
 
 ![SimpleUndo Demo](https://raw.githubusercontent.com/Eisa01/mpv-scripts/master/.misc/simpleundo_demo1.webp)
@@ -126,7 +126,7 @@ Accidentally seeked? No worries, simply undo..
 - Works on all of mpv supported platforms.
 </details>
 
-# UndoRedo Script
+# UndoRedo
 Undo is not enough to fix your accidental seek? Well now you can redo as well..
 
 ![UndoRedo Demo](https://raw.githubusercontent.com/Eisa01/mpv-scripts/master/.misc/undoredo_demo1.webp)
