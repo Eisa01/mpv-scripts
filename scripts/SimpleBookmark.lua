@@ -205,7 +205,7 @@ local log_fullpath = utils.join_path(o.log_path, o.log_file)
 local log_time_text = 'time='
 local log_keybind_text = 'slot='
 local protocols = {'https?://', 'magnet:', 'rtmp:'}
-local available_filters = {'all', 'keybinds', 'recents', 'distinct', 'playing', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'keywords'} --1.01#fixed playing filter
+local available_filters = {'all', 'keybinds', 'recents', 'distinct', 'playing', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'keywords'}
 local search_string = ''
 local search_active = false
 
@@ -412,16 +412,16 @@ function parse_header(string)
 		:gsub("%%afterfilter", '')
 	end
 	
-	local list_total_duration = 0 --1.01#Initiate list_total_duration variable
-	if string:match('%listduration') then --1.01#only if total_duration was added to the text, then proceed to get the total duration
-		list_total_duration = get_total_duration() --1.01#Get the total duration from the newly created function
-		if list_total_duration > 0 then --1.01#only if there is time, then show the total duration
+	local list_total_duration = 0
+	if string:match('%listduration') then
+		list_total_duration = get_total_duration()
+		if list_total_duration > 0 then
 			string = string:gsub("%%listduration", format_time(list_total_duration))
 		else
 			string = string:gsub("%%listduration", '')
 		end
 	end	
-	if list_total_duration > 0 then--#1.01# If list_total_duration exceeds 0 then replace it with the custom text, otherwise make it empty
+	if list_total_duration > 0 then
 		string = string:gsub("%%prelistduration", o.header_list_duration_pre_text)
 		:gsub("%%afterlistduration", o.header_list_duration_after_text)
 	else
@@ -1011,9 +1011,9 @@ function list_delete()
 end
 
 function get_total_duration()
-	if not list_contents or not list_contents[1] then return 0 end --1.01# If list is empty then return with value 0 and exit
-	local list_total_duration = 0 --1.01#initiate the total_duration with 0
-	for i = #list_contents, 1, -1 do --1.01#gets the total duration from the list
+	if not list_contents or not list_contents[1] then return 0 end
+	local list_total_duration = 0
+	for i = #list_contents, 1, -1 do
 		if tonumber(list_contents[i].found_time) > 0 then
 			list_total_duration = list_total_duration + list_contents[i].found_time
 		end
