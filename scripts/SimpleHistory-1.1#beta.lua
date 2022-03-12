@@ -101,7 +101,7 @@ local o = {
 	text_cursor_border = 0.7, --Black border size for text of current cursor position in list
 	text_highlight_pre_text = '✅ ', --Pre text for highlighted item that is ready for multi action
 	quickselect_0to9_pre_text = false, --Pre text for showing quickselect keybinds before the list
-	header_text = '⌛ History [%cursor%/%total%]%prehighlight%%highlight%%afterhighlight%%prelistduration%%listduration%%afterlistduration%%prefilter%%filter%%afterfilter%%presort%%sort%%aftersort%%presearch%%search%%aftersearch%', --Text to be shown as header for the list. %cursor%: shows the position of highlighted file. %total%: shows the total amount of items. %filter%: shows the filter name, %prefilter%: user defined text before showing filter, %afterfilter%: user defined text after showing filter, %search%: shows the typed search, %presearch%, %aftersearch%: same concept of prefilter and afterfilter, %listduration%: shows the total playback duration of displayed list. %prelistduration%, %afterlistduration%: same concept of prefilter and afterfilter.
+	header_text = '⌛ History [%cursor%/%total%]%prehighlight%%highlight%%afterhighlight%%prelistduration%%listduration%%afterlistduration%%prelistlength%%listlength%%afterlistlength%%prelistremaining%%listremaining%%afterlistremaining%%prefilter%%filter%%afterfilter%%presort%%sort%%aftersort%%presearch%%search%%aftersearch%', --Text to be shown as header for the list. %cursor%: shows the position of highlighted file. %total%: shows the total amount of items. %filter%: shows the filter name, %prefilter%: user defined text before showing filter, %afterfilter%: user defined text after showing filter, %search%: shows the typed search, %presearch%, %aftersearch%: same concept of prefilter and afterfilter, %listduration%: shows the total playback duration of displayed list, %listlength%: shows the total video lengths of displayed list, %listremaining%: shows the total remaining time for displayed list, %prelistduration%, %afterlistduration%, %prelistlength%, %afterlistlength%, %prelistremaining%, %afterlistremaining%: same concept of prefilter and afterfilter.
 	header_sort_pre_text = ' \\{',--Text to be shown before sort in the header
 	header_sort_after_text = '}',--Text to be shown after sort in the header
 	header_sort_hide_text = 'added-asc',--Sort method that is hidden from header when using %sort% variable
@@ -111,6 +111,10 @@ local o = {
 	header_search_after_text = '..]', --Text to be shown after search in the header
 	header_list_duration_pre_text = ' 🕒 ', --Text to be shown before playback total duration of displayed list in the header
 	header_list_duration_after_text = '', --Text to be shown after playback total duration of displayed list in the header
+	header_list_length_pre_text = ' 🕒 ', --Text to be shown before playback total duration of displayed list in the header
+	header_list_length_after_text = '', --Text to be shown after playback total duration of displayed list in the header
+	header_list_remaining_pre_text = ' 🕒 ', --Text to be shown before playback total duration of displayed list in the header
+	header_list_remaining_after_text = '', --Text to be shown after playback total duration of displayed list in the header	
 	header_highlight_pre_text = '✅', --Text to be shown before total highlighted items of displayed list in the header
 	header_highlight_after_text = '', --Text to be shown after total highlighted items of displayed list in the header
 	header_color = '00bfff', --Header color in BGR hexadecimal
@@ -231,6 +235,7 @@ end
 local log_fullpath = utils.join_path(o.log_path, o.log_file)
 
 local log_time_text = 'time='
+local log_length_text = 'length=' --1.0.9.1# add variable to be used for duration logging
 local protocols = {'https?:', 'magnet:', 'rtmps?:', 'smb:', 'ftps?:', 'sftp:'} --#1.0.3 added additional protocols
 local available_filters = {'all', 'highlights', 'recents', 'distinct', 'playing', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'keywords'} --1.0.6# added highlights filter
 local available_sorts = {'added-asc', 'added-desc', 'time-asc', 'time-desc', 'alphanum-asc', 'alphanum-desc'} --1.0.6# added available_sorts
@@ -248,7 +253,7 @@ local list_cursor = 1
 local list_highlight_cursor = {} --1.0.5# start of multi-select
 local list_drawn = false
 local list_pages = {}
-local filePath, fileTitle
+local filePath, fileTitle, fileLength
 local seekTime = 0
 local filterName = 'all'
 local sortName = 'added-asc' --1.0.8.4# Default as added-asc
@@ -311,11 +316,14 @@ function format_time(duration)
 	return string.format("%02d:%02d:%02d", hours, minutes, seconds)
 end
 
-function get_path()
+function get_file() --1.0.9.1# changed from get_path to get_file as it gets all the file stuff I want
 	local path = mp.get_property('path')
 	if not path then return end
 	
+	local length = (mp.get_property_number('duration') or 0) --1.0.9.1# add duration, if its picture duration will be 0
+	
 	local title = mp.get_property('media-title'):gsub("\"", "")
+	
 	
 	if starts_protocol(o.logging_protocols, path) and o.prefer_filename_over_title == 'protocols' then
 		title = mp.get_property('filename'):gsub("\"", "")
@@ -325,7 +333,7 @@ function get_path()
 		title = mp.get_property('filename'):gsub("\"", "")
 	end
 	
-	return path, title
+	return path, title, length
 end
 
 function bind_keys(keys, name, func, opts)
@@ -378,19 +386,21 @@ end
 function read_log_table()
 	local line_pos = 0
 	return read_log(function(line)
-		local tt, p, t, s, d, n, e, l, dt
+		local tt, p, t, s, d, n, e, l, dt, ln, r --1.0.9.1# add length variable
 		if line:match('^.-\"(.-)\"') then
 			tt = line:match('^.-\"(.-)\"')
-			n, p = line:match('^.-\"(.-)\" | (.*) | ' .. esc_string(log_time_text) .. '(.*)')
+			n, p = line:match('^.-\"(.-)\" | (.*) | ' .. esc_string(log_length_text) .. '(.*)') --1.0.9.1# shifted to log_length_text
 		else
-			p = line:match('[(.*)%]]%s(.*) | ' .. esc_string(log_time_text) .. '(.*)')
+			p = line:match('[(.*)%]]%s(.*) | ' .. esc_string(log_length_text) .. '(.*)') --1.0.9.1# shifted to log_length_text
 			d, n, e = p:match('^(.-)([^\\/]-)%.([^\\/%.]-)%.?$')
 		end
 		dt = line:match('%[(.-)%]')--1.0.3# to stop at the first match instead of last match (so this will stop when it immediately hits the end of square bracket
 		t = line:match(' | ' .. esc_string(log_time_text) .. '(%d*%.?%d*)(.*)$')
+		ln = line:match(' | ' .. esc_string(log_length_text) .. '(%d*%.?%d*)(.*)$') --1.0.9.1# finds the length of the video
+		r = tonumber(ln) - tonumber(t) --1.0.9.1# added remaining time which is length - reached time (added or 0 because length might not exist for backward compatibility)
 		l = line
 		line_pos = line_pos + 1
-		return {found_path = p, found_time = t, found_name = n, found_title = tt, found_line = l, found_sequence = line_pos, found_directory = d, found_datetime = dt}--1.0.3# added found_datetime
+		return {found_path = p, found_time = t, found_name = n, found_title = tt, found_line = l, found_sequence = line_pos, found_directory = d, found_datetime = dt, found_length = ln, found_remaining = r}--1.0.3# added found_datetime --1.0.9.1# added found_length and found_remaining
 	end)
 end
 
@@ -441,7 +451,7 @@ function parse_header(string) --1.0.5# changed variables to end with %
 	
 	local list_total_duration = 0
 	if string:match('%listduration%%') then
-		list_total_duration = get_total_duration()
+		list_total_duration = get_total_duration('found_time') --1.0.9.1# support
 		if list_total_duration > 0 then
 			string = string:gsub("%%listduration%%", format_time(list_total_duration))
 		else
@@ -454,6 +464,40 @@ function parse_header(string) --1.0.5# changed variables to end with %
 	else
 		string = string:gsub("%%prelistduration%%", '')
 		:gsub("%%afterlistduration%%", '')
+	end
+	
+	local list_total_length = 0 --1.0.9.1# added same concept of total duration but for total time
+	if string:match('%listlength%%') then
+		list_total_length = get_total_duration('found_length') --1.0.9.1# support parameters
+		if list_total_length > 0 then
+			string = string:gsub("%%listlength%%", format_time(list_total_length))
+		else
+			string = string:gsub("%%listlength%%", '')
+		end
+	end	
+	if list_total_length > 0 then
+		string = string:gsub("%%prelistlength%%", o.header_list_length_pre_text)
+		:gsub("%%afterlistlength%%", o.header_list_length_after_text)
+	else
+		string = string:gsub("%%prelistlength%%", '')
+		:gsub("%%afterlistlength%%", '')
+	end
+	
+	local list_total_remaining = 0 --1.0.9.1# added same concept of total duration but for remaining time
+	if string:match('%listremaining%%') then
+		list_total_remaining = get_total_duration('found_remaining') --1.0.9.1# support parameters
+		if list_total_remaining > 0 then
+			string = string:gsub("%%listremaining%%", format_time(list_total_remaining))
+		else
+			string = string:gsub("%%listremaining%%", '')
+		end
+	end	
+	if list_total_remaining > 0 then
+		string = string:gsub("%%prelistremaining%%", o.header_list_remaining_pre_text)
+		:gsub("%%afterlistremaining%%", o.header_list_remaining_after_text)
+	else
+		string = string:gsub("%%prelistremaining%%", '')
+		:gsub("%%afterlistremaining%%", '')
 	end
 	
 	if #list_highlight_cursor > 0 then --1.0.5# implement list_highlight to header
@@ -1244,7 +1288,7 @@ function delete_selected() --1.0.8.8# renamed to delete_selected
 	end
 	delete_log_entry()
 	msg.info("Deleted \"" .. filePath .. "\" | " .. format_time(seekTime))
-	filePath, fileTitle = get_path()
+	filePath, fileTitle, fileLength = get_file() --1.0.9.1# update to support fileLength
 end
 
 function list_delete(action)
@@ -1265,12 +1309,14 @@ function list_delete(action)
 	end
 end
 
-function get_total_duration()
+function get_total_duration(action)
 	if not list_contents or not list_contents[1] then return 0 end
 	local list_total_duration = 0
-	for i = #list_contents, 1, -1 do
-		if tonumber(list_contents[i].found_time) > 0 then
-			list_total_duration = list_total_duration + list_contents[i].found_time
+	if action == 'found_time' or action == 'found_length' or action == 'found_remaining' then --1.0.9.1# immediately change to found_time or found_length or found_remaining
+		for i = #list_contents, 1, -1 do
+			if tonumber(list_contents[i][action]) > 0 then --1.0.9.1# changed to action since it contains found_time or found_length
+				list_total_duration = list_total_duration + list_contents[i][action] --1.0.9.1# passes the action directly to immediately find found_length or found_time
+			end
 		end
 	end
 	return list_total_duration
@@ -1958,13 +2004,13 @@ function write_log(target_time, update_seekTime, entry_limit)
 
 	local f = io.open(log_fullpath, "a+") --1.0.3# made it local variable
 	if o.file_title_logging == 'all' then
-		f:write(("[%s] \"%s\" | %s | %s"):format(os.date(o.date_format), fileTitle, filePath, log_time_text .. tostring(seekTime)))
+		f:write(("[%s] \"%s\" | %s | %s | %s"):format(os.date(o.date_format), fileTitle, filePath, log_length_text .. tostring(fileLength), log_time_text .. tostring(seekTime)))
 	elseif o.file_title_logging == 'protocols' and (starts_protocol(o.logging_protocols, filePath)) then
-		f:write(("[%s] \"%s\" | %s | %s"):format(os.date(o.date_format), fileTitle, filePath, log_time_text .. tostring(seekTime)))
+		f:write(("[%s] \"%s\" | %s | %s | %s"):format(os.date(o.date_format), fileTitle, filePath, log_length_text .. tostring(fileLength), log_time_text .. tostring(seekTime)))
 	elseif o.file_title_logging == 'protocols' and not (starts_protocol(o.logging_protocols, filePath)) then
-		f:write(("[%s] %s | %s"):format(os.date(o.date_format), filePath, log_time_text .. tostring(seekTime)))
+		f:write(("[%s] %s | %s | %s"):format(os.date(o.date_format), filePath, log_length_text .. tostring(fileLength), log_time_text .. tostring(seekTime)))
 	else
-		f:write(("[%s] %s | %s"):format(os.date(o.date_format), filePath, log_time_text .. tostring(seekTime)))
+		f:write(("[%s] %s | %s | %s"):format(os.date(o.date_format), filePath, log_length_text .. tostring(fileLength), log_time_text .. tostring(seekTime)))
 	end
 
 	f:write('\n')
@@ -2108,7 +2154,7 @@ end
 
 mp.register_event('file-loaded', function()
 	list_close_and_trash_collection()
-	filePath, fileTitle = get_path()
+	filePath, fileTitle, fileLength = get_file() --1.0.9.1# update to support file_duration
 	if (resume_selected == true and seekTime > 0) then
 		mp.commandv('seek', seekTime, 'absolute', 'exact')
 		resume_selected = false
