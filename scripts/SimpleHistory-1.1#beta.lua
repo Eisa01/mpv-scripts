@@ -101,7 +101,7 @@ local o = {
 	text_cursor_border = 0.7, --Black border size for text of current cursor position in list
 	text_highlight_pre_text = '✅ ', --Pre text for highlighted item that is ready for multi action
 	quickselect_0to9_pre_text = false, --Pre text for showing quickselect keybinds before the list
-	header_text = '⌛ History [%cursor%/%total%]%prehighlight%%highlight%%afterhighlight%%prelistduration%%listduration%%afterlistduration%%prelistlength%%listlength%%afterlistlength%%prelistremaining%%listremaining%%afterlistremaining%%prefilter%%filter%%afterfilter%%presort%%sort%%aftersort%%presearch%%search%%aftersearch%', --Text to be shown as header for the list. %cursor%: shows the position of highlighted file. %total%: shows the total amount of items. %filter%: shows the filter name, %prefilter%: user defined text before showing filter, %afterfilter%: user defined text after showing filter, %search%: shows the typed search, %presearch%, %aftersearch%: same concept of prefilter and afterfilter, %listduration%: shows the total playback duration of displayed list, %listlength%: shows the total video lengths of displayed list, %listremaining%: shows the total remaining time for displayed list, %prelistduration%, %afterlistduration%, %prelistlength%, %afterlistlength%, %prelistremaining%, %afterlistremaining%: same concept of prefilter and afterfilter.
+	header_text = '⌛ History [%cursor%/%total%]%prehighlight%%highlight%%afterhighlight%%prelistduration%%listduration%%afterlistduration%%prefilter%%filter%%afterfilter%%presort%%sort%%aftersort%%presearch%%search%%aftersearch%', --Text to be shown as header for the list. %cursor%: shows the position of highlighted file. %total%: shows the total amount of items. %filter%: shows the filter name, %prefilter%: user defined text before showing filter, %afterfilter%: user defined text after showing filter, %search%: shows the typed search, %presearch%, %aftersearch%: same concept of prefilter and afterfilter, %listduration%: shows the total playback duration of displayed list, %listlength%: shows the total video lengths of displayed list, %listremaining%: shows the total remaining time for displayed list, %prelistduration%, %afterlistduration%, %prelistlength%, %afterlistlength%, %prelistremaining%, %afterlistremaining%: same concept of prefilter and afterfilter.
 	header_sort_pre_text = ' \\{',--Text to be shown before sort in the header
 	header_sort_after_text = '}',--Text to be shown after sort in the header
 	header_sort_hide_text = 'added-asc',--Sort method that is hidden from header when using %sort% variable
@@ -122,7 +122,8 @@ local o = {
 	search_color_not_typing = '00bfff', --Search color when not in typing mode and it is active
 	header_scale = 55, --Header text size for the list
 	header_border = 0.8, --Black border size for the Header of list
-	time_seperator = ' 🕒 ', --Time seperator that will be used before the saved time
+	text_time_type = 'duration', -- The time type for items on the list. Select between 'duration', 'length', 'remaining'.
+	time_seperator = ' 🕒 ', --Time seperator that will be used before the time
 	list_sliced_prefix = '...\\h\\N\\N', --The text that indicates there are more items above. \\h\\N\\N is for new line.
 	list_sliced_suffix = '...', --The text that indicates there are more items below.
 
@@ -754,6 +755,13 @@ function draw_list()
 	local osd_cursor = string.format("{\\an%f}{\\fscx%f}{\\fscy%f}{\\bord%f}{\\1c&H%s}", o.list_alignment, o.text_cursor_scale, o.text_cursor_scale, o.text_cursor_border, o.text_cursor_color)
 	local osd_header = string.format("{\\an%f}{\\fscx%f}{\\fscy%f}{\\bord%f}{\\1c&H%s}", o.list_alignment, o.header_scale, o.header_scale, o.header_border, o.header_color)
 	local osd_msg_end = "{\\1c&HFFFFFF}"
+	local osd_time_type = 'found_time' --1.0.9.2# option to change displayed time type (defaults to found_time, otherwise change it when it is set to length or remaining
+	
+	if o.text_time_type == 'length' then --1.0.9.2# change it to length or remaining if defined in settings
+		osd_time_type = 'found_length'
+	elseif o.text_time_type == 'remaining' then
+		osd_time_type = 'found_remaining'
+	end
 	
 	if o.header_text ~= '' then
 		osd_msg = osd_msg .. osd_header .. parse_header(o.header_text)
@@ -821,8 +829,8 @@ function draw_list()
 		
 		osd_msg = osd_msg .. osd_color .. osd_key .. osd_index .. p --1.0.5# add the color before the sentence
 		
-		if list_contents[#list_contents - i].found_time and tonumber(list_contents[#list_contents - i].found_time) > 0 then
-			osd_msg = osd_msg .. o.time_seperator .. format_time(list_contents[#list_contents - i].found_time)
+		if list_contents[#list_contents - i][osd_time_type] and tonumber(list_contents[#list_contents - i][osd_time_type]) > 0 then
+			osd_msg = osd_msg .. o.time_seperator .. format_time(list_contents[#list_contents - i][osd_time_type]) --1.0.9.2# changed 'found_time' to [osd_time_type]
 		end
 		
 		osd_msg = osd_msg .. '\\h\\N\\N' .. osd_msg_end
