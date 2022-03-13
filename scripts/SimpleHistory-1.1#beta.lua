@@ -85,12 +85,12 @@ local o = {
 	--available sort: 'added-asc' is for the newest added item to show first. Or 'added-desc' for the newest added to show last. Or 'alphanum-asc' is for A to Z approach with filename and episode number lower first. Or 'alphanum-desc' is for its Z to A approach. Or 'time-asc', 'time-desc' to sort the list based on time.
 	list_default_sort = 'added-asc', --the sorting method for all the different filters in the list. select between 'added-asc', 'added-desc','time-asc', 'time-desc', 'alphanum-asc', 'alphanum-desc'
 	list_filters_sort=[[
-	[ ["all", "added-desc"], ["recents", "time-asc"] ]
+	[ ]
 	]], --Default sort for specific filters, e.g.: [ ["timeonly", "time-asc"], ["protocols", "added-desc"] ]
 	list_cycle_sort_keybind=[[
 	["alt+s", "alt+S"]
 	]], --Keybind to cycle through the different available sorts when list is open
-		
+
 	-----List Design Settings-----
 	list_alignment = 7, --The alignment for the list, uses numpad positions choose from 1-9 or 0 to disable. e,g.:7 top left alignment, 8 top middle alignment, 9 top right alignment.	
 	text_color = 'ffffff', --Text color for list in BGR hexadecimal
@@ -109,14 +109,14 @@ local o = {
 	header_filter_after_text = ']', --Text to be shown after filter in the header (since filter is inside the header, if you need to add a variable like %%search it will need double %%)
 	header_search_pre_text = '\\h\\N\\N[Search=', --Text to be shown before search in the header
 	header_search_after_text = '..]', --Text to be shown after search in the header
+	header_highlight_pre_text = '✅', --Text to be shown before total highlighted items of displayed list in the header
+	header_highlight_after_text = '', --Text to be shown after total highlighted items of displayed list in the header
 	header_list_duration_pre_text = ' 🕒 ', --Text to be shown before playback total duration of displayed list in the header
 	header_list_duration_after_text = '', --Text to be shown after playback total duration of displayed list in the header
 	header_list_length_pre_text = ' 🕒 ', --Text to be shown before playback total duration of displayed list in the header
 	header_list_length_after_text = '', --Text to be shown after playback total duration of displayed list in the header
 	header_list_remaining_pre_text = ' 🕒 ', --Text to be shown before playback total duration of displayed list in the header
 	header_list_remaining_after_text = '', --Text to be shown after playback total duration of displayed list in the header	
-	header_highlight_pre_text = '✅', --Text to be shown before total highlighted items of displayed list in the header
-	header_highlight_after_text = '', --Text to be shown after total highlighted items of displayed list in the header
 	header_color = '00bfff', --Header color in BGR hexadecimal
 	search_color_typing = 'ffffaa', --Search color when in typing mode
 	search_color_not_typing = '00bfff', --Search color when not in typing mode and it is active
@@ -180,7 +180,7 @@ local o = {
 	["ctrl+f", "ctrl+F"]
 	]], --Keybind that will be used to trigger search
 	list_search_not_typing_mode_keybind=[[
-	["CTRL+ENTER"]
+	["ALT+ENTER"]
 	]], --Keybind that will be used to exit typing mode of search while keeping search open
 	list_ignored_keybind=[[
 	["B", "b", "k", "K", "c", "C"]
@@ -235,8 +235,8 @@ elseif o.log_path:match('/:var%%(.*)%%') then --1.0.3# match any variable after 
 end
 local log_fullpath = utils.join_path(o.log_path, o.log_file)
 
-local log_time_text = 'time='
 local log_length_text = 'length=' --1.0.9.1# add variable to be used for duration logging
+local log_time_text = 'time='
 local protocols = {'https?:', 'magnet:', 'rtmps?:', 'smb:', 'ftps?:', 'sftp:'} --#1.0.3 added additional protocols
 local available_filters = {'all', 'recents', 'distinct', 'playing', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'keywords'} --1.0.9.4# removed highlights filter
 local available_sorts = {'added-asc', 'added-desc', 'time-asc', 'time-desc', 'alphanum-asc', 'alphanum-desc'} --1.0.6# added available_sorts
@@ -257,7 +257,7 @@ local list_pages = {}
 local filePath, fileTitle, fileLength
 local seekTime = 0
 local filterName = 'all'
-local sortName --1.0.9.5# Default to none
+local sortName --1.0.9.5# Default to nil
 
 function starts_protocol(tab, val)
 	for index, value in ipairs(tab) do
@@ -1594,7 +1594,7 @@ function list_close_and_trash_collection()
 	search_string = ''
 	search_active = false
 	list_highlight_cursor = {} --1.0.5# clear multi-select
-	sortName = nil --1.0.9.5# Default to none
+	sortName = nil --1.0.9.5# Default to nil
 end
 --End of LogReaderManager (List Bind and Unbind)--
 
