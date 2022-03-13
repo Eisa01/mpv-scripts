@@ -837,7 +837,7 @@ end
 
 function display_list(filter, sort, action)
 	if not filter or not has_value(available_filters, filter) then filter = 'all' end
-	if not sortName then sortName = get_list_sort(filter) end list)
+	if not sortName then sortName = get_list_sort(filter) end
 	
 	local prev_sort = sortName
 	if not has_value(available_sorts, prev_sort) then prev_sort = get_list_sort() end
