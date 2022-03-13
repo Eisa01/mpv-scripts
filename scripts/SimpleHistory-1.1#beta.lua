@@ -2,7 +2,7 @@
 -- License: BSD 2-Clause License
 -- Creator: Eisa AlAwadhi
 -- Project: SimpleHistory
--- Version: 1.1#Beta
+-- Version: 1.1
 
 local o = {
 ---------------------------USER CUSTOMIZATION SETTINGS---------------------------
@@ -30,7 +30,7 @@ local o = {
 	[ ["h", "all"], ["H", "all"], ["r", "recents"], ["R", "recents"], ["t", "titleonly"] ]
 	]], --Keybind that will be used to open the list along with the specified filter. Available filters: 'all', 'recents', 'distinct', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'keywords'.
 	list_filter_jump_keybind=[[
-	[ ["h", "all"], ["H", "all"], ["r", "recents"], ["R", "recents"], ["d", "distinct"], ["D", "distinct"], ["f", "fileonly"], ["F", "fileonly"], ["x", "highlights"], ["X", "highlights"] ]
+	[ ["h", "all"], ["H", "all"], ["r", "recents"], ["R", "recents"], ["d", "distinct"], ["D", "distinct"], ["f", "fileonly"], ["F", "fileonly"] ]
 	]], --Keybind that is used while the list is open to jump to the specific filter (it also enables pressing a filter keybind twice to close list). Available fitlers: 'all', 'recents', 'distinct', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'keywords'.
 	
 	-----Incognito Settings----
@@ -238,7 +238,7 @@ local log_fullpath = utils.join_path(o.log_path, o.log_file)
 local log_time_text = 'time='
 local log_length_text = 'length=' --1.0.9.1# add variable to be used for duration logging
 local protocols = {'https?:', 'magnet:', 'rtmps?:', 'smb:', 'ftps?:', 'sftp:'} --#1.0.3 added additional protocols
-local available_filters = {'all', 'highlights', 'recents', 'distinct', 'playing', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'keywords'} --1.0.6# added highlights filter
+local available_filters = {'all', 'recents', 'distinct', 'playing', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'keywords'} --1.0.9.4# removed highlights filter
 local available_sorts = {'added-asc', 'added-desc', 'time-asc', 'time-desc', 'alphanum-asc', 'alphanum-desc'} --1.0.6# added available_sorts
 local search_string = ''
 local search_active = false
@@ -557,14 +557,6 @@ function get_list_contents(filter, sort)--1.0.3#remove ignore_search and use rea
 	list_contents = read_log_table()
 	if not list_contents and not search_active or not list_contents[1] and not search_active then return end
 	current_sort = 'added-asc' --1.0.8.2# set the current_sort as 'added-asc' because read_log_table returns it as that
-	
-	if filter == 'highlights' then --1.0.6# append highlight filter
-		table.sort(list_highlight_cursor, function(a, b) return a < b end) --1.0.6# sort it based on index because we can highlight from different parts ruining current sort
-		for i=#list_highlight_cursor, 1, -1 do
-			table.insert(filtered_table, prev_list_contents[#prev_list_contents-list_highlight_cursor[i]+1])--1.0.6#(gets the checked items on prev_list_contents based on saved position inside list_highlight_cursor)
-		end
-		list_contents = filtered_table
-	end
 	
 	if filter == 'recents' then
 		table.sort(list_contents, function(a, b) return a['found_sequence'] < b['found_sequence'] end)
