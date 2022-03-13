@@ -1610,6 +1610,7 @@ function list_search_exit()
 	search_active = false
 	get_page_properties(filterName) --1.0.9.3# fix bug that exiting search does not update sort (it was because get_page_properties was under get_list_contents)
 	get_list_contents(filterName)
+	get_page_properties(filterName) --1.0.9.3# needed below also to get the list_cursor position right
 	select(0)
 	unbind_search_keys()
 	get_list_keybinds()
