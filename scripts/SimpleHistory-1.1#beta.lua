@@ -27,7 +27,7 @@ local o = {
 	["alt+r", "alt+R"]
 	]], --Keybind that will be used to immediately load the last item without resuming when no video is playing. If video is playing then it will add into playlist
 	open_list_keybind=[[
-	[ ["h", "all"], ["H", "all"], ["r", "recents"], ["R", "recents"], ["t", "titleonly"] ]
+	[ ["h", "all"], ["H", "all"], ["r", "recents"], ["R", "recents"] ]
 	]], --Keybind that will be used to open the list along with the specified filter. Available filters: 'all', 'recents', 'distinct', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'keywords'.
 	list_filter_jump_keybind=[[
 	[ ["h", "all"], ["H", "all"], ["r", "recents"], ["R", "recents"], ["d", "distinct"], ["D", "distinct"], ["f", "fileonly"], ["F", "fileonly"] ]
@@ -42,7 +42,7 @@ local o = {
 	]], --Triggers incognito mode. When enabled files played wont be added to history until this mode is disabled.
 	
 	-----Logging Settings-----
-	log_path = '/:dir%mpvconf', --Change to '/:dir%script' for placing it in the same directory of script, OR change to '/:dir%mpvconf' for mpv portable_config directory. OR write any variable using '/:var' then the variable '/:var%APPDATA%' you can use path also, such as: '/:var%APPDATA%\\mpv' OR '/:var%HOME%/mpv' OR specify the absolute path , e.g.: 'C:\\Users\\Eisa01\\Desktop\\'
+	log_path = '/:dir%mpvconf%', --Change to '/:dir%script%' for placing it in the same directory of script, OR change to '/:dir%mpvconf%' for mpv portable_config directory. OR write any variable using '/:var' then the variable '/:var%APPDATA%' you can use path also, such as: '/:var%APPDATA%\\mpv' OR '/:var%HOME%/mpv' OR specify the absolute path , e.g.: 'C:\\Users\\Eisa01\\Desktop\\'
 	log_file = 'mpvHistory.log', --name+extension of the file that will be used to store the log data
 	date_format = '%A/%B %d/%m/%Y %X', --Date format in the log (see lua date formatting), e.g.:'%d/%m/%y %X' or '%d/%b/%y %X'
 	file_title_logging = 'protocols', --Change between 'all', 'protocols', 'none'. This option will store the media title in log file, it is useful for websites / protocols because title cannot be parsed from links alone
@@ -85,7 +85,7 @@ local o = {
 	--available sort: 'added-asc' is for the newest added item to show first. Or 'added-desc' for the newest added to show last. Or 'alphanum-asc' is for A to Z approach with filename and episode number lower first. Or 'alphanum-desc' is for its Z to A approach. Or 'time-asc', 'time-desc' to sort the list based on time.
 	list_default_sort = 'added-asc', --the sorting method for all the different filters in the list. select between 'added-asc', 'added-desc','time-asc', 'time-desc', 'alphanum-asc', 'alphanum-desc'
 	list_filters_sort=[[
-	[ ["recents", "time-asc"], ["protocols", "added-desc"], ["distinct", "alphanum-asc"] ]
+	[ ["all", "added-desc"], ["recents", "time-asc"] ]
 	]], --Default sort for specific filters, e.g.: [ ["timeonly", "time-asc"], ["protocols", "added-desc"] ]
 	list_cycle_sort_keybind=[[
 	["alt+s", "alt+S"]
@@ -225,9 +225,9 @@ o.open_list_keybind = utils.parse_json(o.open_list_keybind)
 o.list_filter_jump_keybind = utils.parse_json(o.list_filter_jump_keybind)
 o.list_ignored_keybind = utils.parse_json(o.list_ignored_keybind)
 
-if string.lower(o.log_path) == '/:dir%mpvconf' then --1.0.3# made it case-insensitive
+if string.lower(o.log_path) == '/:dir%mpvconf%' then --1.0.3# made it case-insensitive
 	o.log_path = mp.find_config_file('.')
-elseif string.lower(o.log_path) == '/:dir%script' then --1.0.3# made it case-insensitive
+elseif string.lower(o.log_path) == '/:dir%script%' then --1.0.3# made it case-insensitive
 	o.log_path = debug.getinfo(1).source:match('@?(.*/)')
 elseif o.log_path:match('/:var%%(.*)%%') then --1.0.3# match any variable after /:var (cant make it case-insensitive because I want to pass the exact variable passed with the case)
 	local os_variable = o.log_path:match('/:var%%(.*)%%') --1.0.3# gets the variable which is inside the percentage of \:var, e.g.: \:var%GETS_THIS%
@@ -257,7 +257,7 @@ local list_pages = {}
 local filePath, fileTitle, fileLength
 local seekTime = 0
 local filterName = 'all'
-local sortName = 'added-asc' --1.0.8.4# Default as added-asc
+local sortName --1.0.9.5# Default to none
 
 function starts_protocol(tab, val)
 	for index, value in ipairs(tab) do
@@ -541,7 +541,7 @@ end
 
 function get_list_contents(filter, sort)--1.0.3#remove ignore_search and use read_log_table instead for backend stuff
 	if not filter then filter = filterName end
-	if not sort then sort = sortName end --1.0.8.2# use sortName if no sort is passed
+	if not sort then sort = get_list_sort(filter) end --1.0.9.5# use get_list_sort() if no sort is passed, probably needed because sortName could be nil
 	
 	local current_sort --1.0.8.2# current_sort to identify whether re-sorting is needed or not
 
@@ -851,6 +851,7 @@ end
 
 function display_list(filter, sort, action) --1.0.8# add sort, change osd_hide to action 'hide-osd'
 	if not filter or not has_value(available_filters, filter) then filter = 'all' end
+	if not sortName then sortName = get_list_sort(filter) end  --1.0.9.5# if sortName is not defined then define it using filter (fixes not showing sortName in 'all' filter when opening list)
 	
 	local prev_sort = sortName --1.0.8.2# assign prev_sort as sortName
 	if not has_value(available_sorts, prev_sort) then prev_sort = get_list_sort() end --1.0.8.2# if sortName is empty then find its sort for prev_sort (this can be done with sortName also instead of prev_sort.. check the commented out example above)
@@ -1593,7 +1594,7 @@ function list_close_and_trash_collection()
 	search_string = ''
 	search_active = false
 	list_highlight_cursor = {} --1.0.5# clear multi-select
-	sortName = 'added-asc' --1.0.8.4# Default as added-asc
+	sortName = nil --1.0.9.5# Default to none
 end
 --End of LogReaderManager (List Bind and Unbind)--
 
