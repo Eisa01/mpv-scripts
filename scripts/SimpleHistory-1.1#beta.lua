@@ -1346,7 +1346,7 @@ end
 function update_list_highlist_cursor()
 	if not list_highlight_cursor or not list_highlight_cursor[1] then return end --1.0.8.7# only proceed with function if items are highlighted
 
-	local temp_list_highlight_cursor = {} --1.0.8.6# initiate empty highlight_cursor table (NOT WORKING EISA HERE TRY TO FIX OR COME WITH BETTER LOGIC)
+	local temp_list_highlight_cursor = {} --1.0.8.6# initiate empty highlight_cursor table
 	for i = 1, #list_contents do --1.0.8.6# for all list_contents
 		for j=1, #list_highlight_cursor do --1.0.8.6# go through all highlights
 			if list_contents[#list_contents+1-i].found_sequence == list_highlight_cursor[j][2].found_sequence then --1.0.8.6# if list_contents found_sequence, matches the list_highlights (FINALLY!!!! I was getting the wrong found_sequence, this is the one I need: list_contents[#list_contents+1-i].found_sequence)!!
