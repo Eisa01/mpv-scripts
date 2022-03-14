@@ -57,7 +57,7 @@ local o = {
 	list_middle_loader = true, --false is for more items to show, then u must reach the end. true is for new items to show after reaching the middle of list.
 	show_paths = false, --Show file paths instead of media-title
 	show_item_number = true, --Show the number of each item before displaying its name and values.
-	slice_longfilenames = true, --Change to true or false. Slices long filenames per the amount specified below
+	slice_longfilenames = false, --Change to true or false. Slices long filenames per the amount specified below
 	slice_longfilenames_amount = 55, --Amount for slicing long filenames
 	list_show_amount = 10, --Change maximum number to show items at once
 	quickselect_0to9_keybind = true, --Keybind entries from 0 to 9 for quick selection when list is open (list_show_amount = 10 is maximum for this feature to work)
@@ -78,37 +78,49 @@ local o = {
 	]], --Keybind that will be used to go to the previous available filter based on the filters_and_sequence
 	loop_through_filters = true, --true is for bypassing the last filter to go to first filter when navigating through filters using arrow keys, and vice-versa. false disables this behavior.
 	keywords_filter_list=[[
-	["youtube.com", "mp4", "naruto", "c:\\users\\eisa01\\desktop"]
-	]], --Create a filter out of your desired 'keywords', e.g.: youtube.com will filter out the videos from youtube. You can also insert a portion of filename or title, or extension or a full path / portion of a path.
+	[""]
+	]], --Create a filter out of your desired 'keywords', e.g.: youtube.com will filter out the videos from youtube. You can also insert a portion of filename or title, or extension or a full path / portion of a path. e.g.: ["youtube.com", "mp4", "naruto", "c:\\users\\eisa01\\desktop"]
 
 	-----Sort Settings------
 	--available sort: 'added-asc' is for the newest added item to show first. Or 'added-desc' for the newest added to show last. Or 'alphanum-asc' is for A to Z approach with filename and episode number lower first. Or 'alphanum-desc' is for its Z to A approach. Or 'time-asc', 'time-desc' to sort the list based on time.
-	list_default_sort = 'added-asc', --the sorting method for all the different filters in the list. select between 'added-asc', 'added-desc','time-asc', 'time-desc', 'alphanum-asc', 'alphanum-desc'
+	list_default_sort = 'added-asc', --the default sorting method for all the different filters in the list. select between 'added-asc', 'added-desc', 'time-asc', 'time-desc', 'alphanum-asc', 'alphanum-desc'
 	list_filters_sort=[[
 	[ ]
-	]], --Default sort for specific filters, e.g.: [ ["timeonly", "time-asc"], ["protocols", "added-desc"] ]
+	]], --Default sort for specific filters, e.g.: [ ["all", "alphanum-asc"], ["playing", "added-desc"] ]
 	list_cycle_sort_keybind=[[
 	["alt+s", "alt+S"]
 	]], --Keybind to cycle through the different available sorts when list is open
 
 	-----List Design Settings-----
 	list_alignment = 7, --The alignment for the list, uses numpad positions choose from 1-9 or 0 to disable. e,g.:7 top left alignment, 8 top middle alignment, 9 top right alignment.	
+	text_time_type = 'duration', --The time type for items on the list. Select between 'duration', 'length', 'remaining'.
+	time_seperator = ' 🕒 ', --Time seperator that will be used before the time
+	list_sliced_prefix = '...\\h\\N\\N', --The text that indicates there are more items above. \\N is for new line. \\h is for hard space.
+	list_sliced_suffix = '...', --The text that indicates there are more items below.
+	quickselect_0to9_pre_text = false, --true enables pre text for showing quickselect keybinds before the list. false to disable
 	text_color = 'ffffff', --Text color for list in BGR hexadecimal
 	text_scale = 50, --Font size for the text of list
 	text_border = 0.7, --Black border size for the text of list
 	text_cursor_color = 'ffbf7f', --Text color of current cursor position in BGR hexadecimal
 	text_cursor_scale = 50, --Font size for text of current cursor position in list
 	text_cursor_border = 0.7, --Black border size for text of current cursor position in list
-	text_highlight_pre_text = '✅ ', --Pre text for highlighted item that is ready for multi action
-	quickselect_0to9_pre_text = false, --Pre text for showing quickselect keybinds before the list
-	header_text = '⌛ History [%cursor%/%total%]%prehighlight%%highlight%%afterhighlight%%prelistduration%%listduration%%afterlistduration%%prefilter%%filter%%afterfilter%%presort%%sort%%aftersort%%presearch%%search%%aftersearch%', --Text to be shown as header for the list. %cursor%: shows the position of highlighted file. %total%: shows the total amount of items. %filter%: shows the filter name, %prefilter%: user defined text before showing filter, %afterfilter%: user defined text after showing filter, %search%: shows the typed search, %presearch%, %aftersearch%: same concept of prefilter and afterfilter, %listduration%: shows the total playback duration of displayed list, %listlength%: shows the total video lengths of displayed list, %listremaining%: shows the total remaining time for displayed list, %prelistduration%, %afterlistduration%, %prelistlength%, %afterlistlength%, %prelistremaining%, %afterlistremaining%: same concept of prefilter and afterfilter.
-	header_sort_pre_text = ' \\{',--Text to be shown before sort in the header
-	header_sort_after_text = '}',--Text to be shown after sort in the header
+	text_highlight_pre_text = '✅ ', --Pre text for highlighted multi-select item
+	search_color_typing = 'ffffaa', --Search color when in typing mode
+	search_color_not_typing = '00bfff', --Search color when not in typing mode and it is active
+	header_color = '00bfff', --Header color in BGR hexadecimal
+	header_scale = 55, --Header text size for the list
+	header_border = 0.8, --Black border size for the Header of list
+	header_text = '⌛ History [%cursor%/%total%]%prehighlight%%highlight%%afterhighlight%%prelistduration%%listduration%%afterlistduration%%prefilter%%filter%%afterfilter%%presort%%sort%%aftersort%%presearch%%search%%aftersearch%', --Text to be shown as header for the list
+	--Available header variables: %cursor%, %total%, %filter%, %search%, %listduration%, %listlength%, %listremaining%
+	--User defined text that only displays if a variable is triggered: %prefilter%, %afterfilter%, %presearch%, %aftersearch%, %prelistduration%, %afterlistduration%, %prelistlength%, %afterlistlength%, %prelistremaining%, %afterlistremaining%
+	--Variables explanation: %cursor: shows the position of highlighted file. %total: shows the total amount of items. %filter: shows the filter name, %search: shows the typed search. Example of user defined text that only displays if a variable is triggered of user: %prefilter: user defined text before showing filter, %afterfilter: user defined text after showing filter.
 	header_sort_hide_text = 'added-asc',--Sort method that is hidden from header when using %sort% variable
-	header_filter_pre_text = ' [Filter: ', --Text to be shown before filter in the header
-	header_filter_after_text = ']', --Text to be shown after filter in the header (since filter is inside the header, if you need to add a variable like %%search it will need double %%)
-	header_search_pre_text = '\\h\\N\\N[Search=', --Text to be shown before search in the header
-	header_search_after_text = '..]', --Text to be shown after search in the header
+	header_sort_pre_text = ' \\{',--Text to be shown before sort in the header, when using %presort%
+	header_sort_after_text = '}',--Text to be shown after sort in the header, when using %aftersort%
+	header_filter_pre_text = ' [Filter: ', --Text to be shown before filter in the header, when using %prefilter%
+	header_filter_after_text = ']', --Text to be shown after filter in the header, when using %afterfilter%
+	header_search_pre_text = '\\h\\N\\N[Search=', --Text to be shown before search in the header, when using %presearch%
+	header_search_after_text = '..]', --Text to be shown after search in the header, when using %aftersearch%
 	header_highlight_pre_text = '✅', --Text to be shown before total highlighted items of displayed list in the header
 	header_highlight_after_text = '', --Text to be shown after total highlighted items of displayed list in the header
 	header_list_duration_pre_text = ' 🕒 ', --Text to be shown before playback total duration of displayed list in the header
@@ -117,15 +129,6 @@ local o = {
 	header_list_length_after_text = '', --Text to be shown after playback total duration of displayed list in the header
 	header_list_remaining_pre_text = ' 🕒 ', --Text to be shown before playback total duration of displayed list in the header
 	header_list_remaining_after_text = '', --Text to be shown after playback total duration of displayed list in the header	
-	header_color = '00bfff', --Header color in BGR hexadecimal
-	search_color_typing = 'ffffaa', --Search color when in typing mode
-	search_color_not_typing = '00bfff', --Search color when not in typing mode and it is active
-	header_scale = 55, --Header text size for the list
-	header_border = 0.8, --Black border size for the Header of list
-	text_time_type = 'duration', -- The time type for items on the list. Select between 'duration', 'length', 'remaining'.
-	time_seperator = ' 🕒 ', --Time seperator that will be used before the time
-	list_sliced_prefix = '...\\h\\N\\N', --The text that indicates there are more items above. \\h\\N\\N is for new line.
-	list_sliced_suffix = '...', --The text that indicates there are more items below.
 
 	-----List Keybind Settings-----
 	--Add below (after a comma) any additional keybind you want to bind. Or change the letter inside the quotes to change the keybind
@@ -160,10 +163,10 @@ local o = {
 	]], --Keybind that will be used to remove all currently highlighted items from the list
 	list_select_keybind=[[
 	["ENTER", "MBTN_MID"]
-	]], --Keybind that will be used to load entry nased on cursor position
+	]], --Keybind that will be used to load entry based on cursor position
 	list_add_playlist_keybind=[[
 	["CTRL+ENTER"]
-	]], --Keybind that will be used to add the selected entry to playlist
+	]], --Keybind that will be used to add entry to playlist based on cursor position
 	list_add_playlist_highlighted_keybind=[[
 	["SHIFT+ENTER"]
 	]], --Keybind that will be used to add all highlighted entries to playlist
@@ -185,7 +188,7 @@ local o = {
 	list_ignored_keybind=[[
 	["B", "b", "k", "K", "c", "C"]
 	]], --Keybind thats are ignored when list is open
-	
+
 ---------------------------END OF USER CUSTOMIZATION SETTINGS---------------------------
 }
 
@@ -1879,23 +1882,23 @@ function history_blacklist_check()
 		blacklist_msg = 'File was added to history because of whitelist'
 	end
 	
-	if has_value(o.history_blacklist, filePath) then
+	if has_value(o.history_blacklist, filePath, nil) then
 		msg.info(blacklist_msg)
 		return invertable_return[1]
 	elseif not starts_protocol(protocols, filePath) then
-		if has_value(o.history_blacklist, filePath:match('^(.-)([^\\/]-)%.([^\\/%.]-)%.?$')) or 
-		has_value(o.history_blacklist, filePath:match('^(.-)([^\\/]-)%.([^\\/%.]-)%.?$'):gsub('\\$', '')) then
+		if has_value(o.history_blacklist, filePath:match('^(.-)([^\\/]-)%.([^\\/%.]-)%.?$'), nil) or 
+		has_value(o.history_blacklist, filePath:match('^(.-)([^\\/]-)%.([^\\/%.]-)%.?$'):gsub('\\$', ''), nil) then
 			msg.info(blacklist_msg)
 			return invertable_return[1]
-		elseif has_value(o.history_blacklist, filePath:match('%.([^%.]+)$')) or
-		has_value(o.history_blacklist, "."..filePath:match('%.([^%.]+)$')) then
+		elseif has_value(o.history_blacklist, filePath:match('%.([^%.]+)$'), nil) or
+		has_value(o.history_blacklist, "."..filePath:match('%.([^%.]+)$'), nil) then
 			msg.info(blacklist_msg)
 			return invertable_return[1]
 		end
 	elseif starts_protocol(protocols, filePath) then
-		if has_value(o.history_blacklist, filePath:match('(.-)(:)')) or
-		has_value(o.history_blacklist, filePath:match('(.-:)')) or
-		has_value(o.history_blacklist, filePath:match('(.-:/?/?)')) then
+		if has_value(o.history_blacklist, filePath:match('(.-)(:)'), nil) or
+		has_value(o.history_blacklist, filePath:match('(.-:)'), nil) or
+		has_value(o.history_blacklist, filePath:match('(.-:/?/?)'), nil) then
 			msg.info(blacklist_msg)
 			return invertable_return[1]
 		elseif filePath:find('https?://') == 1 then
@@ -1903,8 +1906,8 @@ function history_blacklist_check()
 			local different_check_temp = difchk_1..difchk_2
 			local different_checks = {different_check_temp, filePath:match("https?://w?w?w?%.?([%w%.%:]*)"), filePath:match("https?://([%w%.%:]*)"), filePath:match("(https?://[%w%.%:]*)") }
 			for i = 1, #different_checks do
-				if different_checks[i] and has_value(o.history_blacklist, different_checks[i])
-				or different_checks[i]..'/' and has_value(o.history_blacklist, different_checks[i]..'/') then
+				if different_checks[i] and has_value(o.history_blacklist, different_checks[i], nil)
+				or different_checks[i]..'/' and has_value(o.history_blacklist, different_checks[i]..'/', nil) then
 					msg.info(blacklist_msg)
 					return invertable_return[1]
 				end
