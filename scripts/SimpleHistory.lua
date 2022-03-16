@@ -111,9 +111,9 @@ local o = {
 	header_scale = 55, --Header text size for the list
 	header_border = 0.8, --Black border size for the Header of list
 	header_text = '⌛ History [%cursor%/%total%]%prehighlight%%highlight%%afterhighlight%%prelistduration%%listduration%%afterlistduration%%prefilter%%filter%%afterfilter%%presort%%sort%%aftersort%%presearch%%search%%aftersearch%', --Text to be shown as header for the list
-	--Available header variables: %cursor%, %total%, %filter%, %search%, %listduration%, %listlength%, %listremaining%
-	--User defined text that only displays if a variable is triggered: %prefilter%, %afterfilter%, %presearch%, %aftersearch%, %prelistduration%, %afterlistduration%, %prelistlength%, %afterlistlength%, %prelistremaining%, %afterlistremaining%
-	--Variables explanation: %cursor: shows the position of highlighted file. %total: shows the total amount of items. %filter: shows the filter name, %search: shows the typed search. Example of user defined text that only displays if a variable is triggered of user: %prefilter: user defined text before showing filter, %afterfilter: user defined text after showing filter.
+	--Available header variables: %cursor%, %total%, %highlight%, %filter%, %search%, %listduration%, %listlength%, %listremaining%
+	--User defined text that only displays if a variable is triggered: %prefilter%, %afterfilter%, %prehighlight%, %afterhighlight% %presearch%, %aftersearch%, %prelistduration%, %afterlistduration%, %prelistlength%, %afterlistlength%, %prelistremaining%, %afterlistremaining%
+	--Variables explanation: %cursor: displays the number of cursor position in list. %total: total amount of items in current list. %highlight%: total number of highlighted items.  %filter: shows the filter name, %search: shows the typed search. Example of user defined text that only displays if a variable is triggered of user: %prefilter: user defined text before showing filter, %afterfilter: user defined text after showing filter.
 	header_sort_hide_text = 'added-asc',--Sort method that is hidden from header when using %sort% variable
 	header_sort_pre_text = ' \\{',--Text to be shown before sort in the header, when using %presort%
 	header_sort_after_text = '}',--Text to be shown after sort in the header, when using %aftersort%
@@ -1126,13 +1126,27 @@ function list_add_playlist(action)
 		load(list_cursor, true)
 	elseif action == 'highlight' then
 		if not list_highlight_cursor or not list_highlight_cursor[1] then return end
+		local file_ignored_total = 0 --1.1# initiate total as 0
+		
 		for i=1, #list_highlight_cursor do
-			mp.commandv("loadfile", list_highlight_cursor[i][2].found_path, "append-play")
+			if file_exists(list_highlight_cursor[i][2].found_path) or starts_protocol(protocols, list_highlight_cursor[i][2].found_path) then --1.1# check if file exists before adding to playlist
+				mp.commandv("loadfile", list_highlight_cursor[i][2].found_path, "append-play")
+			else
+				msg.warn('The below file was not added into playlist as it does not seem to exist:\n' .. list_highlight_cursor[i][2].found_path)
+				file_ignored_total = file_ignored_total + 1 --1.1# total number of files ignored
+			end
 		end
 		if o.osd_messages == true then
-			mp.osd_message('Added into Playlist '..#list_highlight_cursor..' Item/s')
+			if file_ignored_total > 0 then --1.1# only show ignored message if total is more than 0
+				mp.osd_message('Added into Playlist '..#list_highlight_cursor - file_ignored_total..' Item/s\nIgnored '..file_ignored_total.. " Item/s That Do Not Exist") --1.1# print (total - file does not exists)
+			else
+				mp.osd_message('Added into Playlist '..#list_highlight_cursor - file_ignored_total..' Item/s') --1.1# print (total - file does not exists)
+			end
 		end
-		msg.info('Added into playlist '..#list_highlight_cursor..' item/s')
+		if file_ignored_total > 0 then --1.1# only show ignored message if total is more than 0
+			msg.warn('Ignored a total of '..file_ignored_total.. " Item/s that does not seem to exist") --1.1# print (total - file does not exists)
+		end
+		msg.info('Added into playlist a total of '..#list_highlight_cursor - file_ignored_total..' item/s') --1.1# print (total - file does not exist)
 	end
 end
 
