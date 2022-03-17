@@ -128,12 +128,32 @@ local o = {
 	header_list_length_pre_text = ' 🕒 ', --Text to be shown before playback total duration of displayed list in the header
 	header_list_length_after_text = '', --Text to be shown after playback total duration of displayed list in the header
 	header_list_remaining_pre_text = ' 🕒 ', --Text to be shown before playback total duration of displayed list in the header
-	header_list_remaining_after_text = '', --Text to be shown after playback total duration of displayed list in the header	
+	header_list_remaining_after_text = '', --Text to be shown after playback total duration of displayed list in the header
+	
+	-----Time Format Settings-----
+	--in the first parameter, you can define from the available styles: default, hms, hms-full, timestamp. "default" to show in HH:MM:SS.sss format. "hms" to show in 1h 2m 3.4s format. "hms-full" is the same as hms but keeps the hours and minutes persistent when they are 0. "timestamp" to show the total time as timestamp 123456.789 format
+	--in the second parameter, you can define whether to show milliseconds, round them or truncate them. Available options: 'truncate' to remove the milliseconds and keep the seconds. 0 to remove the milliseconds and round the seconds. 1 or above is the amount of milliseconds to display. The default value is 3 milliseconds.
+	--in the third parameter you can define the seperator between hour:minute:second. "default" style is automatically set to ":", "hms", "hms-full" are automatically set to " ". You can define your own. Examples: ["default", 3, "-"], ["hms-full", 5, "."], ["timestamp", 0]
+	osd_time_format=[[
+	["default", "truncate"]
+	]],
+	list_time_format=[[
+	["default", "truncate"]
+	]],
+	header_duration_time_format=[[
+	["hms", "truncate", ":"]
+	]],
+	header_length_time_format=[[
+	["hms", "truncate", ":"]
+	]],
+	header_remaining_time_format=[[
+	["hms", "truncate", ":"]
+	]],
 
 	-----List Keybind Settings-----
 	--Add below (after a comma) any additional keybind you want to bind. Or change the letter inside the quotes to change the keybind
 	--Example of changing and adding keybinds: --From ["b", "B"] To ["b"]. --From [""] to ["alt+b"]. --From [""] to ["a" "ctrl+a", "alt+a"]
-	
+
 	list_move_up_keybind=[[
 	["UP", "WHEEL_UP"]
 	]], --Keybind that will be used to navigate up on the list
@@ -204,6 +224,11 @@ o.list_filters_sort = utils.parse_json(o.list_filters_sort)
 o.logging_protocols = utils.parse_json(o.logging_protocols)
 o.history_resume_keybind = utils.parse_json(o.history_resume_keybind)
 o.history_load_last_keybind = utils.parse_json(o.history_load_last_keybind)
+o.osd_time_format = utils.parse_json(o.osd_time_format) --3.1# user time_format options
+o.list_time_format = utils.parse_json(o.list_time_format) --3.1# user time_format options
+o.header_duration_time_format = utils.parse_json(o.header_duration_time_format) --3.1# user time_format options
+o.header_length_time_format = utils.parse_json(o.header_length_time_format) --3.1# user time_format options
+o.header_remaining_time_format = utils.parse_json(o.header_remaining_time_format) --3.1# user time_format options
 o.list_move_up_keybind = utils.parse_json(o.list_move_up_keybind)
 o.list_move_down_keybind = utils.parse_json(o.list_move_down_keybind)
 o.list_page_up_keybind = utils.parse_json(o.list_page_up_keybind)
@@ -311,13 +336,38 @@ function file_exists(name)
 	if f ~= nil then io.close(f) return true else return false end
 end
 
-function format_time(duration)
-	local total_seconds = math.floor(duration)
-	local hours = (math.floor(total_seconds / 3600))
-	total_seconds = (total_seconds % 3600)
-	local minutes = (math.floor(total_seconds / 60))
-	local seconds = (total_seconds % 60)
-	return string.format("%02d:%02d:%02d", hours, minutes, seconds)
+function format_time(seconds, sep, decimals, style) --3.1# use function from lua.osc to match the conversion method with default mpv osc
+	local function divmod (a, b)
+		return math.floor(a / b), a % b
+	end
+	decimals = decimals == nil and 3 or decimals
+	
+	local s = seconds
+	local h, s = divmod(s, 60*60)
+	local m, s = divmod(s, 60)
+
+	if decimals == 'truncate' then --3.1# decimals = 0, will round because that is the default behavior of string.format, however math.floor truncates so we can use that for seconds (while it is possible to pass seconds with math.floor immediately, however I want a way to do it immediately from within function)
+		s = math.floor(s)
+		seconds = math.floor(seconds) --3.1# for returning style=timestamp with truncate
+		decimals = 0 --3.1# make decimals 0 so we dont see seconds.000
+	end
+	
+	local second_format = string.format("%%0%d.%df", 2+(decimals > 0 and decimals+1 or 0), decimals) --3.1# to limit decimals, works with timestamp style also
+	if not style or style == '' or style == 'default' then --3.1# allow for different styles, default is "HH:MM:SS.sss"
+		sep = sep and sep or ":"
+		return string.format("%02d"..sep.."%02d"..sep..second_format, h, m, s)
+	elseif style == 'hms' or style == 'hms-full' then --3.1# hms or hms-full styles is "1h 2m 3.4s" hms-full always forces hour and minute to show, even if they are empty
+	  sep = sep ~= nil and sep or " "
+	  if style == 'hms-full' or h > 0 then
+		return string.format("%dh"..sep.."%dm"..sep.."%." .. tostring(decimals) .. "fs", h, m, s)
+	  elseif m > 0 then
+		return string.format("%dm"..sep.."%." .. tostring(decimals) .. "fs", m, s)
+	  else
+		return string.format("%." .. tostring(decimals) .. "fs", s)
+	  end
+	elseif style == 'timestamp' then
+		return string.format(second_format, seconds) --3.1# if the style passed is none, then show time as it was passed which should be seconds 212314 without any formatting
+	end
 end
 
 function get_file()
@@ -457,7 +507,7 @@ function parse_header(string)
 	if string:match('%listduration%%') then
 		list_total_duration = get_total_duration('found_time')
 		if list_total_duration > 0 then
-			string = string:gsub("%%listduration%%", format_time(list_total_duration))
+			string = string:gsub("%%listduration%%", format_time(list_total_duration, o.header_duration_time_format[3], o.header_duration_time_format[2], o.header_duration_time_format[1])) --3.1# use time_format user options
 		else
 			string = string:gsub("%%listduration%%", '')
 		end
@@ -474,7 +524,7 @@ function parse_header(string)
 	if string:match('%listlength%%') then
 		list_total_length = get_total_duration('found_length')
 		if list_total_length > 0 then
-			string = string:gsub("%%listlength%%", format_time(list_total_length))
+			string = string:gsub("%%listlength%%", format_time(list_total_length, o.header_length_time_format[3], o.header_length_time_format[2], o.header_length_time_format[1])) --3.1# use time_format user options
 		else
 			string = string:gsub("%%listlength%%", '')
 		end
@@ -491,7 +541,7 @@ function parse_header(string)
 	if string:match('%listremaining%%') then
 		list_total_remaining = get_total_duration('found_remaining')
 		if list_total_remaining > 0 then
-			string = string:gsub("%%listremaining%%", format_time(list_total_remaining))
+			string = string:gsub("%%listremaining%%", format_time(list_total_remaining, o.header_remaining_time_format[3], o.header_remaining_time_format[2], o.header_remaining_time_format[1])) --3.1# use time_format user options
 		else
 			string = string:gsub("%%listremaining%%", '')
 		end
@@ -678,7 +728,7 @@ function get_list_contents(filter, sort)
 					table.insert(filtered_table, list_contents[i])
 				elseif list_contents[i].found_title and string.lower(list_contents[i].found_title):match(string.lower(search_query)) then
 					table.insert(filtered_table, list_contents[i])
-				elseif tonumber(list_contents[i].found_time) > 0 and format_time(list_contents[i].found_time):match(search_query) then
+				elseif tonumber(list_contents[i].found_time) > 0 and format_time(list_contents[i].found_time, o.osd_time_format[3], o.osd_time_format[2], o.osd_time_format[1]):match(search_query) then --3.1# use time_format user options
 					table.insert(filtered_table, list_contents[i])
 				elseif string.lower(list_contents[i].found_datetime):match(string.lower(search_query)) then
 					table.insert(filtered_table, list_contents[i])
@@ -686,7 +736,7 @@ function get_list_contents(filter, sort)
 			elseif o.search_behavior == 'any' then
 				contents_string = list_contents[i].found_datetime..(list_contents[i].found_title or '')..list_contents[i].found_path
 				if tonumber(list_contents[i].found_time) > 0 then 
-					contents_string = contents_string..format_time(list_contents[i].found_time) 
+					contents_string = contents_string..format_time(list_contents[i].found_time, o.osd_time_format[3], o.osd_time_format[2], o.osd_time_format[1]) --3.1# use time_format user options
 				end
 			elseif o.search_behavior == 'any-notime' then
 				contents_string = list_contents[i].found_datetime..(list_contents[i].found_title or '')..list_contents[i].found_path
@@ -811,7 +861,7 @@ function draw_list()
 		osd_msg = osd_msg .. osd_color .. osd_key .. osd_index .. p
 		
 		if list_contents[#list_contents - i][osd_time_type] and tonumber(list_contents[#list_contents - i][osd_time_type]) > 0 then
-			osd_msg = osd_msg .. o.time_seperator .. format_time(list_contents[#list_contents - i][osd_time_type])
+			osd_msg = osd_msg .. o.time_seperator .. format_time(list_contents[#list_contents - i][osd_time_type], o.list_time_format[3], o.list_time_format[2], o.list_time_format[1])  --3.1# use time_format user options
 		end
 		
 		osd_msg = osd_msg .. '\\h\\N\\N' .. osd_msg_end
@@ -1098,7 +1148,7 @@ function load(list_cursor, add_playlist, target_time)
 				list_close_and_trash_collection()
 			end
 			if o.osd_messages == true then
-				mp.osd_message('Loaded:\n' .. list_contents[#list_contents - list_cursor + 1].found_name.. o.time_seperator .. format_time(seekTime))
+				mp.osd_message('Loaded:\n' .. list_contents[#list_contents - list_cursor + 1].found_name.. o.time_seperator .. format_time(seekTime, o.osd_time_format[3], o.osd_time_format[2], o.osd_time_format[1])) --3.1# use time_format user options
 			end
 			msg.info('Loaded the below file:\n' .. list_contents[#list_contents - list_cursor + 1].found_name  .. ' | '.. format_time(seekTime))
 		else
@@ -2048,7 +2098,7 @@ function history_resume_notification()
 	if logged_time > 0 then
 		percentage = math.floor((logged_time / video_duration) * 100 + 0.5)
 		if percentage > o.resume_notification_threshold and percentage < (100-o.resume_notification_threshold) or o.resume_notification_threshold == 0 then
-			mp.osd_message('⌨ [' .. string.upper(o.history_resume_keybind[1]) .. '] Resumes To' .. o.time_seperator .. format_time(logged_time),3)
+			mp.osd_message('⌨ [' .. string.upper(o.history_resume_keybind[1]) .. '] Resumes To' .. o.time_seperator .. format_time(logged_time, o.osd_time_format[3], o.osd_time_format[2], o.osd_time_format[1]),3) --3.1# use time_format user options
 		end
 	end
 end
@@ -2102,7 +2152,7 @@ function history_resume()
 		if seekTime > 0 then
 			mp.commandv('seek', seekTime, 'absolute', 'exact')
 			if (o.osd_messages == true) then
-				mp.osd_message('Resumed To Last Played Position\n' .. o.time_seperator .. format_time(seekTime))
+				mp.osd_message('Resumed To Last Played Position\n' .. o.time_seperator .. format_time(seekTime, o.osd_time_format[3], o.osd_time_format[2], o.osd_time_format[1])) --3.1# use time_format user options
 			end
 			msg.info('Resumed to the last played position')
 		else
