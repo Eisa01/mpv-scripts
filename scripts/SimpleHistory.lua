@@ -131,9 +131,9 @@ local o = {
 	header_list_remaining_after_text = '', --Text to be shown after playback total duration of displayed list in the header
 	
 	-----Time Format Settings-----
-	--in the first parameter, you can define from the available styles: default, hms, hms-full, timestamp. "default" to show in HH:MM:SS.sss format. "hms" to show in 1h 2m 3.4s format. "hms-full" is the same as hms but keeps the hours and minutes persistent when they are 0. "timestamp" to show the total time as timestamp 123456.789 format
+	--in the first parameter, you can define from the available styles: default, hms, hms-full, timestamp, timestamp-concise "default" to show in HH:MM:SS.sss format. "hms" to show in 1h 2m 3.4s format. "hms-full" is the same as hms but keeps the hours and minutes persistent when they are 0. "timestamp" to show the total time as timestamp 123456.700 format. "timestamp-concise" shows the total time in 123456.7 format (shows and hides decimals depending on availability).
 	--in the second parameter, you can define whether to show milliseconds, round them or truncate them. Available options: 'truncate' to remove the milliseconds and keep the seconds. 0 to remove the milliseconds and round the seconds. 1 or above is the amount of milliseconds to display. The default value is 3 milliseconds.
-	--in the third parameter you can define the seperator between hour:minute:second. "default" style is automatically set to ":", "hms", "hms-full" are automatically set to " ". You can define your own. Examples: ["default", 3, "-"], ["hms-full", 5, "."], ["timestamp", 0]
+	--in the third parameter you can define the seperator between hour:minute:second. "default" style is automatically set to ":", "hms", "hms-full" are automatically set to " ". You can define your own. Some examples: ["default", 3, "-"],["hms-full", 5, "."],["hms", "truncate", ":"],["timestamp-concise"],["timestamp", 0],["timestamp", "truncate"],["timestamp", 5]
 	osd_time_format=[[
 	["default", "truncate"]
 	]],
@@ -348,12 +348,14 @@ function format_time(seconds, sep, decimals, style) --3.1# use function from lua
 
 	if decimals == 'truncate' then --3.1# decimals = 0, will round because that is the default behavior of string.format, however math.floor truncates so we can use that for seconds (while it is possible to pass seconds with math.floor immediately, however I want a way to do it immediately from within function)
 		s = math.floor(s)
-		seconds = math.floor(seconds) --3.1# for returning style=timestamp with truncate
 		decimals = 0 --3.1# make decimals 0 so we dont see seconds.000
+		if style == 'timestamp' then --3.1# for returning style=timestamp with truncate and so that it does not affect style=timestamp-concise
+			seconds = math.floor(seconds)
+		end
 	end
 	
-	local second_format = string.format("%%0%d.%df", 2+(decimals > 0 and decimals+1 or 0), decimals) --3.1# to limit decimals, works with timestamp style also
 	if not style or style == '' or style == 'default' then --3.1# allow for different styles, default is "HH:MM:SS.sss"
+		local second_format = string.format("%%0%d.%df", 2+(decimals > 0 and decimals+1 or 0), decimals) --3.1# to limit decimals
 		sep = sep and sep or ":"
 		return string.format("%02d"..sep.."%02d"..sep..second_format, h, m, s)
 	elseif style == 'hms' or style == 'hms-full' then --3.1# hms or hms-full styles is "1h 2m 3.4s" hms-full always forces hour and minute to show, even if they are empty
@@ -366,7 +368,9 @@ function format_time(seconds, sep, decimals, style) --3.1# use function from lua
 		return string.format("%." .. tostring(decimals) .. "fs", s)
 	  end
 	elseif style == 'timestamp' then
-		return string.format(second_format, seconds) --3.1# if the style passed is none, then show time as it was passed which should be seconds 212314 without any formatting
+		return string.format("%." .. tostring(decimals) .. "f", seconds) --3.1# finally the best way to return timestamps without leading 0 and with decimals
+	elseif style == 'timestamp-concise' then
+		return seconds
 	end
 end
 
