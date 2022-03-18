@@ -2,7 +2,7 @@
 -- License: BSD 2-Clause License
 -- Creator: Eisa AlAwadhi
 -- Project: SmartCopyPaste
--- Version: 3.1#Beta
+-- Version: 3.1
 
 local o = {
 ---------------------------USER CUSTOMIZATION SETTINGS---------------------------
@@ -57,6 +57,17 @@ local o = {
 	["aqt", "gsub", "jss", "sub", "ttxt", "pjs", "psb", "rt", "smi", "slt", "ssf", "srt", "ssa", "ass", "usf", "idx", "vtt"]
 	]], --add above (after a comma) any extension you want paste to attempt to add as a subtitle file, e.g.:'txt'. Or set it as "" by deleting all defined extension to make paste attempt to add any subtitle.
 	
+	-----Time Format Settings-----
+	--in the first parameter, you can define from the available styles: default, hms, hms-full, timestamp, timestamp-concise "default" to show in HH:MM:SS.sss format. "hms" to show in 1h 2m 3.4s format. "hms-full" is the same as hms but keeps the hours and minutes persistent when they are 0. "timestamp" to show the total time as timestamp 123456.700 format. "timestamp-concise" shows the total time in 123456.7 format (shows and hides decimals depending on availability).
+	--in the second parameter, you can define whether to show milliseconds, round them or truncate them. Available options: 'truncate' to remove the milliseconds and keep the seconds. 0 to remove the milliseconds and round the seconds. 1 or above is the amount of milliseconds to display. The default value is 3 milliseconds.
+	--in the third parameter you can define the seperator between hour:minute:second. "default" style is automatically set to ":", "hms", "hms-full" are automatically set to " ". You can define your own. Some examples: ["default", 3, "-"],["hms-full", 5, "."],["hms", "truncate", ":"],["timestamp-concise"],["timestamp", 0],["timestamp", "truncate"],["timestamp", 5]
+	copy_time_format=[[
+	["timestamp-concise"]
+	]],
+	osd_time_format=[[
+	["default", "truncate"]
+	]],
+
 ---------------------------END OF USER CUSTOMIZATION SETTINGS---------------------------
 }
 
@@ -73,6 +84,8 @@ o.paste_extensions = utils.parse_json(o.paste_extensions)
 o.paste_subtitles = utils.parse_json(o.paste_subtitles)
 o.specific_time_attributes = utils.parse_json(o.specific_time_attributes)
 o.pastable_time_attributes = utils.parse_json(o.pastable_time_attributes)
+o.copy_time_format = utils.parse_json(o.copy_time_format) --3.1# user time_format options
+o.osd_time_format = utils.parse_json(o.osd_time_format) --3.1# user time_format options
 
 local protocols = {'https?:', 'magnet:', 'rtmps?:', 'smb:', 'ftps?:', 'sftp:'} --3.1
 local seekTime = 0
@@ -134,13 +147,42 @@ function file_exists(name)
 	if f ~= nil then io.close(f) return true else return false end
 end
 
-function format_time(duration)
-	local total_seconds = math.floor(duration)
-	local hours = (math.floor(total_seconds / 3600))
-	total_seconds = (total_seconds % 3600)
-	local minutes = (math.floor(total_seconds / 60))
-	local seconds = (total_seconds % 60)
-	return string.format("%02d:%02d:%02d", hours, minutes, seconds)
+function format_time(seconds, sep, decimals, style) --3.1# use function from lua.osc to match the conversion method with default mpv osc
+	local function divmod (a, b)
+		return math.floor(a / b), a % b
+	end
+	decimals = decimals == nil and 3 or decimals
+	
+	local s = seconds
+	local h, s = divmod(s, 60*60)
+	local m, s = divmod(s, 60)
+
+	if decimals == 'truncate' then --3.1# decimals = 0, will round because that is the default behavior of string.format, however math.floor truncates so we can use that for seconds (while it is possible to pass seconds with math.floor immediately, however I want a way to do it immediately from within function)
+		s = math.floor(s)
+		decimals = 0 --3.1# make decimals 0 so we dont see seconds.000
+		if style == 'timestamp' then --3.1# for returning style=timestamp with truncate and so that it does not affect style=timestamp-concise
+			seconds = math.floor(seconds)
+		end
+	end
+	
+	if not style or style == '' or style == 'default' then --3.1# allow for different styles, default is "HH:MM:SS.sss"
+		local second_format = string.format("%%0%d.%df", 2+(decimals > 0 and decimals+1 or 0), decimals) --3.1# to limit decimals
+		sep = sep and sep or ":"
+		return string.format("%02d"..sep.."%02d"..sep..second_format, h, m, s)
+	elseif style == 'hms' or style == 'hms-full' then --3.1# hms or hms-full styles is "1h 2m 3.4s" hms-full always forces hour and minute to show, even if they are empty
+	  sep = sep ~= nil and sep or " "
+	  if style == 'hms-full' or h > 0 then
+		return string.format("%dh"..sep.."%dm"..sep.."%." .. tostring(decimals) .. "fs", h, m, s)
+	  elseif m > 0 then
+		return string.format("%dm"..sep.."%." .. tostring(decimals) .. "fs", m, s)
+	  else
+		return string.format("%." .. tostring(decimals) .. "fs", s)
+	  end
+	elseif style == 'timestamp' then
+		return string.format("%." .. tostring(decimals) .. "f", seconds) --3.1# finally the best way to return timestamps without leading 0 and with decimals
+	elseif style == 'timestamp-concise' then
+		return seconds
+	end
 end
 
 function get_path()
@@ -252,7 +294,7 @@ function get_clipboard()
 		return clipboard
 	elseif o.device == 'windows' then
 		if o.windows_paste == 'powershell' then
-			local args = {
+			local args = { --3.1# Support multipaste by using Write-Output instead of [Console]::OpenStandardOutput()
 				'powershell', '-NoProfile', '-Command', [[& {
 					Trap {
 						Write-Error -ErrorRecord $_
@@ -262,8 +304,7 @@ function get_clipboard()
 					if (-not $clip) {
 						$clip = Get-Clipboard -Raw -Format FileDropList
 					}
-					$u8clip = [System.Text.Encoding]::UTF8.GetBytes($clip)
-					[Console]::OpenStandardOutput().Write($u8clip, 0, $u8clip.Length)
+					Write-Output $clip
 				}]]
 			}
 			return handleres(utils.subprocess({ args =  args, cancellable = false }), args)
@@ -419,19 +460,19 @@ function copy_specific(action)
 			local pre_attribute, after_attribute = get_specific_attribute(filePath)
 			local video_time = mp.get_property_number('time-pos')
 			if o.osd_messages == true then
-				mp.osd_message("Copied"..o.time_seperator..format_time(video_time))
+				mp.osd_message("Copied"..o.time_seperator..format_time(video_time, o.osd_time_format[3], o.osd_time_format[2], o.osd_time_format[1])) --3.1# use time_format user options
 			end
-			set_clipboard(pre_attribute..math.floor(video_time)..after_attribute)
-			msg.info('Copied the below into clipboard:\n'..pre_attribute..math.floor(video_time)..after_attribute)
+			set_clipboard(pre_attribute..format_time(video_time, o.copy_time_format[3], o.copy_time_format[2], o.copy_time_format[1])..after_attribute) --3.1# use time_format user options
+			msg.info('Copied the below into clipboard:\n'..pre_attribute..format_time(video_time, o.copy_time_format[3], o.copy_time_format[2], o.copy_time_format[1])..after_attribute) --3.1# use time_format user options
 		end
 		if action == 'path&timestamp' then
 			local pre_attribute, after_attribute = get_specific_attribute(filePath)
 			local video_time = mp.get_property_number('time-pos')
 			if o.osd_messages == true then
-				mp.osd_message("Copied:\n" .. fileTitle .. o.time_seperator .. format_time(video_time))
+				mp.osd_message("Copied:\n" .. fileTitle .. o.time_seperator .. format_time(video_time, o.osd_time_format[3], o.osd_time_format[2], o.osd_time_format[1])) --3.1# use time_format user options
 			end
-			set_clipboard(filePath..pre_attribute..math.floor(video_time)..after_attribute)
-			msg.info('Copied the below into clipboard:\n'..filePath..pre_attribute..math.floor(video_time)..after_attribute)
+			set_clipboard(filePath..pre_attribute..format_time(video_time, o.copy_time_format[3], o.copy_time_format[2], o.copy_time_format[1])..after_attribute) --3.1# use time_format user options
+			msg.info('Copied the below into clipboard:\n'..filePath..pre_attribute..format_time(video_time, o.copy_time_format[3], o.copy_time_format[2], o.copy_time_format[1])..after_attribute) --3.1# use time_format user options
 		end
 	end
 end
@@ -443,7 +484,7 @@ function trigger_paste_action(action)
 		filePath = clip_file
 		if o.osd_messages == true then
 			if clip_time ~= nil then
-				mp.osd_message("Pasted:\n"..clip_file .. o.time_seperator .. format_time(clip_time))
+				mp.osd_message("Pasted:\n"..clip_file .. o.time_seperator .. format_time(clip_time, o.osd_time_format[3], o.osd_time_format[2], o.osd_time_format[1])) --3.1# use time_format user options
 			else
 				mp.osd_message("Pasted:\n"..clip_file)
 			end
@@ -472,7 +513,7 @@ function trigger_paste_action(action)
 		
 		if seekTime > video_duration then 
 			if o.osd_messages == true then
-				mp.osd_message('Time Paste Exceeds Video Length' .. o.time_seperator .. format_time(clip_time))
+				mp.osd_message('Time Paste Exceeds Video Length' .. o.time_seperator .. format_time(clip_time, o.osd_time_format[3], o.osd_time_format[2], o.osd_time_format[1])) --3.1# use time_format user options
 			end
 			msg.info("The time pasted exceeds the video length:\n"..format_time(clip_time))
 			return
@@ -483,7 +524,7 @@ function trigger_paste_action(action)
 		end
 	
 		if o.osd_messages == true then
-			mp.osd_message('Resumed to Pasted Time' .. o.time_seperator .. format_time(clip_time))
+			mp.osd_message('Resumed to Pasted Time' .. o.time_seperator .. format_time(clip_time, o.osd_time_format[3], o.osd_time_format[2], o.osd_time_format[1])) --3.1# use time_format user options
 		end
 		mp.commandv('seek', seekTime, 'absolute', 'exact')
 		msg.info("Resumed to the pasted time" .. o.time_seperator .. format_time(clip_time))
@@ -521,7 +562,7 @@ function trigger_paste_action(action)
 	if action == 'error-time' then
 		if o.osd_messages == true then
 			if clip_time ~= nil then
-				mp.osd_message('Time Paste Requires Running Video' .. o.time_seperator .. format_time(clip_time))
+				mp.osd_message('Time Paste Requires Running Video' .. o.time_seperator .. format_time(clip_time, o.osd_time_format[3], o.osd_time_format[2], o.osd_time_format[1])) --3.1# use time_format user options
 			else
 				mp.osd_message('Time Paste Requires Running Video')
 			end
@@ -558,7 +599,7 @@ function trigger_paste_action(action)
 end
 
 function multipaste() --3.1# support pasting multiple items
-	if #clip_table < 2 then return msg.info('Single paste should be called instead of this') end --3.1# error message when calling this and its one item
+	if #clip_table < 2 then return msg.warn('Single paste should be called instead of multipaste') end --3.1# error message when calling this and its one item
 	local file_ignored_total = 0 --3.1# initiate total as 0
 	local file_subtitle_total = 0 --3.1# initital total of subtitles
 	local triggered_multipaste = {} --3.1# to make flags and identify if multipaste triggered a file to load or adding playlist/etc
@@ -796,7 +837,7 @@ mp.register_event('file-loaded', function()
 
 			if seekTime > video_duration then 
 				if o.osd_messages == true then
-					mp.osd_message('Time Paste Exceeds Video Length' .. o.time_seperator .. format_time(clip_time))
+					mp.osd_message('Time Paste Exceeds Video Length' .. o.time_seperator .. format_time(clip_time, o.osd_time_format[3], o.osd_time_format[2], o.osd_time_format[1])) --3.1# use time_format user options
 				end
 				msg.info("The time pasted exceeds the video length:\n"..format_time(clip_time))
 				return
