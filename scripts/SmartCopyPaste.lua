@@ -547,9 +547,9 @@ function trigger_paste_action(action)
 	
 	if action == 'error-unsupported' then
 		if o.osd_messages == true then
-			mp.osd_message('Paste of this item is unsupported due to configuration:\n'..clip) --3.1# updated message for more clarifications
+			mp.osd_message('Paste of this item is unsupported possibly due to configuration:\n'..clip) --3.1.1# updated message for more clarifications
 		end
-		msg.info('Failed to paste into mpv, pasted item shown below is unsupported due to configuration:\n'..clip) --3.1# updated message for more clarifications
+		msg.info('Failed to paste into mpv, pasted item shown below is unsupported possibly due to configuration:\n'..clip) --3.1.1# updated message for more clarifications
 	end
 	
 	if action == 'error-missing' then
@@ -589,7 +589,7 @@ function trigger_paste_action(action)
 		msg.info("Pasted file shown below is already running:\n"..clip)
 	end
 	
-	if action == 'error-unknown' then
+	if action == 'error-unknown' then --3.1
 		if o.osd_messages == true then
 			mp.osd_message('Paste was ignored due to an error:\n'..clip)
 		end
@@ -640,11 +640,10 @@ function multipaste() --3.1# support pasting multiple items
 		end
 	end
 	
-	
 	local osd_msg = ''
 	if triggered_multipaste[1] == true then
 		if osd_msg ~= '' then osd_msg = osd_msg..'\n' end
-		osd_msg = osd_msg..'Pasted Item:'..filePath --3.1# show filePath when it triggeres inside filePath~=nil and loads a file
+		osd_msg = osd_msg..'Pasted: '..filePath --3.1# show filePath when it triggeres inside filePath~=nil and loads a file
 	end
 	if file_subtitle_total > 0 then
 		if osd_msg ~= '' then osd_msg = osd_msg..'\n' end
