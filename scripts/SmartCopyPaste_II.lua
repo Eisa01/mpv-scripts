@@ -2595,7 +2595,7 @@ function trigger_paste_action(action)
 		msg.info("Pasted file shown below is already running:\n"..clip)
 	end
 	
-	if action == 'error-unknown' then --3.1
+	if action == 'error-unknown' then
 		if o.osd_messages == true then
 			mp.osd_message('Paste was ignored due to an error:\n'..clip)
 		end
@@ -2702,7 +2702,7 @@ function paste()
 				trigger_paste_action('load-file')
 			elseif file_exists(clip_file) and has_value(o.paste_subtitles, currentVideoExtension) then
 				trigger_paste_action('error-subtitle')
-			elseif not has_value(o.paste_extensions, currentVideoExtension) and not has_value(o.paste_subtitles, currentVideoExtension) then --3.1# check both for unsupported
+			elseif not has_value(o.paste_extensions, currentVideoExtension) and not has_value(o.paste_subtitles, currentVideoExtension) then
 				trigger_paste_action('log-'..o.log_paste_idle_behavior)
 				if not list_contents or not list_contents[1] then
 					trigger_paste_action('error-unsupported')
