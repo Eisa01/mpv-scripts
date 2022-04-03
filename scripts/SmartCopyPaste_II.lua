@@ -2,7 +2,7 @@
 -- License: BSD 2-Clause License
 -- Creator: Eisa AlAwadhi
 -- Project: SmartCopyPaste_II
--- Version: 3.0.2
+-- Version: 3.1
 
 local o = {
 ---------------------------USER CUSTOMIZATION SETTINGS---------------------------
@@ -64,6 +64,17 @@ local o = {
 	list_filter_jump_keybind=[[
 	[ ["c", "all"], ["C", "all"], ["r", "recents"], ["R", "recents"], ["d", "distinct"], ["D", "distinct"], ["f", "fileonly"], ["F", "fileonly"] ]
 	]], --Keybind that is used while the list is open to jump to the specific filter (it also enables pressing a filter keybind twice to close list). Available fitlers: 'all', 'copy', 'paste', 'recents', 'distinct', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'keywords'.
+	
+	-----Time Format Settings-----
+	--in the first parameter, you can define from the available styles: default, hms, hms-full, timestamp, timestamp-concise "default" to show in HH:MM:SS.sss format. "hms" to show in 1h 2m 3.4s format. "hms-full" is the same as hms but keeps the hours and minutes persistent when they are 0. "timestamp" to show the total time as timestamp 123456.700 format. "timestamp-concise" shows the total time in 123456.7 format (shows and hides decimals depending on availability).
+	--in the second parameter, you can define whether to show milliseconds, round them or truncate them. Available options: 'truncate' to remove the milliseconds and keep the seconds. 0 to remove the milliseconds and round the seconds. 1 or above is the amount of milliseconds to display. The default value is 3 milliseconds.
+	--in the third parameter you can define the seperator between hour:minute:second. "default" style is automatically set to ":", "hms", "hms-full" are automatically set to " ". You can define your own. Some examples: ["default", 3, "-"],["hms-full", 5, "."],["hms", "truncate", ":"],["timestamp-concise"],["timestamp", 0],["timestamp", "truncate"],["timestamp", 5]
+	copy_time_format=[[
+	["timestamp-concise"]
+	]],
+	osd_time_format=[[
+	["default", "truncate"]
+	]],
 	
 	-----Logging Settings-----
 	log_path = '/:dir%mpvconf', --Change to '/:dir%script' for placing it in the same directory of script, OR change to '/:dir%mpvconf' for mpv portable_config directory. OR specify the desired path, e.g.: 'C:\Users\Eisa01\Desktop\'
@@ -225,6 +236,8 @@ o.previous_filter_sequence_keybind = utils.parse_json(o.previous_filter_sequence
 o.open_list_keybind = utils.parse_json(o.open_list_keybind)
 o.list_filter_jump_keybind = utils.parse_json(o.list_filter_jump_keybind)
 o.list_ignored_keybind = utils.parse_json(o.list_ignored_keybind)
+o.copy_time_format = utils.parse_json(o.copy_time_format) --3.1# user time_format options
+o.osd_time_format = utils.parse_json(o.osd_time_format) --3.1# user time_format options
 
 if o.log_path == '/:dir%mpvconf' then
 	o.log_path = mp.find_config_file('.')
@@ -235,7 +248,7 @@ local log_fullpath = utils.join_path(o.log_path, o.log_file)
 
 local log_time_text = 'time='
 local log_clipboard_text = 'clip='
-local protocols = {'https?://', 'magnet:', 'rtmp:'}
+local protocols = {'https?:', 'magnet:', 'rtmps?:', 'smb:', 'ftps?:', 'sftp:'} --3.1
 local available_filters = {'all', 'copy', 'paste', 'recents', 'distinct', 'playing', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'keywords'}
 local search_string = ''
 local search_active = false
@@ -288,14 +301,44 @@ function file_exists(name)
 	if f ~= nil then io.close(f) return true else return false end
 end
 
-function format_time(duration)
-	local total_seconds = math.floor(duration)
-	local hours = (math.floor(total_seconds / 3600))
-	total_seconds = (total_seconds % 3600)
-	local minutes = (math.floor(total_seconds / 60))
-	local seconds = (total_seconds % 60)
-	return string.format("%02d:%02d:%02d", hours, minutes, seconds)
+function format_time(seconds, sep, decimals, style) --3.1# use function from lua.osc to match the conversion method with default mpv osc
+	local function divmod (a, b)
+		return math.floor(a / b), a % b
+	end
+	decimals = decimals == nil and 3 or decimals
+	
+	local s = seconds
+	local h, s = divmod(s, 60*60)
+	local m, s = divmod(s, 60)
+
+	if decimals == 'truncate' then --3.1# decimals = 0, will round because that is the default behavior of string.format, however math.floor truncates so we can use that for seconds (while it is possible to pass seconds with math.floor immediately, however I want a way to do it immediately from within function)
+		s = math.floor(s)
+		decimals = 0 --3.1# make decimals 0 so we dont see seconds.000
+		if style == 'timestamp' then --3.1# for returning style=timestamp with truncate and so that it does not affect style=timestamp-concise
+			seconds = math.floor(seconds)
+		end
+	end
+	
+	if not style or style == '' or style == 'default' then --3.1# allow for different styles, default is "HH:MM:SS.sss"
+		local second_format = string.format("%%0%d.%df", 2+(decimals > 0 and decimals+1 or 0), decimals) --3.1# to limit decimals
+		sep = sep and sep or ":"
+		return string.format("%02d"..sep.."%02d"..sep..second_format, h, m, s)
+	elseif style == 'hms' or style == 'hms-full' then --3.1# hms or hms-full styles is "1h 2m 3.4s" hms-full always forces hour and minute to show, even if they are empty
+	  sep = sep ~= nil and sep or " "
+	  if style == 'hms-full' or h > 0 then
+		return string.format("%dh"..sep.."%dm"..sep.."%." .. tostring(decimals) .. "fs", h, m, s)
+	  elseif m > 0 then
+		return string.format("%dm"..sep.."%." .. tostring(decimals) .. "fs", m, s)
+	  else
+		return string.format("%." .. tostring(decimals) .. "fs", s)
+	  end
+	elseif style == 'timestamp' then
+		return string.format("%." .. tostring(decimals) .. "f", seconds) --3.1# finally the best way to return timestamps without leading 0 and with decimals
+	elseif style == 'timestamp-concise' then
+		return seconds
+	end
 end
+
 
 function get_path()
 	local path = mp.get_property('path')
@@ -1681,7 +1724,7 @@ function get_clipboard()
 		return clipboard
 	elseif o.device == 'windows' then
 		if o.windows_paste == 'powershell' then
-			local args = {
+			local args = { --3.1# Support multipaste by using Write-Output instead of [Console]::OpenStandardOutput()
 				'powershell', '-NoProfile', '-Command', [[& {
 					Trap {
 						Write-Error -ErrorRecord $_
@@ -1691,8 +1734,7 @@ function get_clipboard()
 					if (-not $clip) {
 						$clip = Get-Clipboard -Raw -Format FileDropList
 					}
-					$u8clip = [System.Text.Encoding]::UTF8.GetBytes($clip)
-					[Console]::OpenStandardOutput().Write($u8clip, 0, $u8clip.Length)
+					Write-Output $clip
 				}]]
 			}
 			return handleres(utils.subprocess({ args =  args, cancellable = false }), args)
@@ -1743,9 +1785,31 @@ function parse_clipboard(text)
 	if not text then return end
 	
 	local clip, clip_file, clip_time, pre_attribute
+	local clip_table = {}
 	clip = text
 	
-	clip = make_raw(clip)
+	--3.1# for multi-paste
+	for c in clip:gmatch("[^\n\r+]+") do
+		local c_pre_attribute, c_clip_file, c_clip_time, c_clip_extension
+		c = make_raw(c)
+		
+		c_pre_attribute = get_time_attribute(c)
+		if string.match(c, '(.*)'..c_pre_attribute) then
+			c_clip_file = string.match(c, '(.*)'..c_pre_attribute)
+			c_clip_time = tonumber(string.match(c, c_pre_attribute..'(%d*%.?%d*)'))
+		elseif string.match(c, '^\"(.*)\"$') then
+			c_clip_file = string.match(c, '^\"(.*)\"$')
+		else
+			c_clip_file = c
+		end
+		
+		c_clip_extension = get_extension(c_clip_file)
+		
+		table.insert(clip_table, {c_clip_file, c_clip_time, c_clip_extension})
+	end
+
+	--3.1# for normal paste
+	clip = make_raw(clip) --3.1# move make_raw here, after finishing with multi-paste
 	pre_attribute = get_time_attribute(clip)
 
 	if string.match(clip, '(.*)'..pre_attribute) then
@@ -1757,7 +1821,7 @@ function parse_clipboard(text)
 		clip_file = clip
 	end
 
-	return clip, clip_file, clip_time
+	return clip, clip_file, clip_time, clip_table
 end
 
 function copy()
@@ -1827,19 +1891,19 @@ function copy_specific(action)
 			local pre_attribute, after_attribute = get_specific_attribute(filePath)
 			local video_time = mp.get_property_number('time-pos')
 			if o.osd_messages == true then
-				mp.osd_message("Copied"..o.time_seperator..format_time(video_time))
+				mp.osd_message("Copied"..o.time_seperator..format_time(video_time, o.osd_time_format[3], o.osd_time_format[2], o.osd_time_format[1])) --3.1# use time_format user options
 			end
-			set_clipboard(pre_attribute..math.floor(video_time)..after_attribute)
-			msg.info('Copied the below into clipboard:\n'..pre_attribute..math.floor(video_time)..after_attribute)
+			set_clipboard(pre_attribute..format_time(video_time, o.copy_time_format[3], o.copy_time_format[2], o.copy_time_format[1])..after_attribute) --3.1# use time_format user options
+			msg.info('Copied the below into clipboard:\n'..pre_attribute..format_time(video_time, o.copy_time_format[3], o.copy_time_format[2], o.copy_time_format[1])..after_attribute) --3.1# use time_format user options
 		end
 		if action == 'path&timestamp' then
 			local pre_attribute, after_attribute = get_specific_attribute(filePath)
 			local video_time = mp.get_property_number('time-pos')
 			if o.osd_messages == true then
-				mp.osd_message("Copied:\n" .. fileTitle .. o.time_seperator .. format_time(video_time))
+				mp.osd_message("Copied:\n" .. fileTitle .. o.time_seperator .. format_time(video_time, o.osd_time_format[3], o.osd_time_format[2], o.osd_time_format[1])) --3.1# use time_format user options
 			end
-			set_clipboard(filePath..pre_attribute..math.floor(video_time)..after_attribute)
-			msg.info('Copied and logged the below into clipboard:\n'..filePath..pre_attribute..math.floor(video_time)..after_attribute)
+			set_clipboard(filePath..pre_attribute..format_time(video_time, o.copy_time_format[3], o.copy_time_format[2], o.copy_time_format[1])..after_attribute) --3.1# use time_format user options
+			msg.info('Copied and logged the below into clipboard:\n'..filePath..pre_attribute..format_time(video_time, o.copy_time_format[3], o.copy_time_format[2], o.copy_time_format[1])..after_attribute) --3.1# use time_format user options
 			write_log(false, false, o.same_entry_limit, 'copy')
 		end
 	end
@@ -1852,15 +1916,19 @@ function trigger_paste_action(action)
 		filePath = clip_file
 		if o.osd_messages == true then
 			if clip_time ~= nil then
-				mp.osd_message("Pasted:\n"..clip_file .. o.time_seperator .. format_time(clip_time))
-				msg.info("Pasted the below file into mpv:\n"..clip_file .. format_time(clip_time))
+				mp.osd_message("Pasted:\n"..clip_file .. o.time_seperator .. format_time(clip_time, o.osd_time_format[3], o.osd_time_format[2], o.osd_time_format[1])) --3.1# use time_format user options
 			else
 				mp.osd_message("Pasted:\n"..clip_file)
-				msg.info("Pasted the below file into mpv:\n"..clip_file)
 			end
 		end
 		mp.commandv('loadfile', clip_file)
 		clipboard_pasted = true
+		
+		if clip_time ~= nil then --3.1# move msg.info here, it was wrong due to it being inside o.osd_messages
+			msg.info("Pasted the below file into mpv:\n"..clip_file .. format_time(clip_time))
+		else
+			msg.info("Pasted the below file into mpv:\n"..clip_file)
+		end
 	end
 	
 	if action == 'load-subtitle' then
@@ -1877,7 +1945,7 @@ function trigger_paste_action(action)
 		
 		if seekTime > video_duration then 
 			if o.osd_messages == true then
-				mp.osd_message('Time Paste Exceeds Video Length' .. o.time_seperator .. format_time(clip_time))
+				mp.osd_message('Time Paste Exceeds Video Length' .. o.time_seperator .. format_time(clip_time, o.osd_time_format[3], o.osd_time_format[2], o.osd_time_format[1])) --3.1# use time_format user options
 			end
 			msg.info("The time pasted exceeds the video length:\n"..format_time(clip_time))
 			return
@@ -1888,7 +1956,7 @@ function trigger_paste_action(action)
 		end
 	
 		if o.osd_messages == true then
-			mp.osd_message('Resumed to Pasted Time' .. o.time_seperator .. format_time(clip_time))
+			mp.osd_message('Resumed to Pasted Time' .. o.time_seperator .. format_time(clip_time, o.osd_time_format[3], o.osd_time_format[2], o.osd_time_format[1])) --3.1# use time_format user options
 		end
 		mp.commandv('seek', seekTime, 'absolute', 'exact')
 		msg.info("Resumed to the pasted time" .. o.time_seperator .. format_time(clip_time))
@@ -1902,19 +1970,27 @@ function trigger_paste_action(action)
 		msg.info("Pasted the below into playlist and added it to the log file:\n"..clip_file)
 		
 		local temp_filePath = filePath
+		local temp_title_logging = o.file_title_logging --3.1# dont store title for playlists, fixes issue where wrong title is stored for playlists
+		
 		filePath = clip_file
+		o.file_title_logging = 'none' --3.1# change to none to not store title
 		write_log(0, false, o.same_entry_limit, 'paste')
 		filePath = temp_filePath
+		o.file_title_logging = temp_title_logging --3.1# restore user configured title
 	end
 	
 	if action == 'log-force' then
 		get_list_contents('all', 'added-asc')
 		load(1)
 		if seekTime > 0 then
-			mp.osd_message("Pasted From Log:\n"..list_contents[#list_contents - 1 + 1].found_path..o.time_seperator..format_time(list_contents[#list_contents - 1 + 1].found_time))
+			if o.osd_messages == true then --3.1# corrected to check for osd_messages config
+				mp.osd_message("Pasted From Log:\n"..list_contents[#list_contents - 1 + 1].found_path..o.time_seperator..format_time(list_contents[#list_contents - 1 + 1].found_time, o.osd_time_format[3], o.osd_time_format[2], o.osd_time_format[1])) --3.1# use time_format user options
+			end
 			msg.info("Pasted the below from log file into mpv:\n"..list_contents[#list_contents - 1 + 1].found_path..o.time_seperator..format_time(list_contents[#list_contents - 1 + 1].found_time))
 		else
-			mp.osd_message("Pasted From Log:\n"..list_contents[#list_contents - 1 + 1].found_path)
+			if o.osd_messages == true then --3.1# corrected to check for osd_messages config
+				mp.osd_message("Pasted From Log:\n"..list_contents[#list_contents - 1 + 1].found_path)
+			end
 			msg.info("Pasted the below from log file into mpv:\n"..list_contents[#list_contents - 1 + 1].found_path)
 		end
 	end
@@ -1923,7 +1999,9 @@ function trigger_paste_action(action)
 		get_list_contents('all', 'added-asc')
 		if not list_contents or not list_contents[1] then return end
 		load(1, false, 0)
-		mp.osd_message("Pasted From Log:\n"..list_contents[#list_contents - 1 + 1].found_path)
+		if o.osd_messages == true then --3.1# corrected to check for osd_messages config
+			mp.osd_message("Pasted From Log:\n"..list_contents[#list_contents - 1 + 1].found_path)
+		end
 		msg.info("Pasted the below from log file into mpv:\n"..list_contents[#list_contents - 1 + 1].found_path)
 	end
 	
@@ -1931,7 +2009,9 @@ function trigger_paste_action(action)
 		get_list_contents('all', 'added-asc')
 		if not list_contents or not list_contents[1] then return end
 		load(1, true)
-		mp.osd_message("Pasted From Log To Playlist:\n"..list_contents[#list_contents - 1 + 1].found_path)
+		if o.osd_messages == true then --3.1# corrected to check for osd_messages config
+			mp.osd_message("Pasted From Log To Playlist:\n"..list_contents[#list_contents - 1 + 1].found_path)
+		end
 		msg.info("Pasted the below from log file into mpv playlist:\n"..list_contents[#list_contents - 1 + 1].found_path)
 	end
 	
@@ -1947,8 +2027,8 @@ function trigger_paste_action(action)
 		end
 		if log_time > 0 then
 			mp.commandv('seek', log_time, 'absolute', 'exact')
-			if (o.osd_messages == true) then
-				mp.osd_message('Pasted Time From Log' .. o.time_seperator .. format_time(log_time))
+			if o.osd_messages == true then --3.1# follow same syntax
+				mp.osd_message('Pasted Time From Log' .. o.time_seperator .. format_time(log_time, o.osd_time_format[3], o.osd_time_format[2], o.osd_time_format[1])) --3.1# use time_format user options
 			end
 			msg.info('Pasted resume time of video from the log file: '..format_time(log_time))
 		else
@@ -1968,8 +2048,8 @@ function trigger_paste_action(action)
 		end
 		if log_time > 0 then
 			mp.commandv('seek', log_time, 'absolute', 'exact')
-			if (o.osd_messages == true) then
-				mp.osd_message('Pasted Time From Log' .. o.time_seperator .. format_time(log_time))
+			if o.osd_messages == true then --3.1# follow same syntax
+				mp.osd_message('Pasted Time From Log' .. o.time_seperator .. format_time(log_time, o.osd_time_format[3], o.osd_time_format[2], o.osd_time_format[1])) --3.1# use time_format user options
 			end
 			msg.info('Pasted resume time of video from the log file: '..format_time(log_time))
 		else
@@ -1991,17 +2071,21 @@ function trigger_paste_action(action)
 		end
 		if log_time > 0 then
 			mp.commandv('seek', log_time, 'absolute', 'exact')
-			if (o.osd_messages == true) then
-				mp.osd_message('Pasted Time From Log' .. o.time_seperator .. format_time(log_time))
+			if o.osd_messages == true then --3.1# follow same syntax
+				mp.osd_message('Pasted Time From Log' .. o.time_seperator .. format_time(log_time, o.osd_time_format[3], o.osd_time_format[2], o.osd_time_format[1])) --3.1# use time_format user options
 			end
 			msg.info('Pasted resume time of video from the log file: '..format_time(log_time))
 		else
 			load(1)
 			if seekTime > 0 then
-				mp.osd_message("Pasted From Log:\n"..list_contents[#list_contents - 1 + 1].found_path..o.time_seperator..format_time(list_contents[#list_contents - 1 + 1].found_time))
+				if o.osd_messages == true then --3.1# corrected to check for osd_messages config
+					mp.osd_message("Pasted From Log:\n"..list_contents[#list_contents - 1 + 1].found_path..o.time_seperator..format_time(list_contents[#list_contents - 1 + 1].found_time, o.osd_time_format[3], o.osd_time_format[2], o.osd_time_format[1])) --3.1# use time_format user options
+				end
 				msg.info("Pasted the below from log file into mpv:\n"..list_contents[#list_contents - 1 + 1].found_path..o.time_seperator..format_time(list_contents[#list_contents - 1 + 1].found_time))
 			else
-				mp.osd_message("Pasted From Log:\n"..list_contents[#list_contents - 1 + 1].found_path)
+				if o.osd_messages == true then --3.1# corrected to check for osd_messages config
+					mp.osd_message("Pasted From Log:\n"..list_contents[#list_contents - 1 + 1].found_path)
+				end
 				msg.info("Pasted the below from log file into mpv:\n"..list_contents[#list_contents - 1 + 1].found_path)
 			end
 		end
@@ -2016,9 +2100,9 @@ function trigger_paste_action(action)
 	
 	if action == 'error-unsupported' then
 		if o.osd_messages == true then
-			mp.osd_message('Failed to Paste\nPasted Unsupported Item:\n'..clip)
+			mp.osd_message('Paste of this item is unsupported possibly due to configuration:\n'..clip) --3.1# updated message for more clarifications
 		end
-		msg.info('Failed to paste into mpv, pasted item shown below is unsupported:\n'..clip)
+		msg.info('Failed to paste into mpv, pasted item shown below is unsupported possibly due to configuration:\n'..clip) --3.1# updated message for more clarifications
 	end
 	
 	if action == 'error-missing' then
@@ -2031,12 +2115,16 @@ function trigger_paste_action(action)
 	if action == 'error-time' then
 		if o.osd_messages == true then
 			if clip_time ~= nil then
-				mp.osd_message('Time Paste Requires Running Video' .. o.time_seperator .. format_time(clip_time))
-				msg.info('Time can only be pasted if a video is running:\n'.. format_time(clip_time))
+				mp.osd_message('Time Paste Requires Running Video' .. o.time_seperator .. format_time(clip_time, o.osd_time_format[3], o.osd_time_format[2], o.osd_time_format[1])) --3.1# use time_format user options
 			else
 				mp.osd_message('Time Paste Requires Running Video')
-				msg.info('Time can only be pasted if a video is running')
 			end
+		end
+		
+		if clip_time ~= nil then --3.1# move msg.info here, it was wrong due to it being inside o.osd_messages
+			msg.info('Time can only be pasted if a video is running:\n'.. format_time(clip_time))
+		else
+			msg.info('Time can only be pasted if a video is running')
 		end
 	end
 	
@@ -2053,7 +2141,92 @@ function trigger_paste_action(action)
 		end
 		msg.info("Pasted file shown below is already running:\n"..clip)
 	end
+	
+	if action == 'error-unknown' then --3.1
+		if o.osd_messages == true then
+			mp.osd_message('Paste was ignored due to an error:\n'..clip)
+		end
+		msg.info('Paste was ignored due to an error:\n'..clip)
+	end
 
+end
+
+function multipaste() --3.1# support pasting multiple items
+	if #clip_table < 2 then return msg.warn('Single paste should be called instead of multipaste') end --3.1# error message when calling this and its one item
+	local file_ignored_total = 0 --3.1# initiate total as 0
+	local file_subtitle_total = 0 --3.1# initital total of subtitles
+	local triggered_multipaste = {} --3.1# to make flags and identify if multipaste triggered a file to load or adding playlist/etc
+
+	if filePath == nil then
+		for i=1, #clip_table do
+			if file_exists(clip_table[i][1]) and has_value(o.paste_extensions, clip_table[i][3]) 
+			or starts_protocol(o.paste_protocols, clip_table[i][1]) then
+				filePath = clip_table[i][1] --3.1# update filePath
+				mp.commandv('loadfile', clip_table[i][1]) --3.1# load the file
+				clipboard_pasted = true --3.1# allow seeking by setting as true
+				table.remove(clip_table, i) --3.1# remove this entry from table as we dont want to add it into playlist
+				triggered_multipaste[1] = true --3.1# to show osd for this triggering
+				break --3.1# break the table
+			end
+		end
+	end
+	
+	if filePath ~= nil then --3.1# instead of else, because I want to run this as well
+		for i=1, #clip_table do --3.1# it will automatically use the new length where the entry is removed
+			if file_exists(clip_table[i][1]) and has_value(o.paste_extensions, clip_table[i][3])  --3.1# if the file exists or its a protocol then add it to playu
+			or starts_protocol(o.paste_protocols, clip_table[i][1]) then
+				mp.commandv('loadfile', clip_table[i][1], 'append-play')
+				triggered_multipaste[2] = true --3.1# to show osd for this triggering
+				--3.1# save into log
+				local temp_filePath = filePath
+				local temp_title_logging = o.file_title_logging --3.1# dont store title for playlists, fixes issue where wrong title is stored for playlists
+				filePath = clip_table[i][1]
+				o.file_title_logging = 'none' --3.1# change to none to not store title
+				write_log(0, false, o.same_entry_limit, 'paste')
+				filePath = temp_filePath
+				o.file_title_logging = temp_title_logging --3.1# restore user configured title
+			elseif file_exists(clip_table[i][1]) and has_value(o.paste_subtitles, clip_table[i][3]) then --3.1# if it is a subtitle then paste it into running video
+				mp.commandv('sub-add', clip_table[i][1])
+				file_subtitle_total = file_subtitle_total + 1 --3.1# total number of subtitles added
+			elseif not has_value(o.paste_extensions, clip_table[i][3]) and not has_value(o.paste_subtitles, clip_table[i][3]) then --3.1# unsupported files due to configuration check (added paste_subtitles to the check also)
+				msg.warn('The below was ignored since it is unsupported due to configuration:\n'..clip_table[i][1])
+				file_ignored_total = file_ignored_total + 1 --3.1# total number of files ignored
+			elseif not file_exists(clip_table[i][1]) then --3.1# unsupported files due to configuration check
+				msg.warn('The below doesn\'t seem to exist:\n' .. clip_table[i][1])
+				file_ignored_total = file_ignored_total + 1 --3.1# total number of files ignored
+			else
+				msg.warn('The below was ignored due to an error:\n' .. clip_table[i][1])
+				file_ignored_total = file_ignored_total + 1 --3.1# total number of files ignored
+			end
+		end
+	end
+	
+	local osd_msg = ''
+	if triggered_multipaste[1] == true then
+		if osd_msg ~= '' then osd_msg = osd_msg..'\n' end
+		osd_msg = osd_msg..'Pasted: '..filePath --3.1# show filePath when it triggeres inside filePath~=nil and loads a file
+	end
+	if file_subtitle_total > 0 then
+		if osd_msg ~= '' then osd_msg = osd_msg..'\n' end
+		osd_msg = osd_msg..'Added '..file_subtitle_total..' Subtitle/s' --3.1# print (total - file does not exist)
+	end
+	if triggered_multipaste[2] == true then
+		if osd_msg ~= '' then osd_msg = osd_msg..'\n' end
+		osd_msg = osd_msg..'Added Into Playlist '..#clip_table - file_ignored_total - file_subtitle_total..' item/s' --3.1# print (total - file does not exist)
+	end	
+	if file_ignored_total > 0 then --3.1# only show ignored message if total is more than 0
+		if osd_msg ~= '' then osd_msg = osd_msg..'\n' end
+		osd_msg = osd_msg..'Ignored '..file_ignored_total.. ' Item/s' --3.1# print (total - file does not exists)
+	end
+	
+	if osd_msg == '' then --3.1# if osd_msg is still null then probably the error happened since filePath is still nill and it attempted to append subtitle / ignore
+		osd_msg = 'Pasted Items Ignored or Unable To Append Into Video:\n'..clip
+	end
+	
+	if o.osd_messages == true then
+		mp.osd_message(osd_msg)
+	end
+	msg.info(osd_msg)
 end
 
 function paste()
@@ -2064,84 +2237,107 @@ function paste()
 
 	clip = get_clipboard(clip)
 	if not clip then msg.error('Error: clip is null' .. clip) return end
-	clip, clip_file, clip_time = parse_clipboard(clip)
+	clip, clip_file, clip_time, clip_table = parse_clipboard(clip) --3.1# added clip_table for multi-paste 
 	
-	local currentVideoExtension = string.lower(get_extension(clip_file))
-	
-	if filePath == nil then
-		if file_exists(clip_file) and has_value(o.paste_extensions, currentVideoExtension) 
-		or starts_protocol(o.paste_protocols, clip_file) then
-			trigger_paste_action('load-file')
-		elseif file_exists(clip_file) and has_value(o.paste_subtitles, currentVideoExtension) then
-			trigger_paste_action('error-subtitle')
-		elseif not has_value(o.paste_extensions, currentVideoExtension) then
-			trigger_paste_action('log-'..o.log_paste_idle_behavior)
-			if not list_contents or not list_contents[1] then
-				trigger_paste_action('error-unsupported')
-			end
-		elseif not file_exists(clip_file) then
-			trigger_paste_action('log-'..o.log_paste_idle_behavior)
-			if not list_contents or not list_contents[1] then
-				trigger_paste_action('error-missing')
-			end
-		end
+	if #clip_table > 1 then --3.1# if it contains more than 1 entry due to multiline then attempt to multipaste
+		multipaste()
 	else
-		if file_exists(clip_file) and has_value(o.paste_subtitles, currentVideoExtension) then
-			trigger_paste_action('load-subtitle')
-		elseif o.running_paste_behavior == 'playlist' then
-			if filePath ~= clip_file and file_exists(clip_file) and has_value(o.paste_extensions, currentVideoExtension)
-			or filePath ~= clip_file and starts_protocol(o.paste_protocols, clip_file)
-			or filePath == clip_file and file_exists(clip_file) and has_value(o.paste_extensions, currentVideoExtension) and clip_time == nil
-			or filePath == clip_file and starts_protocol(o.paste_protocols, clip_file) and clip_time == nil then
-				trigger_paste_action('add-playlist')
-			elseif clip_time ~= nil then
-				trigger_paste_action('file-seek')
-			elseif not has_value(o.paste_extensions, currentVideoExtension) then
-				trigger_paste_action('log-'..o.log_paste_running_behavior)
-				if not list_contents or not list_contents[1] then
-					trigger_paste_action('error-unsupported')
-				end
-			elseif not file_exists(clip_file) then
-				trigger_paste_action('log-'..o.log_paste_running_behavior)
-				if not list_contents or not list_contents[1] then
-					trigger_paste_action('error-missing')
-				end
-			end
-		elseif o.running_paste_behavior == 'timestamp' then
-			if clip_time ~= nil then
-				trigger_paste_action('file-seek')
-			elseif file_exists(clip_file) and has_value(o.paste_extensions, currentVideoExtension) 
+		local currentVideoExtension = string.lower(get_extension(clip_file))
+		if filePath == nil then
+			if file_exists(clip_file) and has_value(o.paste_extensions, currentVideoExtension) 
 			or starts_protocol(o.paste_protocols, clip_file) then
-				trigger_paste_action('add-playlist')
-			elseif not has_value(o.paste_extensions, currentVideoExtension) then
-				trigger_paste_action('log-'..o.log_paste_running_behavior)
+				trigger_paste_action('load-file')
+			elseif file_exists(clip_file) and has_value(o.paste_subtitles, currentVideoExtension) then
+				trigger_paste_action('error-subtitle')
+			elseif not has_value(o.paste_extensions, currentVideoExtension) and not has_value(o.paste_subtitles, currentVideoExtension) then --3.1# check both for unsupported
+				trigger_paste_action('log-'..o.log_paste_idle_behavior)
 				if not list_contents or not list_contents[1] then
 					trigger_paste_action('error-unsupported')
 				end
 			elseif not file_exists(clip_file) then
-				trigger_paste_action('log-'..o.log_paste_running_behavior)
+				trigger_paste_action('log-'..o.log_paste_idle_behavior)
 				if not list_contents or not list_contents[1] then
 					trigger_paste_action('error-missing')
+				end
+			else --3.1# add worst-case error
+				trigger_paste_action('log-'..o.log_paste_running_behavior)
+				if not list_contents or not list_contents[1] then
+					trigger_paste_action('error-unknown')
 				end
 			end
-		elseif o.running_paste_behavior == 'force' then
-			if filePath ~= clip_file and file_exists(clip_file) and has_value(o.paste_extensions, currentVideoExtension) 
-			or filePath ~= clip_file and starts_protocol(o.paste_protocols, clip_file) then
-				trigger_paste_action('load-file')
-			elseif clip_time ~= nil then
-				trigger_paste_action('file-seek')
-			elseif file_exists(clip_file) and filePath == clip_file 
-			or filePath == clip_file and starts_protocol(o.paste_protocols, clip_file) then
-				trigger_paste_action('add-playlist')
-			elseif not has_value(o.paste_extensions, currentVideoExtension) then
-				trigger_paste_action('log-'..o.log_paste_running_behavior)
-				if not list_contents or not list_contents[1] then
-					trigger_paste_action('error-unsupported')
+		else
+			if file_exists(clip_file) and has_value(o.paste_subtitles, currentVideoExtension) then
+				trigger_paste_action('load-subtitle')
+			elseif o.running_paste_behavior == 'playlist' then
+				if filePath ~= clip_file and file_exists(clip_file) and has_value(o.paste_extensions, currentVideoExtension)
+				or filePath ~= clip_file and starts_protocol(o.paste_protocols, clip_file)
+				or filePath == clip_file and file_exists(clip_file) and has_value(o.paste_extensions, currentVideoExtension) and clip_time == nil
+				or filePath == clip_file and starts_protocol(o.paste_protocols, clip_file) and clip_time == nil then
+					trigger_paste_action('add-playlist')
+				elseif clip_time ~= nil then
+					trigger_paste_action('file-seek')
+				elseif not has_value(o.paste_extensions, currentVideoExtension) and not has_value(o.paste_subtitles, currentVideoExtension) then --3.1# check both for error-unsupported
+					trigger_paste_action('log-'..o.log_paste_running_behavior)
+					if not list_contents or not list_contents[1] then
+						trigger_paste_action('error-unsupported')
+					end
+				elseif not file_exists(clip_file) then
+					trigger_paste_action('log-'..o.log_paste_running_behavior)
+					if not list_contents or not list_contents[1] then
+						trigger_paste_action('error-missing')
+					end
+				else --3.1# add worst-case error
+					trigger_paste_action('log-'..o.log_paste_running_behavior)
+					if not list_contents or not list_contents[1] then
+						trigger_paste_action('error-unknown')
+					end
 				end
-			elseif not file_exists(clip_file) then
-				trigger_paste_action('log-'..o.log_paste_running_behavior)
-				if not list_contents or not list_contents[1] then
-					trigger_paste_action('error-missing')
+			elseif o.running_paste_behavior == 'timestamp' then
+				if clip_time ~= nil then
+					trigger_paste_action('file-seek')
+				elseif file_exists(clip_file) and has_value(o.paste_extensions, currentVideoExtension) 
+				or starts_protocol(o.paste_protocols, clip_file) then
+					trigger_paste_action('add-playlist')
+				elseif not has_value(o.paste_extensions, currentVideoExtension) then
+					trigger_paste_action('log-'..o.log_paste_running_behavior)
+					if not list_contents or not list_contents[1] then
+						trigger_paste_action('error-unsupported')
+					end
+				elseif not file_exists(clip_file) then
+					trigger_paste_action('log-'..o.log_paste_running_behavior)
+					if not list_contents or not list_contents[1] then
+						trigger_paste_action('error-missing')
+					end
+				else --3.1# add worst-case error
+					trigger_paste_action('log-'..o.log_paste_running_behavior)
+					if not list_contents or not list_contents[1] then
+						trigger_paste_action('error-unknown')
+					end
+				end
+			elseif o.running_paste_behavior == 'force' then
+				if filePath ~= clip_file and file_exists(clip_file) and has_value(o.paste_extensions, currentVideoExtension) 
+				or filePath ~= clip_file and starts_protocol(o.paste_protocols, clip_file) then
+					trigger_paste_action('load-file')
+				elseif clip_time ~= nil then
+					trigger_paste_action('file-seek')
+				elseif file_exists(clip_file) and filePath == clip_file 
+				or filePath == clip_file and starts_protocol(o.paste_protocols, clip_file) then
+					trigger_paste_action('add-playlist')
+				elseif not has_value(o.paste_extensions, currentVideoExtension) then
+					trigger_paste_action('log-'..o.log_paste_running_behavior)
+					if not list_contents or not list_contents[1] then
+						trigger_paste_action('error-unsupported')
+					end
+				elseif not file_exists(clip_file) then
+					trigger_paste_action('log-'..o.log_paste_running_behavior)
+					if not list_contents or not list_contents[1] then
+						trigger_paste_action('error-missing')
+					end
+				else --3.1# add worst-case error
+					trigger_paste_action('log-'..o.log_paste_running_behavior)
+					if not list_contents or not list_contents[1] then
+						trigger_paste_action('error-unknown')
+					end
 				end
 			end
 		end
@@ -2159,45 +2355,55 @@ function paste_specific(action)
 	
 	clip = get_clipboard(clip)
 	if not clip then msg.error('Error: clip is null' .. clip) return end
-	clip, clip_file, clip_time = parse_clipboard(clip)
-	local currentVideoExtension = string.lower(get_extension(clip_file))
+	clip, clip_file, clip_time, clip_table = parse_clipboard(clip) --3.1# added clip_table for multi-paste 
 	
-	if action == 'playlist' then
-		if file_exists(clip_file) and has_value(o.paste_extensions, currentVideoExtension)
-		or starts_protocol(o.paste_protocols, clip_file) then
-			trigger_paste_action('add-playlist')
-		elseif not has_value(o.paste_extensions, currentVideoExtension) then
-			trigger_paste_action('error-unsupported')
-		elseif not file_exists(clip_file) then
-			trigger_paste_action('error-missing')
+	if #clip_table > 1 then --3.1# if it contains more than 1 entry due to multiline then attempt to multipaste
+		multipaste()
+	else
+		local currentVideoExtension = string.lower(get_extension(clip_file))
+		if action == 'playlist' then
+			if file_exists(clip_file) and has_value(o.paste_extensions, currentVideoExtension)
+			or starts_protocol(o.paste_protocols, clip_file) then
+				trigger_paste_action('add-playlist')
+			elseif not has_value(o.paste_extensions, currentVideoExtension) and not has_value(o.paste_subtitles, currentVideoExtension) then --3.1# check both for error-unsupported
+				trigger_paste_action('error-unsupported')
+			elseif not file_exists(clip_file) then
+				trigger_paste_action('error-missing')
+			else --3.1# add worst-case error
+				trigger_paste_action('error-unknown')
+			end
 		end
-	end
-	
-	if action == 'timestamp' then
-		if filePath == nil then
-			trigger_paste_action('error-time')
-		elseif clip_time ~= nil then
-			trigger_paste_action('file-seek')
-		elseif clip_time == nil then
-			trigger_paste_action('error-missingtime')
-		elseif not has_value(o.paste_extensions, currentVideoExtension) then
-			trigger_paste_action('error-unsupported')
-		elseif not file_exists(clip_file) then
-			trigger_paste_action('error-missing')
+		
+		if action == 'timestamp' then
+			if filePath == nil then
+				trigger_paste_action('error-time')
+			elseif clip_time ~= nil then
+				trigger_paste_action('file-seek')
+			elseif clip_time == nil then
+				trigger_paste_action('error-missingtime')
+			elseif not has_value(o.paste_extensions, currentVideoExtension) and not has_value(o.paste_subtitles, currentVideoExtension) then --3.1# check both for error-unsupported
+				trigger_paste_action('error-unsupported')
+			elseif not file_exists(clip_file) then
+				trigger_paste_action('error-missing')
+			else --3.1# add worst-case error
+				trigger_paste_action('error-unknown')
+			end
 		end
-	end
-	
-	if action == 'force' then
-		if filePath ~= clip_file and file_exists(clip_file) and has_value(o.paste_extensions, currentVideoExtension) 
-		or filePath ~= clip_file and starts_protocol(o.paste_protocols, clip_file) then
-			trigger_paste_action('load-file')
-		elseif file_exists(clip_file) and filePath == clip_file 
-		or filePath == clip_file and starts_protocol(o.paste_protocols, clip_file) then
-			trigger_paste_action('error-samefile')
-		elseif not has_value(o.paste_extensions, currentVideoExtension) then
-			trigger_paste_action('error-unsupported')
-		elseif not file_exists(clip_file) then
-			trigger_paste_action('error-missing')
+		
+		if action == 'force' then
+			if filePath ~= clip_file and file_exists(clip_file) and has_value(o.paste_extensions, currentVideoExtension) 
+			or filePath ~= clip_file and starts_protocol(o.paste_protocols, clip_file) then
+				trigger_paste_action('load-file')
+			elseif file_exists(clip_file) and filePath == clip_file 
+			or filePath == clip_file and starts_protocol(o.paste_protocols, clip_file) then
+				trigger_paste_action('error-samefile')
+			elseif not has_value(o.paste_extensions, currentVideoExtension) and not has_value(o.paste_subtitles, currentVideoExtension) then --3.1# check both for error-unsupported
+				trigger_paste_action('error-unsupported')
+			elseif not file_exists(clip_file) then
+				trigger_paste_action('error-missing')
+			else --3.1# add worst-case error
+				trigger_paste_action('error-unknown')
+			end
 		end
 	end
 end
@@ -2208,25 +2414,35 @@ mp.register_event('file-loaded', function()
 	if clipboard_pasted == true then
 		clip = get_clipboard(clip)
 		if not clip then msg.error('Error: clip is null' .. clip) return end
-		clip, clip_file, clip_time = parse_clipboard(clip)
-		local video_duration = mp.get_property_number('duration')
+		clip, clip_file, clip_time, clip_table = parse_clipboard(clip) --3.1# support clip_table
 		
+		if #clip_table > 1 then --3.1support multipaste resume
+			for i=1, #clip_table do
+				if file_exists(clip_table[i][1]) and has_value(o.paste_extensions, clip_table[i][3]) 
+				or starts_protocol(o.paste_protocols, clip_table[i][1]) then
+					clip_file = clip_table[i][1] --3.1# update clip_file to support multi-paste
+					clip_time = clip_table[i][2] --3.1# update clip_time to support multi-paste
+					break --3.1# break the table
+				end
+			end
+		end
+		
+		local video_duration = mp.get_property_number('duration')
 		if not clip_time or clip_time > video_duration or clip_time <= 0 then
 			write_log(0, false, o.same_entry_limit, 'paste')
 		else
 			write_log(clip_time, false, o.same_entry_limit, 'paste')
 		end
-		
 		if filePath == clip_file and clip_time ~= nil then
 			seekTime = clip_time + o.resume_offset
 			
 			if seekTime > video_duration then 
 				if o.osd_messages == true then
-					mp.osd_message('Time Paste Exceeds Video Length' .. o.time_seperator .. format_time(clip_time))
+					mp.osd_message('Time Paste Exceeds Video Length' .. o.time_seperator .. format_time(clip_time, o.osd_time_format[3], o.osd_time_format[2], o.osd_time_format[1])) --3.1# use time_format user options
 				end
 				msg.info("The time pasted exceeds the video length:\n"..format_time(clip_time))
 				return
-			end 
+			end
 
 			if seekTime < 0 then
 				seekTime = 0
@@ -2236,7 +2452,8 @@ mp.register_event('file-loaded', function()
 			clipboard_pasted = false
 		end
 	end
-	if (resume_selected == true and seekTime ~= nil) then
+	
+	if resume_selected == true and seekTime ~= nil then
 		mp.commandv('seek', seekTime, 'absolute', 'exact')
 		resume_selected = false
 	end
