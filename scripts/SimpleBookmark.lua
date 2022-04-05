@@ -304,7 +304,6 @@ function starts_protocol(tab, val)
 	return false
 end
 
-
 function contain_value(tab, val)
 	if not tab then return msg.error('check value passed') end
 	if not val then return msg.error('check value passed') end
@@ -450,15 +449,15 @@ end
 
 ---------Start of LogManager---------
 --LogManager (Read and Format the List from Log)--
-function read_log(func)
+function read_log(func) --1.1# reads log without updating list_contents global variable (needed for multi-select slot remove, because updating list_contents breaks the loop and only removes 1 entry instead of all) meh decided to use it for all, I will call list_contents manually
 	local f = io.open(log_fullpath, "r")
 	if not f then return end
-	list_contents = {}
+	local contents = {}
 	for line in f:lines() do
-		table.insert(list_contents, (func(line)))
+		table.insert(contents, (func(line)))
 	end
 	f:close()
-	return list_contents
+	return contents
 end
 
 function read_log_table()
@@ -481,17 +480,6 @@ function read_log_table()
 		line_pos = line_pos + 1
 		return {found_path = p, found_time = t, found_name = n, found_title = tt, found_line = l, found_sequence = line_pos, found_directory = d, found_datetime = dt, found_length = ln, found_remaining = r, found_slot = s}
 	end)
-end
-
-function read_log_local(func) --1.1# reads log without updating list_contents global variable (needed for multi-select slot remove, because updating list_contents breaks the loop and only removes 1 entry instead of all)
-	local f = io.open(log_fullpath, "r")
-	if not f then return end
-	local contents = {}
-	for line in f:lines() do
-		table.insert(contents, (func(line)))
-	end
-	f:close()
-	return contents
 end
 
 function list_sort(tab, sort)
@@ -2011,7 +1999,7 @@ end
 
 --Keybind Slot Feature--
 function remove_slot_log_entry()
-	local content = read_log_local(function(line) --1.1# updated to use read_log_local so that it doesnt update list_contents and breaks the loop for list_slot_remove_highlighted()
+	local content = read_log(function(line) --1.1# uses the new read_log thats why it works with multi-select keybind slot unbind
 		if line:match(' | .* | ' .. esc_string(log_keybind_text) .. slotKeyIndex) then
 			return line:match('(.* | ' .. esc_string(log_time_text) .. '%d*%.?%d*)(.*)$')
 		else
