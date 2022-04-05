@@ -626,7 +626,7 @@ function multipaste()
 				mp.commandv('sub-add', clip_table[i][1])
 				file_subtitle_total = file_subtitle_total + 1
 			elseif not has_value(o.paste_extensions, clip_table[i][3]) and not has_value(o.paste_subtitles, clip_table[i][3]) then
-				msg.warn('The below was ignored since it is unsupported due to configuration:\n'..clip_table[i][1])
+				msg.warn('The below was ignored since it is unsupported possibly due to configuration:\n'..clip_table[i][1])
 				file_ignored_total = file_ignored_total + 1
 			elseif not file_exists(clip_table[i][1]) then
 				msg.warn('The below doesn\'t seem to exist:\n' .. clip_table[i][1])
