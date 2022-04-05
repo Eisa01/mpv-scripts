@@ -153,7 +153,6 @@ local o = {
 	-----List Keybind Settings-----
 	--Add below (after a comma) any additional keybind you want to bind. Or change the letter inside the quotes to change the keybind
 	--Example of changing and adding keybinds: --From ["b", "B"] To ["b"]. --From [""] to ["alt+b"]. --From [""] to ["a" "ctrl+a", "alt+a"]
-
 	list_move_up_keybind=[[
 	["UP", "WHEEL_UP"]
 	]], --Keybind that will be used to navigate up on the list
@@ -296,7 +295,6 @@ function starts_protocol(tab, val)
 	return false
 end
 
-
 function contain_value(tab, val)
 	if not tab then return msg.error('check value passed') end
 	if not val then return msg.error('check value passed') end
@@ -433,12 +431,12 @@ end
 function read_log(func)
 	local f = io.open(log_fullpath, "r")
 	if not f then return end
-	list_contents = {}
+	local contents = {}
 	for line in f:lines() do
-		table.insert(list_contents, (func(line)))
+		table.insert(contents, (func(line)))
 	end
 	f:close()
-	return list_contents
+	return contents
 end
 
 function read_log_table()
