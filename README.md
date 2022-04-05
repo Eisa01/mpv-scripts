@@ -3,7 +3,7 @@ This repository contain scripts I have made for [mpv media player](https://githu
 To add scripts from this repository, download the desired script in your `mpv/scripts/` directory, for user customizable settings download the related conf file in your `mpv/script-opts/` directory.
 
 **Scripts available in this repository:**
- [SmartCopyPaste Script 3.0](https://github.com/Eisa01/mpv-scripts#smartcopypaste), [SmartCopyPaste_II Script 3.0](https://github.com/Eisa01/mpv-scripts#smartcopypaste_ii), [SimpleHistory Script 1.0](https://github.com/Eisa01/mpv-scripts#simplehistory), [SimpleBookmark Script 1.0](https://github.com/Eisa01/mpv-scripts#simplebookmark), [SimpleUndo Script 3.2](https://github.com/Eisa01/mpv-scripts#simpleundo), [UndoRedo Script 2.2](https://github.com/Eisa01/mpv-scripts#undoredo)
+ [SmartCopyPaste Script 3.1](https://github.com/Eisa01/mpv-scripts#smartcopypaste), [SmartCopyPaste_II Script 3.1](https://github.com/Eisa01/mpv-scripts#smartcopypaste_ii), [SimpleHistory Script 1.1](https://github.com/Eisa01/mpv-scripts#simplehistory), [SimpleBookmark Script 1.1](https://github.com/Eisa01/mpv-scripts#simplebookmark), [SimpleUndo Script 3.2](https://github.com/Eisa01/mpv-scripts#simpleundo), [UndoRedo Script 2.2](https://github.com/Eisa01/mpv-scripts#undoredo)
 
 # SmartCopyPaste
 Gives mpv the capability to copy and paste while being smart and customizable... 
