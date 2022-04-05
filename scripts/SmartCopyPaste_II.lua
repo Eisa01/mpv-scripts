@@ -182,7 +182,6 @@ local o = {
 	-----List Keybind Settings-----
 	--Add below (after a comma) any additional keybind you want to bind. Or change the letter inside the quotes to change the keybind
 	--Example of changing and adding keybinds: --From ["b", "B"] To ["b"]. --From [""] to ["alt+b"]. --From [""] to ["a" "ctrl+a", "alt+a"]
-	
 	list_move_up_keybind=[[
 	["UP", "WHEEL_UP"]
 	]], --Keybind that will be used to navigate up on the list
@@ -465,12 +464,12 @@ end
 function read_log(func)
 	local f = io.open(log_fullpath, "r")
 	if not f then return end
-	list_contents = {}
+	local contents = {}
 	for line in f:lines() do
-		table.insert(list_contents, (func(line)))
+		table.insert(contents, (func(line)))
 	end
 	f:close()
-	return list_contents
+	return contents
 end
 
 function read_log_table()
@@ -2642,7 +2641,7 @@ function multipaste()
 				mp.commandv('sub-add', clip_table[i][1])
 				file_subtitle_total = file_subtitle_total + 1
 			elseif not has_value(o.paste_extensions, clip_table[i][3]) and not has_value(o.paste_subtitles, clip_table[i][3]) then
-				msg.warn('The below was ignored since it is unsupported due to configuration:\n'..clip_table[i][1])
+				msg.warn('The below was ignored since it is unsupported possibly due to configuration:\n'..clip_table[i][1])
 				file_ignored_total = file_ignored_total + 1
 			elseif not file_exists(clip_table[i][1]) then
 				msg.warn('The below doesn\'t seem to exist:\n' .. clip_table[i][1])
