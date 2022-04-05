@@ -769,20 +769,20 @@ function get_list_contents(filter, sort)
 					table.insert(filtered_table, list_contents[i])
 				elseif string.lower(list_contents[i].found_datetime):match(string.lower(search_query)) then
 					table.insert(filtered_table, list_contents[i])
-				elseif list_contents[i].found_slot and string.lower(get_slot_keybind(tonumber(list_contents[i].found_slot))):match(string.lower(esc_string(search_string))) then  --1.1# add bookmark search to specific
-				table.insert(filtered_table, list_contents[i])
+				elseif list_contents[i].found_slot and string.lower(get_slot_keybind(tonumber(list_contents[i].found_slot))):match(string.lower(esc_string(search_string))) then
+					table.insert(filtered_table, list_contents[i])
 				end
 			elseif o.search_behavior == 'any' then
 				contents_string = list_contents[i].found_datetime..(list_contents[i].found_title or '')..list_contents[i].found_path
 				if tonumber(list_contents[i].found_time) > 0 then
 					contents_string = contents_string..format_time(list_contents[i].found_time, o.osd_time_format[3], o.osd_time_format[2], o.osd_time_format[1])
 				end
-				if list_contents[i].found_slot then --1.1# add bookmark search to any
+				if list_contents[i].found_slot then
 					contents_string = contents_string..get_slot_keybind(tonumber(list_contents[i].found_slot))
 				end
 			elseif o.search_behavior == 'any-notime' then
 				contents_string = list_contents[i].found_datetime..(list_contents[i].found_title or '')..list_contents[i].found_path
-				if list_contents[i].found_slot then --1.1# add bookmark search to any-notime
+				if list_contents[i].found_slot then
 					contents_string = contents_string..get_slot_keybind(tonumber(list_contents[i].found_slot))
 				end
 			end
@@ -1574,7 +1574,7 @@ function get_list_keybinds()
 	bind_keys(o.list_unhighlight_all_keybind, 'list-unhighlight-all', list_unhighlight_all)
 	bind_keys(o.list_cycle_sort_keybind, 'list-cycle-sort', list_cycle_sort)
 	bind_keys(o.keybinds_remove_keybind, 'keybind-slot-remove', slot_remove)
-	bind_keys(o.keybinds_remove_highlighted_keybind, 'keybind-slot-remove-highlight', function()slot_remove('highlight')end) --1.1# option to remove highlighted
+	bind_keys(o.keybinds_remove_highlighted_keybind, 'keybind-slot-remove-highlight', function()slot_remove('highlight')end)
 	
 	for i = 1, #o.list_highlight_move_keybind do
 		for j = 1, #o.list_move_up_keybind do
@@ -1713,7 +1713,6 @@ end
 --LogManager Search Feature--
 function list_search_exit()
 	search_active = false
-	--get_page_properties(filterName) --1.1# removed as it caused bug that list_keybinds does not respond when exiting search that does not have results
 	get_list_contents(filterName)
 	get_page_properties(filterName)
 	select(0)
@@ -2077,7 +2076,7 @@ end
 
 function list_slot_add()
 	if not list_drawn then return end
-	if not list_contents or not list_contents[1] then return end --1.1#fixes crash
+	if not list_contents or not list_contents[1] then return end
 	filePath = list_contents[#list_contents - list_cursor + 1].found_path
 	fileTitle = list_contents[#list_contents - list_cursor + 1].found_name
 	seekTime = tonumber(list_contents[#list_contents - list_cursor + 1].found_time)
