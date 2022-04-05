@@ -160,7 +160,6 @@ local o = {
 	-----List Keybind Settings-----
 	--Add below (after a comma) any additional keybind you want to bind. Or change the letter inside the quotes to change the keybind
 	--Example of changing and adding keybinds: --From ["b", "B"] To ["b"]. --From [""] to ["alt+b"]. --From [""] to ["a" "ctrl+a", "alt+a"]
-
 	list_move_up_keybind=[[
 	["UP", "WHEEL_UP"]
 	]], --Keybind that will be used to navigate up on the list
@@ -236,7 +235,7 @@ o.bookmark_save_keybind = utils.parse_json(o.bookmark_save_keybind)
 o.bookmark_fileonly_keybind = utils.parse_json(o.bookmark_fileonly_keybind)
 o.keybinds_add_load_keybind = utils.parse_json(o.keybinds_add_load_keybind)
 o.keybinds_remove_keybind = utils.parse_json(o.keybinds_remove_keybind)
-o.keybinds_remove_highlighted_keybind = utils.parse_json(o.keybinds_remove_highlighted_keybind) --1.1# option to remove highlighted
+o.keybinds_remove_highlighted_keybind = utils.parse_json(o.keybinds_remove_highlighted_keybind)
 o.keybinds_quicksave_keybind = utils.parse_json(o.keybinds_quicksave_keybind)
 o.list_move_up_keybind = utils.parse_json(o.list_move_up_keybind)
 o.list_move_down_keybind = utils.parse_json(o.list_move_down_keybind)
@@ -449,7 +448,7 @@ end
 
 ---------Start of LogManager---------
 --LogManager (Read and Format the List from Log)--
-function read_log(func) --1.1# reads log without updating list_contents global variable (needed for multi-select slot remove, because updating list_contents breaks the loop and only removes 1 entry instead of all) meh decided to use it for all, I will call list_contents manually
+function read_log(func)
 	local f = io.open(log_fullpath, "r")
 	if not f then return end
 	local contents = {}
@@ -799,7 +798,7 @@ end
 function get_list_sort(filter)
 	if not filter then filter = filterName end
 	
-	if filter == 'keybinds' then --1.1# change available_sorts for keybinds filter
+	if filter == 'keybinds' then
 		available_sorts = {'added-asc', 'added-desc', 'keybind-asc', 'keybind-desc', 'time-asc', 'time-desc', 'alphanum-asc', 'alphanum-desc'}
 	else
 		available_sorts = {'added-asc', 'added-desc', 'time-asc', 'time-desc', 'alphanum-asc', 'alphanum-desc'}
@@ -1422,7 +1421,7 @@ function get_total_duration(action)
 end
 
 function list_cycle_sort()
-	if filterName == 'keybinds' then --1.1# change available_sorts for keybinds filter
+	if filterName == 'keybinds' then
 		available_sorts = {'added-asc', 'added-desc', 'keybind-asc', 'keybind-desc', 'time-asc', 'time-desc', 'alphanum-asc', 'alphanum-desc'}
 	else
 		available_sorts = {'added-asc', 'added-desc', 'time-asc', 'time-desc', 'alphanum-asc', 'alphanum-desc'}
@@ -1640,7 +1639,7 @@ function unbind_list_keys()
 	unbind_keys(o.list_highlight_all_keybind, 'list-unhighlight-all')
 	unbind_keys(o.list_cycle_sort_keybind, 'list-cycle-sort')
 	unbind_keys(o.keybinds_remove_keybind, 'keybind-slot-remove')
-	unbind_keys(o.keybinds_remove_keybind, 'keybind-slot-remove-highlight') --1.1# option to remove highlighted
+	unbind_keys(o.keybinds_remove_keybind, 'keybind-slot-remove-highlight')
 	
 	for i = 1, #o.list_move_up_keybind do
 		mp.remove_key_binding('highlight-move-up'..i)
@@ -1885,7 +1884,7 @@ function bind_search_keys()
 		bind_keys(o.list_delete_keybind, 'list-delete', function() list_delete() list_search_not_typing_mode(true) end)
 		bind_keys(o.list_delete_highlighted_keybind, 'list-delete-highlight', function() list_delete('highlight') list_search_not_typing_mode(true) end)
 		bind_keys(o.keybinds_remove_keybind, 'keybind-slot-remove', function() slot_remove()  list_search_not_typing_mode(true) end)
-		bind_keys(o.keybinds_remove_keybind, 'keybind-slot-remove-highlight', function() slot_remove('highlight')  list_search_not_typing_mode(true) end) --1.1# option to remove highlighted
+		bind_keys(o.keybinds_remove_keybind, 'keybind-slot-remove-highlight', function() slot_remove('highlight')  list_search_not_typing_mode(true) end)
 	end
 end
 
@@ -1999,7 +1998,7 @@ end
 
 --Keybind Slot Feature--
 function remove_slot_log_entry()
-	local content = read_log(function(line) --1.1# uses the new read_log thats why it works with multi-select keybind slot unbind
+	local content = read_log(function(line)
 		if line:match(' | .* | ' .. esc_string(log_keybind_text) .. slotKeyIndex) then
 			return line:match('(.* | ' .. esc_string(log_time_text) .. '%d*%.?%d*)(.*)$')
 		else
@@ -2053,13 +2052,13 @@ function list_slot_remove_highlighted()
 	list_contents = read_log_table()
 	if not list_contents or not list_contents[1] then return end
 
-	for i = 1, #list_contents do --1.1# similar to delete_log_entry_highlighted but with minor changes to remove_slot_log_entry (works with read_log2)
+	for i = 1, #list_contents do
 		for j=1, #list_highlight_cursor do
 			if list_contents[#list_contents+1-i] then
 				if list_contents[#list_contents+1-i].found_sequence == list_highlight_cursor[j][2].found_sequence then
 					slotKeyIndex = tonumber(list_contents[#list_contents+1-i].found_slot)
-					if slotKeyIndex then --1.1# if there is slot, remove it
-						remove_slot_log_entry() --1.1# removes the slot_log_entry using read_log_local which works for multi-select and normal
+					if slotKeyIndex then
+						remove_slot_log_entry()
 						msg.info('Removed Keybind: ' .. get_slot_keybind(slotKeyIndex))
 					end
 				end
@@ -2310,7 +2309,7 @@ function bookmark_save()
 		end
 		msg.info('Added the below to bookmarks\n' .. fileTitle .. o.time_seperator .. format_time(seekTime))
 	elseif filePath == nil and o.bookmark_loads_last_idle then
-		list_contents = read_log_table() --1.1# use read_log_table instead of get_list_contents
+		list_contents = read_log_table()
 		load(1)
 	else
 		if o.osd_messages == true then
@@ -2332,7 +2331,7 @@ function bookmark_fileonly_save()
 		end
 		msg.info('Added the below to bookmarks\n' .. fileTitle)
 	elseif filePath == nil and o.bookmark_fileonly_loads_last_idle then
-		list_contents = read_log_table() --1.1# use read_log_table instead of get_list_contents
+		list_contents = read_log_table()
 		load(1, false, 0)
 	else
 		if o.osd_messages == true then
