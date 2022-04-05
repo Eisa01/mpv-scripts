@@ -1650,7 +1650,6 @@ end
 --LogManager Search Feature--
 function list_search_exit()
 	search_active = false
-	get_page_properties(filterName)
 	get_list_contents(filterName)
 	get_page_properties(filterName)
 	select(0)
