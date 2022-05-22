@@ -215,8 +215,6 @@ The following are the default keybinds, they can be changed in the conf file of 
 </details>
 
 # Misc
-
-Counting since `2021-09-25T19:04:24Z` (ISO 8601)
 ### MPV.net Support
 [MPV.net](https://github.com/stax76/mpv.net) users must change the option `input-default-bindings = no` to `input-default-bindings = yes` located in `MPV.net/mpv.conf` 
 ### Hide mpv Logo
