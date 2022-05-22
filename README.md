@@ -215,8 +215,6 @@ The following are the default keybinds, they can be changed in the conf file of 
 </details>
 
 # Misc
-### Visitors
-![:Vistors](https://count.getloli.com/get/@236d2c6a-efc0-447d-9008-8ecc754f8606?theme=gelbooru)
 
 Counting since `2021-09-25T19:04:24Z` (ISO 8601)
 ### MPV.net Support
