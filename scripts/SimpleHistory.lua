@@ -255,15 +255,29 @@ o.list_ignored_keybind = utils.parse_json(o.list_ignored_keybind)
 
 utils.shared_script_property_set("menu-open", "no")
 
-if string.lower(o.log_path) == '/:dir%mpvconf%' then
-	o.log_path = mp.find_config_file('.')
-elseif string.lower(o.log_path) == '/:dir%script%' then
-	o.log_path = debug.getinfo(1).source:match('@?(.*/)')
-elseif o.log_path:match('/:var%%(.*)%%') then
+if o.log_path:match('^/:dir%%mpvconf%%') then
+	o.log_path = o.log_path:gsub('/:dir%%mpvconf%%', mp.find_config_file('.'))
+elseif o.log_path:match('^/:dir%%script%%') then
+	o.log_path = o.log_path:gsub('/:dir%%script%%', mp.find_config_file('scripts'))
+elseif o.log_path:match('^/:var%%(.*)%%') then
 	local os_variable = o.log_path:match('/:var%%(.*)%%')
 	o.log_path = o.log_path:gsub('/:var%%(.*)%%', os.getenv(os_variable))
 end
 local log_fullpath = utils.join_path(o.log_path, o.log_file)
+
+--create log_path if it doesn't exist
+local log_path = utils.split_path(log_fullpath)
+if utils.readdir(log_path) == nil then
+    local is_windows = package.config:sub(1, 1) == "\\"
+    local windows_args = { 'powershell', '-NoProfile', '-Command', 'mkdir', log_path }
+    local unix_args = { 'mkdir', '-p', log_path }
+    local args = is_windows and windows_args or unix_args
+    local res = mp.command_native({name = "subprocess", capture_stdout = true, playback_only = false, args = args})
+    if res.status ~= 0 then
+        msg.error("Failed to create log_path save directory "..log_path..". Error: "..(res.error or "unknown"))
+        return
+    end
+end
 
 local log_length_text = 'length='
 local log_time_text = 'time='
