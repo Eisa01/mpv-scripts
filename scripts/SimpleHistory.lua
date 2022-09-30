@@ -2,7 +2,7 @@
 -- License: BSD 2-Clause License
 -- Creator: Eisa AlAwadhi
 -- Project: SimpleHistory
--- Version: 1.1
+-- Version: 1.1.1
 
 local o = {
 ---------------------------USER CUSTOMIZATION SETTINGS---------------------------
@@ -13,8 +13,8 @@ local o = {
 	auto_run_list_idle = 'recents', --Auto run the list when opening mpv and there is no video / file loaded. 'none' for disabled. Or choose between: 'all', 'recents', 'distinct', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'keywords'.
 	resume_offset = -0.65, --change to 0 so item resumes from the exact position, or decrease the value so that it gives you a little preview before loading the resume point
 	osd_messages = true, --true is for displaying osd messages when actions occur. Change to false will disable all osd messages generated from this script
-	resume_notification = true, --true so that when a file that is played previously, a notification to resume to the previous reached time will be triggered
-	resume_notification_threshold = 2, --0 to always show a resume notification when the same video has been played previously, a value such as 5 will only show the resume notification if the last played time starts after 5% of the video and ends before completion by 5%
+	resume_option = 'notification', --'none': for disabled. 'notification': a message to resume the previous reached time will be triggered. 'force': to forcefully resume last playback based on threshold
+	resume_option_threshold = 2, --0 to always trigger the resume option when the same video has been played previously, a value such as 5 will only trigger the resume option if the last played time starts after 5% of the video and ends before completion by 5%
 	mark_history_as_chapter = false, --true is for marking the time as a chapter. false disables mark as chapter behavior.
 	invert_history_blacklist = false, --true so that blacklist becomes a whitelist, resulting in stuff such as paths / websites that are added to history_blacklist to be saved into history
 	history_blacklist=[[
@@ -2081,25 +2081,36 @@ function history_incognito_mode()
 	end
 end
 
-function history_resume_notification()
-	if not o.resume_notification or not o.osd_messages then return end
-	local video_time = mp.get_property_number('time-pos')
-	if video_time > 0 then return end
-	local logged_time = 0
-	local percentage = 0
-	local video_duration = mp.get_property_number('duration')
-	list_contents = read_log_table()
-	if not list_contents or not list_contents[1] then return end
-	for i = #list_contents, 1, -1 do
-		if list_contents[i].found_path == filePath and tonumber(list_contents[i].found_time) > 0 then
-			logged_time = tonumber(list_contents[i].found_time) + o.resume_offset
-			break
+function history_resume_option()
+	if o.resume_option == 'notification' or o.resume_option == 'force' then
+		local video_time = mp.get_property_number('time-pos')
+		if video_time > 0 then return end
+		local logged_time = 0
+		local percentage = 0
+		local video_duration = mp.get_property_number('duration')
+		list_contents = read_log_table()
+		if not list_contents or not list_contents[1] then return end
+		for i = #list_contents, 1, -1 do
+			if list_contents[i].found_path == filePath and tonumber(list_contents[i].found_time) > 0 then
+				logged_time = tonumber(list_contents[i].found_time) + o.resume_offset
+				break
+			end
 		end
-	end
-	if logged_time > 0 then
-		percentage = math.floor((logged_time / video_duration) * 100 + 0.5)
-		if percentage > o.resume_notification_threshold and percentage < (100-o.resume_notification_threshold) or o.resume_notification_threshold == 0 then
-			mp.osd_message('⌨ [' .. string.upper(o.history_resume_keybind[1]) .. '] Resumes To' .. o.time_seperator .. format_time(logged_time, o.osd_time_format[3], o.osd_time_format[2], o.osd_time_format[1]),3)
+		if logged_time > 0 then
+			percentage = math.floor((logged_time / video_duration) * 100 + 0.5)
+			if o.resume_option == 'notification' then
+				if percentage > o.resume_option_threshold and percentage < (100-o.resume_option_threshold) or o.resume_option_threshold == 0 then
+					mp.osd_message('⌨ [' .. string.upper(o.history_resume_keybind[1]) .. '] Resumes To' .. o.time_seperator .. format_time(logged_time, o.osd_time_format[3], o.osd_time_format[2], o.osd_time_format[1]),3)
+				end
+			elseif o.resume_option == 'force' then
+				if percentage > o.resume_option_threshold and percentage < (100-o.resume_option_threshold) or o.resume_option_threshold == 0 then
+					mp.commandv('seek', logged_time, 'absolute', 'exact')
+					if (o.osd_messages == true) then
+						mp.osd_message('Resumed To Last Played Position\n' .. o.time_seperator .. format_time(logged_time, o.osd_time_format[3], o.osd_time_format[2], o.osd_time_format[1]))
+					end
+					msg.info('Resumed to the last played position')
+				end
+			end
 		end
 	end
 end
@@ -2182,7 +2193,7 @@ mp.register_event('file-loaded', function()
 		mp.commandv('seek', seekTime, 'absolute', 'exact')
 		resume_selected = false
 	end
-	mp.add_timeout(0,history_resume_notification)
+	mp.add_timeout(0,history_resume_option)
 	mark_chapter()
 	if not incognito_mode then
 		history_fileonly_save()
