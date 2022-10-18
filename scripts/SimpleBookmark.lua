@@ -11,6 +11,7 @@ local o = {
 
 	-----Script Settings----
 	auto_run_list_idle = 'none',  --Auto run the list when opening mpv and there is no video / file loaded. 'none' for disabled. Or choose between: 'all', 'keybinds', 'recents', 'distinct', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'keywords'.
+	toggle_idlescreen = false, --hides OSC idle screen message when opening and closing menu (could cause unexpected behavior if multiple scripts are triggering osc-idlescreen off)
 	resume_offset = -0.65, --change to 0 so item resumes from the exact position, or decrease the value so that it gives you a little preview before loading the resume point
 	osd_messages = true, --true is for displaying osd messages when actions occur. Change to false will disable all osd messages generated from this script
 	bookmark_loads_last_idle = true, --When attempting to bookmark, if there is no video / file loaded, it will instead jump to your last bookmarked item and resume it.
@@ -1027,6 +1028,7 @@ function display_list(filter, sort, action)
 	if not search_active then get_page_properties(filter) else update_search_results('','') end
 	draw_list()
 	utils.shared_script_property_set("simplebookmark-menu-open", "yes")
+	if o.toggle_idlescreen then mp.commandv('script-message', 'osc-idlescreen', 'no', 'no_osd') end
 	list_drawn = true
 	if not search_active then get_list_keybinds() end
 end
@@ -1699,6 +1701,7 @@ end
 
 function list_close_and_trash_collection()
 	utils.shared_script_property_set("simplebookmark-menu-open", "no")
+	if o.toggle_idlescreen then mp.commandv('script-message', 'osc-idlescreen', 'yes', 'no_osd') end
 	unbind_list_keys()
 	unbind_search_keys()
 	mp.set_osd_ass(0, 0, "")
