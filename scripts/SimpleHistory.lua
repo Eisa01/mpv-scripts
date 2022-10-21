@@ -253,7 +253,7 @@ o.open_list_keybind = utils.parse_json(o.open_list_keybind)
 o.list_filter_jump_keybind = utils.parse_json(o.list_filter_jump_keybind)
 o.list_ignored_keybind = utils.parse_json(o.list_ignored_keybind)
 
-utils.shared_script_property_set("menu-open", "no")
+utils.shared_script_property_set("simplehistory-menu-open", "no")
 
 if string.lower(o.log_path) == '/:dir%mpvconf%' then
 	o.log_path = mp.find_config_file('.')
