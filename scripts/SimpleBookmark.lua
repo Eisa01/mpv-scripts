@@ -2,7 +2,7 @@
 -- License: BSD 2-Clause License
 -- Creator: Eisa AlAwadhi
 -- Project: SimpleBookmark
--- Version: 1.1
+-- Version: 1.2
 
 local o = {
 ---------------------------USER CUSTOMIZATION SETTINGS---------------------------
@@ -25,12 +25,12 @@ local o = {
 	]], --Keybind that will be used to save the video without time to log file
 	open_list_keybind=[[
 	[ ["b", "all"], ["B", "all"], ["k", "keybinds"], ["K", "keybinds"] ]
-	]], --Keybind that will be used to open the list along with the specified filter. Available filters: 'all', 'keybinds', 'recents', 'distinct', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'keywords'.
+	]], --Keybind that will be used to open the list along with the specified filter. Available filters: 'all', 'keybinds', 'recents', 'distinct', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'keywords'. Also defined groups can be called by using /:group%Group Name%
 	list_filter_jump_keybind=[[
-	[ ["b", "all"], ["B", "all"], ["k", "keybinds"], ["K", "keybinds"], ["r", "recents"], ["R", "recents"], ["d", "distinct"], ["D", "distinct"], ["f", "fileonly"], ["F", "fileonly"] ]
+	[ ["b", "all"], ["B", "all"], ["k", "keybinds"], ["K", "keybinds"], ["!", "/:group%TV Shows%"], ["@", "/:group%Movies%"], ["SHARP", "/:group%Anime%"], ["$", "/:group%Anime Movies%"], ["%", "/:group%Cartoon%"], ["r", "recents"], ["R", "recents"], ["d", "distinct"], ["D", "distinct"], ["f", "fileonly"], ["F", "fileonly"] ]
 	]], --Keybind that is used while the list is open to jump to the specific filter (it also enables pressing a filter keybind twice to close list). Available fitlers: 'all', 'keybinds', 'recents', 'distinct', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'keywords'.
 	
-	-----Keybind Slots Settings----
+	-----Keybind Slots Settings-----
 	keybinds_quicksave_fileonly = true, --When quick saving to a keybind slot, it will not save position
 	keybinds_empty_auto_create = false, --If the keybind slot is empty, this enables quick logging and adding to slot, Otherwise keybinds are assigned from the list or via quicksave.
 	keybinds_empty_fileonly = true, --When auto creating keybind slot, it will not save position.
@@ -48,6 +48,20 @@ local o = {
 	["alt+_"]
 	]], --Keybind that is used when list is open to remove the keybind slot based on highlighted items
 
+	-----1.2#Group Settings-----
+	groups_list_and_keybind =[[
+	[ ["TV Shows", "ctrl+1"], ["Movies", "ctrl+2"], ["Anime", "ctrl+3"], ["Anime Movies", "ctrl+4"], ["Cartoon", "ctrl+5"], ["Animated Movies"] ]
+	]], --Define the groups that can be assigned to a bookmarked item, you can also optionally assign the keybind that puts the bookmarked item into the relevant group when the list is open. Alternatively you can use list_group_add_cycle_keybind to assign item to a group
+	list_groups_remove_keybind=[[
+	["ctrl+-"]
+	]], --Keybind that is used when list is open to remove the group based on cursor position
+	list_groups_remove_highlighted_keybind=[[
+	["ctrl+_"]
+	]], --Keybind that is used when list is open to remove the group based on highlighted items
+	list_group_add_cycle_keybind=[[
+	["ctrl+g", "ctrl+G"]
+	]], --Keybind to add an item to the group, this cycles through all the different available groups when list is open
+	
 	-----Logging Settings-----
 	log_path = '/:dir%mpvconf%', --Change to '/:dir%script%' for placing it in the same directory of script, OR change to '/:dir%mpvconf%' for mpv portable_config directory. OR write any variable using '/:var' then the variable '/:var%APPDATA%' you can use path also, such as: '/:var%APPDATA%\\mpv' OR '/:var%HOME%/mpv' OR specify the absolute path , e.g.: 'C:\\Users\\Eisa01\\Desktop\\'
 	log_file = 'mpvBookmark.log', --name+extension of the file that will be used to store the log data
@@ -67,7 +81,7 @@ local o = {
 	slice_longfilenames = false, --Change to true or false. Slices long filenames per the amount specified below
 	slice_longfilenames_amount = 55, --Amount for slicing long filenames
 	list_show_amount = 10, --Change maximum number to show items at once
-	quickselect_0to9_keybind = true, --Keybind entries from 0 to 9 for quick selection when list is open (list_show_amount = 10 is maximum for this feature to work)
+	quickselect_0to9_keybind = false, --Keybind entries from 0 to 9 for quick selection when list is open (list_show_amount = 10 is maximum for this feature to work)
 	main_list_keybind_twice_exits = true, --Will exit the list when double tapping the main list, even if the list was accessed through a different filter.
 	search_not_typing_smartly = true, --To smartly set the search as not typing (when search box is open) without needing to press ctrl+enter.
 	search_behavior = 'any', --'specific' to find a match of either a date, title, path / url, time. 'any' to find any typed search based on combination of date, title, path / url, and time. 'any-notime' to find any typed search based on combination of date, title, and path / url, but without looking for time (this is to reduce unwanted results).
@@ -75,7 +89,7 @@ local o = {
 	-----Filter Settings------
 	--available filters: "all" to display all the items. Or 'keybinds' to display the list filtered with keybind slots. Or "recents" to display recently added items to log without duplicate. Or "distinct" to show recent saved entries for files in different paths. Or "fileonly" to display files saved without time. Or "timeonly" to display files that have time only. Or "keywords" to display files with matching keywords specified in the configuration. Or "playing" to show list of current playing file.
 	filters_and_sequence=[[
-	["all", "keybinds", "protocols", "fileonly", "titleonly", "timeonly", "playing", "keywords", "recents", "distinct"]
+	["all", "keybinds", "groups", "/:group%TV Shows%", "/:group%Movies%", "/:group%Anime%", "/:group%Anime Movies%", "/:group%Cartoon%", "/:group%Animated Movies%", "protocols", "fileonly", "titleonly", "timeonly", "playing", "keywords", "recents", "distinct"]
 	]], --Jump to the following filters and in the shown sequence when navigating via left and right keys. You can change the sequence and delete filters that are not needed.
 	next_filter_sequence_keybind=[[
 	["RIGHT", "MBTN_FORWARD"]
@@ -85,8 +99,8 @@ local o = {
 	]],--Keybind that will be used to go to the previous available filter based on the filters_and_sequence
 	loop_through_filters = true, --true is for bypassing the last filter to go to first filter when navigating through filters using arrow keys, and vice-versa. false disables this behavior.
 	keywords_filter_list=[[
-	[""]
-	]], --Create a filter out of your desired 'keywords', e.g.: youtube.com will filter out the videos from youtube. You can also insert a portion of filename or title, or extension or a full path / portion of a path. e.g.: ["youtube.com", "mp4", "naruto", "c:\\users\\eisa01\\desktop"]
+	[]
+	]], --Create a filter out of your desired 'keywords', e.g.: youtube.com will filter out the videos from youtube. You can also insert a portion of filename or title, or extension or a full path / portion of a path. e.g.: ["youtube.com", "mp4", "naruto", "c:\\users\\eisa01\\desktop"]. To disable this filter keep it empty []
 
 	-----Sort Settings------
 	--available sort: 'added-asc' is for the newest added item to show first. Or 'added-desc' for the newest added to show last. Or 'alphanum-asc' is for A to Z approach with filename and episode number lower first. Or 'alphanum-desc' is for its Z to A approach. Or 'time-asc', 'time-desc' to sort the list based on time.
@@ -137,7 +151,7 @@ local o = {
 	header_list_remaining_pre_text = ' 🕒 ', --Text to be shown before playback total duration of displayed list in the header
 	header_list_remaining_after_text = '', --Text to be shown after playback total duration of displayed list in the header
 	keybinds_seperator = ' ⌨ ', --Keybind slots seperator that will be used before the saved keybind
-	
+	groups_seperator = ' 🖿 ', --1.2# Seperator that will be used before the assigned group
 	-----Time Format Settings-----
 	--in the first parameter, you can define from the available styles: default, hms, hms-full, timestamp, timestamp-concise "default" to show in HH:MM:SS.sss format. "hms" to show in 1h 2m 3.4s format. "hms-full" is the same as hms but keeps the hours and minutes persistent when they are 0. "timestamp" to show the total time as timestamp 123456.700 format. "timestamp-concise" shows the total time in 123456.7 format (shows and hides decimals depending on availability).
 	--in the second parameter, you can define whether to show milliseconds, round them or truncate them. Available options: 'truncate' to remove the milliseconds and keep the seconds. 0 to remove the milliseconds and round the seconds. 1 or above is the amount of milliseconds to display. The default value is 3 milliseconds.
@@ -238,6 +252,10 @@ o.keybinds_add_load_keybind = utils.parse_json(o.keybinds_add_load_keybind)
 o.keybinds_remove_keybind = utils.parse_json(o.keybinds_remove_keybind)
 o.keybinds_remove_highlighted_keybind = utils.parse_json(o.keybinds_remove_highlighted_keybind)
 o.keybinds_quicksave_keybind = utils.parse_json(o.keybinds_quicksave_keybind)
+o.groups_list_and_keybind = utils.parse_json(o.groups_list_and_keybind) --1.2# parse json for groups
+o.list_groups_remove_keybind = utils.parse_json(o.list_groups_remove_keybind) --1.2# parse json for groups
+o.list_groups_remove_highlighted_keybind = utils.parse_json(o.list_groups_remove_highlighted_keybind) --1.2# parse json for groups
+o.list_group_add_cycle_keybind = utils.parse_json(o.list_group_add_cycle_keybind) --1.2# parse json for groups
 o.list_move_up_keybind = utils.parse_json(o.list_move_up_keybind)
 o.list_move_down_keybind = utils.parse_json(o.list_move_down_keybind)
 o.list_page_up_keybind = utils.parse_json(o.list_page_up_keybind)
@@ -277,8 +295,16 @@ local log_fullpath = utils.join_path(o.log_path, o.log_file)
 local log_length_text = 'length='
 local log_time_text = 'time='
 local log_keybind_text = 'slot='
+local log_group_text = 'group=' --1.2# added group for log
 local protocols = {'https?:', 'magnet:', 'rtmps?:', 'smb:', 'ftps?:', 'sftp:'}
-local available_filters = {'all', 'keybinds', 'recents', 'distinct', 'playing', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'keywords'}
+local available_filters = {'all', 'keybinds', 'groups', 'recents', 'distinct', 'playing', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'keywords'}
+--1.2#add groups to available_filters
+if o.groups_list_and_keybind ~= nil and o.groups_list_and_keybind[1] then
+	for i = 1, #o.groups_list_and_keybind do
+		table.insert(available_filters, '/:group%'..o.groups_list_and_keybind[i][1]..'%') --1.2# add each group found to the available_filters using /:group variable
+	end
+end
+
 local available_sorts = {'added-asc', 'added-desc', 'time-asc', 'time-desc', 'alphanum-asc', 'alphanum-desc'}
 local search_string = ''
 local search_active = false
@@ -294,8 +320,6 @@ local filePath, fileTitle, fileLength
 local seekTime = 0
 local filterName = 'all'
 local sortName
-
-local slotKeyIndex = 0
 
 function starts_protocol(tab, val)
 	for index, value in ipairs(tab) do
@@ -409,10 +433,29 @@ function get_slot_keybind(keyindex)
 	if o.keybinds_add_load_keybind[keyindex] then
 		keybind_return = o.keybinds_add_load_keybind[keyindex]
 	else
-		keybind_return = log_keybind_text .. keyindex .. ' is NA'
+		keybind_return = log_keybind_text .. (keyindex or '') .. ' undefined' --1.2# changed to be similar to get_group_properties
 	end
 	
 	return keybind_return
+end
+
+--1.2# to get the group name from the group index
+function get_group_properties(groupindex, action)
+	local gname, gkeybind
+		
+	if o.groups_list_and_keybind[groupindex] and o.groups_list_and_keybind[groupindex][1] then --1.2# need to check if the index exists before then do the normal check whether the name is defined
+		gname = o.groups_list_and_keybind[groupindex][1]
+	else
+		gname = log_group_text ..(groupindex or '').. ' undefined'
+	end
+	
+	if o.groups_list_and_keybind[groupindex] and o.groups_list_and_keybind[groupindex][2] then --1.2# need to check if the index exists before then do the normal check whether the keybind is defined
+		gkeybind = o.groups_list_and_keybind[groupindex][2]
+	else
+		gkeybind = log_group_text ..(groupindex or '').. ' undefined'
+	end
+			
+	return {name = gname, keybind = gkeybind}
 end
 
 function bind_keys(keys, name, func, opts)
@@ -465,7 +508,7 @@ end
 function read_log_table()
 	local line_pos = 0
 	return read_log(function(line)
-		local tt, p, t, s, d, n, e, l, dt, ln, r
+		local tt, p, t, s, d, n, e, l, dt, ln, r, g --1.2# added g for found_group
 		if line:match('^.-\"(.-)\"') then
 			tt = line:match('^.-\"(.-)\"')
 			n, p = line:match('^.-\"(.-)\" | (.*) | ' .. esc_string(log_length_text) .. '(.*)')
@@ -476,11 +519,12 @@ function read_log_table()
 		dt = line:match('%[(.-)%]')
 		t = line:match(' | ' .. esc_string(log_time_text) .. '(%d*%.?%d*)(.*)$')
 		ln = line:match(' | ' .. esc_string(log_length_text) .. '(%d*%.?%d*)(.*)$')
-		r = tonumber(ln) - tonumber(t)
-		s = line:match(' | .* | ' .. esc_string(log_keybind_text) .. '(.*)$')
+		if tonumber(ln) and tonumber(t) then r = tonumber(ln) - tonumber(t) else r = 0 end --1.2# merged changes from SmartCopyPaste_II
+		s = line:match(' | .* | ' .. esc_string(log_keybind_text) .. '(%d*)(.*)$') --1.2# updated to slot to work even if there is pipe after the digit
+		g = line:match(' | .* | ' .. esc_string(log_group_text) .. '(%d*)(.*)$') --1.2# added groups as a new property
 		l = line
 		line_pos = line_pos + 1
-		return {found_path = p, found_time = t, found_name = n, found_title = tt, found_line = l, found_sequence = line_pos, found_directory = d, found_datetime = dt, found_length = ln, found_remaining = r, found_slot = s}
+		return {found_path = p, found_time = t, found_name = n, found_title = tt, found_line = l, found_sequence = line_pos, found_directory = d, found_datetime = dt, found_length = ln, found_remaining = r, found_slot = s, found_group = g}
 	end)
 end
 
@@ -522,9 +566,11 @@ function parse_header(string)
 	
 	string = string:gsub("%%total%%", #list_contents)
 		:gsub("%%cursor%%", list_cursor)
-
-	if filterName ~= 'all' then
-		string = string:gsub("%%filter%%", filterName)
+	
+	local filter_osd = filterName --1.2# create an osd filerName variable to be displayed and modified for the groups
+	if filter_osd ~= 'all' then
+		if filter_osd:match('/:group%%(.*)%%') then filter_osd = filter_osd:match('/:group%%(.*)%%') end --1.2# only keep the group name without the variable
+		string = string:gsub("%%filter%%", filter_osd)
 		:gsub("%%prefilter%%", o.header_filter_pre_text)
 		:gsub("%%afterfilter%%", o.header_filter_after_text)
 	else
@@ -640,6 +686,34 @@ function get_list_contents(filter, sort)
 	list_contents = read_log_table()
 	if not list_contents and not search_active or not list_contents[1] and not search_active then return end
 	current_sort = 'added-asc'
+	
+	--1.2# groups filter
+	
+	--1.2# filter for all groups
+	if filter == 'groups' then
+		for i = 1, #list_contents do
+			if list_contents[i].found_group then
+				table.insert(filtered_table, list_contents[i])
+			end
+		end
+		
+		list_contents = filtered_table
+	end
+	
+	--1.2# loop for each group specifically per defined name
+	if filter:match('/:group%%(.*)%%') then
+		filter = filter:match('/:group%%(.*)%%') --1.2# remove the group variable from the string and only keep the group name
+		--filterName = filter --1.2# update the global variable of filter EISA HERE This is causing the filter_and_sequence issue!
+		
+		for i = 1, #list_contents do
+			if list_contents[i].found_group and filter == get_group_properties(tonumber(list_contents[i].found_group)).name then --1.2# if the group is found, and the filter name is the same group name (then insert to the table)
+				table.insert(filtered_table, list_contents[i])
+			end
+		end
+		
+		list_contents = filtered_table
+	end
+	--1.2# end of groups filter
 	
 	if filter == 'keybinds' then
 		for i = 1, #list_contents do
@@ -922,6 +996,11 @@ function draw_list()
 			osd_msg = osd_msg .. o.keybinds_seperator .. get_slot_keybind(tonumber(list_contents[#list_contents - i].found_slot))
 		end
 		
+		--1.2# display groups on list with groups_seperator
+		if list_contents[#list_contents - i].found_group then
+			osd_msg = osd_msg .. o.groups_seperator .. get_group_properties(tonumber(list_contents[#list_contents - i].found_group)).name
+		end
+		
 		osd_msg = osd_msg .. '\\h\\N\\N' .. osd_msg_end
 		
 		if i == list_start + o.list_show_amount - 1 and not showall and not showrest then
@@ -1047,7 +1126,7 @@ function select(pos, action)
 	local list_cursor_temp = list_cursor + pos
 	if list_cursor_temp > 0 and list_cursor_temp <= #list_contents then
 		list_cursor = list_cursor_temp
-		
+
 		if action == 'highlight' then
 			if not has_value(list_highlight_cursor, list_cursor, 1) then
 				if pos > -1 then
@@ -1581,6 +1660,18 @@ function get_list_keybinds()
 	bind_keys(o.keybinds_remove_keybind, 'keybind-slot-remove', slot_remove)
 	bind_keys(o.keybinds_remove_highlighted_keybind, 'keybind-slot-remove-highlight', function()slot_remove('highlight')end)
 	
+	--1.2# keybind to add to add to group
+	bind_keys(o.list_group_add_cycle_keybind, 'group-add-cycle', list_group_add_cycle)
+	bind_keys(o.list_groups_remove_keybind, 'group-remove', group_remove)
+	bind_keys(o.list_groups_remove_highlighted_keybind, 'group-remove-highlight', function()group_remove('highlight')end)
+
+	for i = 1, #o.groups_list_and_keybind do --1.2# loop through the amount of groups defined
+		if not o.groups_list_and_keybind[i][2] then break end --1.2# break the loop if it exceeds the amount of keybinds inside the groups array
+		mp.add_forced_key_binding(o.groups_list_and_keybind[i][2], 'group-add-'..i, function()group_add(i)end) --1.2# add each keybind, and the group index of it
+	end
+	--1.2# end of group keybinds--
+	
+	
 	for i = 1, #o.list_highlight_move_keybind do
 		for j = 1, #o.list_move_up_keybind do
 			mp.add_forced_key_binding(o.list_highlight_move_keybind[i]..'+'..o.list_move_up_keybind[j], 'highlight-move-up'..j, function()list_move_up('highlight') end, 'repeatable')
@@ -1654,6 +1745,17 @@ function unbind_list_keys()
 	unbind_keys(o.keybinds_remove_keybind, 'keybind-slot-remove')
 	unbind_keys(o.keybinds_remove_keybind, 'keybind-slot-remove-highlight')
 	
+	--1.2# keybind to remove add to group keybinds
+	unbind_keys(o.list_group_add_cycle_keybind, 'group-add-cycle')
+	unbind_keys(o.list_groups_remove_keybind, 'group-remove')
+	unbind_keys(o.list_groups_remove_highlighted_keybind, 'group-remove-highlight')
+	
+	for i = 1, #o.groups_list_and_keybind do
+		if not o.groups_list_and_keybind[i][2] then break end --1.2# break the loop if it exceeds the amount of keybinds inside the groups array
+		mp.remove_key_binding('group-add-'..i)
+	end
+	--1.2# end of group keybinds--
+
 	for i = 1, #o.list_move_up_keybind do
 		mp.remove_key_binding('highlight-move-up'..i)
 	end
@@ -2010,36 +2112,16 @@ end
 --End of LogManager Search Feature--
 ---------End of LogManager---------
 
---Keybind Slot Feature--
-function remove_slot_log_entry()
-	local content = read_log(function(line)
-		if line:match(' | .* | ' .. esc_string(log_keybind_text) .. slotKeyIndex) then
-			return line:match('(.* | ' .. esc_string(log_time_text) .. '%d*%.?%d*)(.*)$')
-		else
-			return line
-		end
-	end)
-	
-	f = io.open(log_fullpath, "w+")
-	if content then
-		for i = 1, #content do
-			f:write(("%s\n"):format(content[i]))
-		end
-	end
-	f:close()
-end
-
-function add_slot_log_entry()
-	list_contents = read_log_table()
-	if not list_contents or not list_contents[1] then return end	
-
+--Modify Additional Log Parameters--
+function remove_all_additional_log_entry(index, log_text) --1.2# new method for deletion for all items within index
+	if not index or not log_text then return end
+	if not list_contents or not list_contents[1] then return end
 	for i = #list_contents, 1, -1 do
-		if list_contents[i].found_path == filePath and tonumber(list_contents[i].found_time) == seekTime then
-			list_contents[i].found_line = list_contents[i].found_line:match('(.* | ' .. esc_string(log_time_text) .. '%d*%.?%d*)(.*)$')..' | '.. log_keybind_text .. slotKeyIndex
-			break
+		if list_contents[i].found_line:find(log_text..index) and list_contents[i].found_line:find(log_text..index) then --1.2# this is the same as remove_additional_log_entry however instead of checking cursor position, it only needs index to remove all that it finds in the table
+			list_contents[i].found_line = string.gsub(list_contents[i].found_line, ' | '..log_text..index, "") --1.2# a more accurate method to remove exact text on the found line
 		end
 	end
-	
+
 	f = io.open(log_fullpath, "w+")
 	if list_contents ~= nil and list_contents[1] then
 		for i = 1, #list_contents do
@@ -2049,31 +2131,81 @@ function add_slot_log_entry()
 	f:close()
 end
 
-function list_slot_remove()
-	if not list_drawn then return end
-	slotKeyIndex = tonumber(list_contents[#list_contents - list_cursor + 1].found_slot)
-	if not slotKeyIndex then
-		msg.info("Failed to remove")
-		return
+function remove_additional_log_entry(index, target, log_text) --1.2# new method for deletion, instead of read_log, it is similar to modifying but I will use this since it updates the variable of list_contents
+	if not index or not target or not log_text then return end --1.2# if there is no id passed then close function (attempt instead of global variable)--1.2# target needs to be defined (passes the targets that will be removed instead of defining it within function)--1.2# made log_text necessary to proceed
+	if not list_contents or not list_contents[1] then return end --1.2# since I will be utilizing list_contents for a more accurate checks and changes, need to do this check (however, I am not updating list_contents within this function, since the highlighted remove calls this function as well and will make the read_log_table run twice unnecessarily)
+
+	for i = #list_contents, 1, -1 do --1.2# make this backwards compatibile??
+		if list_contents[target].found_sequence == list_contents[i].found_sequence and list_contents[i].found_line:find(log_text..index) then --1.2# updated to use sequence instead of filepath which is way more accurate (this needs to be done for all the script) --1.2#2 instead of the check for group I am checking if the log_text and index do exists so its more generic
+			list_contents[i].found_line = string.gsub(list_contents[i].found_line, ' | '..log_text..index, "") --1.2# a more accurate method to remove exact text on the found line
+			break
+		end
 	end
-	remove_slot_log_entry()
-	msg.info('Removed Keybind: ' .. get_slot_keybind(slotKeyIndex))
+
+	f = io.open(log_fullpath, "w+")
+	if list_contents ~= nil and list_contents[1] then
+		for i = 1, #list_contents do
+			f:write(("%s\n"):format(list_contents[i].found_line))
+		end
+	end
+	f:close()
 end
 
-function list_slot_remove_highlighted()
-	if not list_drawn then return end
-	if not list_highlight_cursor or not list_highlight_cursor[1] then return end
-	list_contents = read_log_table()
+function add_additional_log_entry(index, log_text)
+	if not index then return end
 	if not list_contents or not list_contents[1] then return end
 
+	for i = #list_contents, 1, -1 do --1.2# make this backwards compatibile??
+		if list_contents[#list_contents - list_cursor + 1].found_sequence == list_contents[i].found_sequence then --1.2# updated to use sequence instead of filepath which is way more accurate (this needs to be done for all the script)
+			if list_contents[i].found_line:sub(-1) ~= ' ' then --1.2# if the last character from the line is not space, then add the pipe with the spaces (backwards compatibility)
+				list_contents[i].found_line = list_contents[i].found_line..' | '..log_text .. index..' | '
+				break
+			else --1.2# If there is space in the end, then there is no need to do backward compatibility, instead immediately add log_text
+				list_contents[i].found_line = list_contents[i].found_line..log_text .. index..' | ' --1.2# make any log entry end with ( | )
+				break
+			end
+		end
+	end
+
+	f = io.open(log_fullpath, "w+")
+	if list_contents ~= nil and list_contents[1] then
+		for i = 1, #list_contents do
+			f:write(("%s\n"):format(list_contents[i].found_line))
+		end
+	end
+	f:close()
+end
+
+--End Of Modify Additional Log Parameters--
+
+--Keybind Slot Feature--
+function list_slot_remove(index, action) --1.2# migrated to the new function from groups
+	if not list_drawn then return end
+	if not list_contents or not list_contents[1] then return end
+	if not index then index = tonumber(list_contents[#list_contents - list_cursor + 1].found_slot) end --1.2# if index was not passed then delete based on cursor_position
+	
+	if not index then --1.2# if nothing was still found, then throw error failed to delete
+		if action ~= 'silent' then msg.info("Failed to remove") end
+		return
+	end
+	remove_all_additional_log_entry(index, log_keybind_text) --1.2# to remove the entry pass the slotIndex, as well as the target (which is the exact same thing that finds the slotKeyCursorIndex inside list_contents[] --1.2# changed it to general function instead of specific, and passed log_group_text
+	if action ~= 'silent' then msg.info('Removed Keybind: ' .. get_slot_keybind(index)) end
+end
+
+function list_slot_remove_highlighted() --1.2# migrated to the new function from groups
+	if not list_drawn then return end
+	if not list_highlight_cursor or not list_highlight_cursor[1] then return end
+	if not list_contents or not list_contents[1] then return end
+
+	local slotIndex
 	for i = 1, #list_contents do
 		for j=1, #list_highlight_cursor do
 			if list_contents[#list_contents+1-i] then
 				if list_contents[#list_contents+1-i].found_sequence == list_highlight_cursor[j][2].found_sequence then
-					slotKeyIndex = tonumber(list_contents[#list_contents+1-i].found_slot)
-					if slotKeyIndex then
-						remove_slot_log_entry()
-						msg.info('Removed Keybind: ' .. get_slot_keybind(slotKeyIndex))
+					slotIndex = tonumber(list_contents[#list_contents+1-i].found_slot)
+					if slotIndex then
+						remove_all_additional_log_entry(slotIndex, log_keybind_text)--1.2# The second parameter is the same as the one used to find the group (as it defines the targeted item) --1.2# changed it to general function instead of specific, and passed log_group_text
+						msg.info('Removed Keybind: ' .. get_slot_keybind(slotIndex))
 					end
 				end
 			end
@@ -2081,20 +2213,27 @@ function list_slot_remove_highlighted()
 	end
 end
 
-function list_slot_add()
+function list_slot_add(index) --1.2# migrated to the new function from groups
 	if not list_drawn then return end
 	if not list_contents or not list_contents[1] then return end
-	filePath = list_contents[#list_contents - list_cursor + 1].found_path
-	fileTitle = list_contents[#list_contents - list_cursor + 1].found_name
-	seekTime = tonumber(list_contents[#list_contents - list_cursor + 1].found_time)
-	if not filePath or not fileTitle or not seekTime then
+	if not index then return end --1.2# if there is no id passed then close function (attempt instead of global variable)
+	
+	local cursor_filetitle = list_contents[#list_contents - list_cursor + 1].found_name
+	local cursor_seektime = tonumber(list_contents[#list_contents - list_cursor + 1].found_time)
+	if not cursor_filetitle or not cursor_seektime then
 		msg.info("Failed to add slot")
 		return
 	end
-	remove_slot_log_entry()
-	add_slot_log_entry()
-	msg.info('Added Keybind:\n' .. fileTitle .. o.time_seperator .. format_time(seekTime) .. o.keybinds_seperator .. get_slot_keybind(slotKeyIndex))
-	filePath, fileTitle, fileLength = get_file()
+	
+	
+	local slotIndex = list_contents[#list_contents - list_cursor + 1].found_slot --1.2# removes slot on cursor position, silently
+	if slotIndex then
+		remove_additional_log_entry(slotIndex,#list_contents-list_cursor+1, log_keybind_text)
+	end
+	--list_slot_remove(nil, 'silent') --1.2# this is also possible instead of the above, however, the above only looks for 1 item, so it is better to use it
+	list_slot_remove(index, 'silent') --1.2# removes slot based on passed index, silently
+	add_additional_log_entry(index, log_keybind_text) --1.2# changed it to general function instead of specific, and passed log_group_text
+	msg.info('Added Keybind:\n' .. cursor_filetitle .. o.time_seperator .. format_time(cursor_seektime) .. o.keybinds_seperator .. get_slot_keybind(index))
 end
 
 function slot_remove(action)
@@ -2114,8 +2253,10 @@ function slot_remove(action)
 	end
 end
 
-function slot_add()
-	list_slot_add()
+function slot_add(index) --1.2# migrate to new groups function
+	if not index then return end --1.2# if there is no id passed then close function
+
+	list_slot_add(index)
 	get_list_contents()
 	if #list_contents == 0 then
 		list_cursor = 0
@@ -2127,6 +2268,106 @@ function slot_add()
 	end
 end
 --End of Keybind Slot Feature--
+
+--1.2#Group Feature--
+
+
+function list_group_remove(action) --1.2# added action to hide msg.info when necessary
+	if not list_drawn then return end
+	if not list_contents or not list_contents[1] then return end
+	
+	local groupCursorIndex = tonumber(list_contents[#list_contents - list_cursor + 1].found_group)
+	if not groupCursorIndex then
+		if action ~= 'silent' then msg.info("Failed to remove") end
+		return
+	end
+	remove_additional_log_entry(groupCursorIndex,#list_contents-list_cursor+1, log_group_text) --1.2# to remove the entry pass the GroupIndex, as well as the target (which is the exact same thing that finds the groupCursorIndex inside list_contents[] --1.2# changed it to general function instead of specific, and passed log_group_text
+	if action ~= 'silent' then msg.info('Removed Group: ' .. get_group_properties(groupCursorIndex).name) end
+end
+
+function list_group_remove_highlighted()
+	if not list_drawn then return end
+	if not list_highlight_cursor or not list_highlight_cursor[1] then return end
+	if not list_contents or not list_contents[1] then return end
+	
+	local groupIndex
+	for i = 1, #list_contents do
+		for j=1, #list_highlight_cursor do
+			if list_contents[#list_contents+1-i] then
+				if list_contents[#list_contents+1-i].found_sequence == list_highlight_cursor[j][2].found_sequence then
+					groupIndex = tonumber(list_contents[#list_contents+1-i].found_group)
+					if groupIndex then
+						remove_additional_log_entry(groupIndex, #list_contents+1-i, log_group_text)--1.2# The second parameter is the same as the one used to find the group (as it defines the targeted item) --1.2# changed it to general function instead of specific, and passed log_group_text
+						msg.info('Removed Group: ' .. get_group_properties(groupIndex).name)
+					end
+				end
+			end
+		end
+	end
+end
+
+function list_group_add(index)
+	if not list_drawn then return end
+	if not list_contents or not list_contents[1] then return end
+	if not index then return end --1.2# if there is no id passed then close function (attempt instead of global variable)
+	
+	local cursor_filetitle = list_contents[#list_contents - list_cursor + 1].found_name
+	local cursor_seektime = tonumber(list_contents[#list_contents - list_cursor + 1].found_time)
+	if not cursor_filetitle or not cursor_seektime then
+		msg.info("Failed to add group")
+		return
+	end
+	
+	list_group_remove('silent') --1.2# removes group on cursor position to avoid duplicates
+	add_additional_log_entry(index, log_group_text) --1.2# changed it to general function instead of specific, and passed log_group_text
+	msg.info('Added Group:\n' .. cursor_filetitle .. o.time_seperator .. format_time(cursor_seektime) .. o.groups_seperator .. get_group_properties(index).name)
+end
+
+function list_group_add_cycle()
+	if not list_drawn then return end
+	if not list_contents or not list_contents[1] then return end
+
+	--1.2# find current group
+	local next_index = tonumber(list_contents[#list_contents - list_cursor + 1].found_group) --1.2# add current group of cursor position to variable
+	if next_index then next_index = next_index + 1 else next_index = 0 end --1.2# append +1 to the next_index if it exists, otherwise define it as 0 so we can use it for the below comparison
+	if next_index > #o.groups_list_and_keybind or next_index == 0 then --1.2# if the value became higher than the total available groups, then go to the beginning OR if there is no group then start from 1
+		next_index = 1
+	end
+	group_add(next_index)
+end
+
+function group_remove(action)
+	if not action then
+		list_group_remove()
+	elseif action == 'highlight' then
+		list_group_remove_highlighted()
+	end
+	get_list_contents()
+	if #list_contents == 0 then
+		list_cursor = 0
+		select(list_cursor)
+	elseif list_cursor ~= #list_contents + 1 then
+		select(0) 
+	else 
+		select(-1) 
+	end
+end
+
+function group_add(index)
+	if not index then return end --1.2# if there is no id passed then close function
+	
+	list_group_add(index)
+	get_list_contents()
+	if #list_contents == 0 then
+		list_cursor = 0
+		select(list_cursor)
+	elseif list_cursor ~= #list_contents + 1 then
+		select(0) 
+	else 
+		select(-1) 
+	end	
+end
+--End of Group Feature--
 
 function mark_chapter()
 	if not o.mark_bookmark_as_chapter then return end
@@ -2160,7 +2401,7 @@ function mark_chapter()
 	mp.set_property_native("chapter-list", all_chapters)
 end
 
-function write_log(target_time, keybind_slot, update_seekTime, entry_limit)
+function write_log(target_time, key_index, update_seekTime, entry_limit) --1.2# updated to use key_index since global variable is removed
 	if not filePath then return end
 	local prev_seekTime = seekTime
 
@@ -2171,21 +2412,21 @@ function write_log(target_time, keybind_slot, update_seekTime, entry_limit)
 	if seekTime < 0 then seekTime = 0 end
 	
 	delete_log_entry(false, true, filePath, math.floor(seekTime), entry_limit)
-	if keybind_slot then
-		remove_slot_log_entry()
+	if key_index then
+		remove_all_additional_log_entry(key_index, log_keybind_text)
 	end
 	local f = io.open(log_fullpath, "a+")
 	if o.file_title_logging == 'all' then
-		f:write(("[%s] \"%s\" | %s | %s | %s"):format(os.date(o.date_format), fileTitle, filePath, log_length_text .. tostring(fileLength), log_time_text .. tostring(seekTime)))
+		f:write(("[%s] \"%s\" | %s | %s | %s | "):format(os.date(o.date_format), fileTitle, filePath, log_length_text .. tostring(fileLength), log_time_text .. tostring(seekTime)))
 	elseif o.file_title_logging == 'protocols' and (starts_protocol(o.logging_protocols, filePath)) then
-		f:write(("[%s] \"%s\" | %s | %s | %s"):format(os.date(o.date_format), fileTitle, filePath, log_length_text .. tostring(fileLength), log_time_text .. tostring(seekTime)))
+		f:write(("[%s] \"%s\" | %s | %s | %s | "):format(os.date(o.date_format), fileTitle, filePath, log_length_text .. tostring(fileLength), log_time_text .. tostring(seekTime)))
 	elseif o.file_title_logging == 'protocols' and not (starts_protocol(o.logging_protocols, filePath)) then
-		f:write(("[%s] %s | %s | %s"):format(os.date(o.date_format), filePath, log_length_text .. tostring(fileLength), log_time_text .. tostring(seekTime)))
+		f:write(("[%s] %s | %s | %s | "):format(os.date(o.date_format), filePath, log_length_text .. tostring(fileLength), log_time_text .. tostring(seekTime)))
 	else
-		f:write(("[%s] %s | %s | %s"):format(os.date(o.date_format), filePath, log_length_text .. tostring(fileLength), log_time_text .. tostring(seekTime)))
+		f:write(("[%s] %s | %s | %s | "):format(os.date(o.date_format), filePath, log_length_text .. tostring(fileLength), log_time_text .. tostring(seekTime)))
 	end
-	if keybind_slot then
-		f:write(' | ' .. log_keybind_text .. slotKeyIndex)
+	if key_index then
+		f:write(' | ' .. log_keybind_text .. key_index)
 	end
 	f:write('\n')
 	f:close()
@@ -2197,68 +2438,68 @@ end
 
 function add_load_slot(key_index)
 	if not key_index then return end
-	slotKeyIndex = key_index
+	--1.2# removed global variable and replaced it with the existing key_index
 	local current_filePath = mp.get_property('path')
-	
+	local list_filepath, list_filetitle, list_seektime
 	if list_drawn then
-		slot_add()
+		slot_add(key_index)
 	else
 		local slot_taken = false
 		get_list_contents()
 		if list_contents ~= nil and list_contents[1] then
 			for i = 1, #list_contents do
-				if tonumber(list_contents[i].found_slot) == slotKeyIndex then
-					filePath = list_contents[i].found_path
-					fileTitle = list_contents[i].found_name
-					seekTime = tonumber(list_contents[i].found_time)
+				if tonumber(list_contents[i].found_slot) == key_index then --1.2# use local variable instead of global, fixes bug that caused global variable to update and not revert back to original playing file
+					list_filepath = list_contents[i].found_path
+					list_filetitle = list_contents[i].found_name
+					list_seektime = tonumber(list_contents[i].found_time)
 					slot_taken = true
 					break
 				end
 			end
 			if slot_taken then
-				if file_exists(filePath) or starts_protocol(protocols, filePath) then
-					if filePath ~= current_filePath then
-						mp.commandv('loadfile', filePath)
+				if file_exists(list_filepath) or starts_protocol(protocols, list_filepath) then
+					if list_filepath ~= current_filePath then
+						mp.commandv('loadfile', list_filepath)
 						if o.keybinds_auto_resume then
 							resume_selected = true
 						end
-					elseif filePath == current_filePath and o.keybinds_auto_resume then
-						mp.commandv('seek', seekTime, 'absolute', 'exact')
+					elseif list_filepath == current_filePath and o.keybinds_auto_resume then
+						mp.commandv('seek', list_seektime, 'absolute', 'exact')
 						list_close_and_trash_collection()
-					elseif filePath == current_filePath and not o.keybinds_auto_resume then
+					elseif list_filepath == current_filePath and not o.keybinds_auto_resume then
 						mp.commandv('seek', 0, 'absolute', 'exact')
 						list_close_and_trash_collection()
 					end
 					if o.keybinds_auto_resume then
 						if o.osd_messages == true then
-							mp.osd_message('Loaded slot:' .. o.keybinds_seperator .. get_slot_keybind(slotKeyIndex) .. '\n' .. fileTitle .. o.time_seperator .. format_time(seekTime, o.osd_time_format[3], o.osd_time_format[2], o.osd_time_format[1]))
+							mp.osd_message('Loaded slot:' .. o.keybinds_seperator .. get_slot_keybind(key_index) .. '\n' .. list_filetitle .. o.time_seperator .. format_time(list_seektime, o.osd_time_format[3], o.osd_time_format[2], o.osd_time_format[1]))
 						end
-						msg.info('Loaded slot:' .. o.keybinds_seperator .. get_slot_keybind(slotKeyIndex) .. '\n' .. fileTitle .. o.time_seperator .. format_time(seekTime))						
+						msg.info('Loaded slot:' .. o.keybinds_seperator .. get_slot_keybind(key_index) .. '\n' .. list_filetitle .. o.time_seperator .. format_time(list_seektime))						
 					else
 						if o.osd_messages == true then
-							mp.osd_message('Loaded slot:' .. o.keybinds_seperator .. get_slot_keybind(slotKeyIndex) .. '\n' .. fileTitle)
+							mp.osd_message('Loaded slot:' .. o.keybinds_seperator .. get_slot_keybind(key_index) .. '\n' .. list_filetitle)
 						end
-						msg.info('Loaded slot:' .. o.keybinds_seperator .. get_slot_keybind(slotKeyIndex) .. '\n' .. fileTitle)																	
+						msg.info('Loaded slot:' .. o.keybinds_seperator .. get_slot_keybind(key_index) .. '\n' .. list_filetitle)																	
 					end
 				else
 					if o.osd_messages == true then
-						mp.osd_message('File Doesn\'t Exist:\n' .. filePath)
+						mp.osd_message('File Doesn\'t Exist:\n' .. list_filepath)
 					end
-					msg.info('The file below doesn\'t seem to exist:\n' .. filePath)
+					msg.info('The file below doesn\'t seem to exist:\n' .. list_filepath)
 					return
 				end
 			else
 				if o.keybinds_empty_auto_create then
 					if filePath ~= nil then
 						if o.keybinds_empty_fileonly then
-							write_log(0, true)
+							write_log(0, key_index)
 						else
-							write_log(false, true)
+							write_log(false, key_index)
 						end
 						if o.osd_messages == true then
-							mp.osd_message('Bookmarked & Added Keybind:\n' .. fileTitle .. o.time_seperator .. format_time(seekTime, o.osd_time_format[3], o.osd_time_format[2], o.osd_time_format[1]) .. o.keybinds_seperator .. get_slot_keybind(slotKeyIndex))
+							mp.osd_message('Bookmarked & Added Keybind:\n' .. fileTitle .. o.time_seperator .. format_time(mp.get_property_number('time-pos'), o.osd_time_format[3], o.osd_time_format[2], o.osd_time_format[1]) .. o.keybinds_seperator .. get_slot_keybind(key_index))--1.2#Updated so OSD shows latest seekTime
 						end
-						msg.info('Bookmarked the below & added keybind:\n' .. fileTitle .. o.time_seperator .. format_time(seekTime) .. o.keybinds_seperator .. get_slot_keybind(slotKeyIndex))
+						msg.info('Bookmarked the below & added keybind:\n' .. fileTitle .. o.time_seperator .. format_time(mp.get_property_number('time-pos')) .. o.keybinds_seperator .. get_slot_keybind(key_index))--1.2#Updated so OSD shows latest seekTime
 					else
 						if o.osd_messages == true then
 							mp.osd_message('Failed to Bookmark & Auto Create Keybind\nNo Video Found')
@@ -2267,41 +2508,40 @@ function add_load_slot(key_index)
 					end
 				else
 					if o.osd_messages == true then
-						mp.osd_message('No Bookmark Slot For' .. o.keybinds_seperator .. get_slot_keybind(slotKeyIndex) .. ' Yet')
+						mp.osd_message('No Bookmark Slot For' .. o.keybinds_seperator .. get_slot_keybind(key_index) .. ' Yet')
 					end
-					msg.info('No bookmark slot has been assigned for' .. o.keybinds_seperator .. get_slot_keybind(slotKeyIndex) .. ' keybind yet')
+					msg.info('No bookmark slot has been assigned for' .. o.keybinds_seperator .. get_slot_keybind(key_index) .. ' keybind yet')
 				end
 			end
 		else
 			if o.osd_messages == true then
-				mp.osd_message('No Bookmark Slot For' .. o.keybinds_seperator .. get_slot_keybind(slotKeyIndex) .. ' Yet')
+				mp.osd_message('No Bookmark Slot For' .. o.keybinds_seperator .. get_slot_keybind(key_index) .. ' Yet')
 			end
-			msg.info('No bookmark slot has been assigned for' .. o.keybinds_seperator .. get_slot_keybind(slotKeyIndex) .. ' keybind yet')
+			msg.info('No bookmark slot has been assigned for' .. o.keybinds_seperator .. get_slot_keybind(key_index) .. ' keybind yet')
 		end
 	end
-	slotKeyIndex = 0
 end
 
 function quicksave_slot(key_index)
 	if not key_index then return end
-	slotKeyIndex = key_index
+	--1.2# removed global variable and replaced it with the existing key_index
 	
 	if list_drawn then
-		slot_add()
+		slot_add(key_index) --1.2# use key_index since global variable is removed
 	else
 		if filePath ~= nil then
 			if o.keybinds_quicksave_fileonly then
-				write_log(0, true)
+				write_log(0, key_index)
 				if o.osd_messages == true then
-					mp.osd_message('Bookmarked Fileonly & Added Keybind:\n' .. fileTitle .. o.keybinds_seperator .. get_slot_keybind(slotKeyIndex))
+					mp.osd_message('Bookmarked Fileonly & Added Keybind:\n' .. fileTitle .. o.keybinds_seperator .. get_slot_keybind(key_index))
 				end
-				msg.info('Bookmarked the below & added keybind:\n' .. fileTitle .. o.keybinds_seperator .. get_slot_keybind(slotKeyIndex))
+				msg.info('Bookmarked the below & added keybind:\n' .. fileTitle .. o.keybinds_seperator .. get_slot_keybind(key_index))
 			else
-				write_log(false, true, true)
+				write_log(false, key_index, true)
 				if o.osd_messages == true then
-					mp.osd_message('Bookmarked & Added Keybind:\n' .. fileTitle .. o.time_seperator .. format_time(seekTime, o.osd_time_format[3], o.osd_time_format[2], o.osd_time_format[1]) .. o.keybinds_seperator .. get_slot_keybind(slotKeyIndex))
+					mp.osd_message('Bookmarked & Added Keybind:\n' .. fileTitle .. o.time_seperator .. format_time(seekTime, o.osd_time_format[3], o.osd_time_format[2], o.osd_time_format[1]) .. o.keybinds_seperator .. get_slot_keybind(key_index))
 				end
-				msg.info('Bookmarked the below & added keybind:\n' .. fileTitle .. o.time_seperator .. format_time(seekTime) .. o.keybinds_seperator .. get_slot_keybind(slotKeyIndex))
+				msg.info('Bookmarked the below & added keybind:\n' .. fileTitle .. o.time_seperator .. format_time(seekTime) .. o.keybinds_seperator .. get_slot_keybind(key_index))
 			end
 		else
 			if o.osd_messages == true then
@@ -2310,7 +2550,6 @@ function quicksave_slot(key_index)
 			msg.info("Failed to bookmark & auto create keybind, no video found")
 		end
 	end
-	slotKeyIndex = 0
 end
 
 function bookmark_save()
