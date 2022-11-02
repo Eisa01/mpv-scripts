@@ -2,7 +2,7 @@
 -- License: BSD 2-Clause License
 -- Creator: Eisa AlAwadhi
 -- Project: SimpleBookmark
--- Version: 1.2.1
+-- Version: 1.2.2
 
 local o = {
 ---------------------------USER CUSTOMIZATION SETTINGS---------------------------
@@ -10,7 +10,11 @@ local o = {
 --Changes are recommended to be made in the script-opts directory.
 
 	-----Script Settings----
-	auto_run_list_idle = 'none',  --Auto run the list when opening mpv and there is no video / file loaded. 'none' for disabled. Or choose between: 'all', 'keybinds', 'recents', 'distinct', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'keywords'.
+	--Available filters: 'all', 'keybinds', 'groups', 'recents', 'distinct', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'keywords'.
+	--Filters description: "all" to display all the items. Or 'groups' to display the list filtered with items added to any group. Or 'keybinds' to display the list filtered with keybind slots. Or "recents" to display recently added items to log without duplicate. Or "distinct" to show recent saved entries for files in different paths. Or "fileonly" to display files saved without time. Or "timeonly" to display files that have time only. Or "keywords" to display files with matching keywords specified in the configuration. Or "playing" to show list of current playing file.
+	--Filters can also be stacked by using %+% or omitted by using %-%. e.g.: "groups%+%keybinds" shows only groups and keybinds, "all%-%groups%-%keybinds" shows all items without groups and without keybinds.
+	--Also defined groups can be called by using /:group%Group Name%
+	auto_run_list_idle = 'none',  --Auto run the list when opening mpv and there is no video / file loaded. 'none' for disabled. Or choose between available filters.
 	toggle_idlescreen = false, --hides OSC idle screen message when opening and closing menu (could cause unexpected behavior if multiple scripts are triggering osc-idlescreen off)
 	resume_offset = -0.65, --change to 0 so item resumes from the exact position, or decrease the value so that it gives you a little preview before loading the resume point
 	osd_messages = true, --true is for displaying osd messages when actions occur. Change to false will disable all osd messages generated from this script
@@ -25,7 +29,7 @@ local o = {
 	]], --Keybind that will be used to save the video without time to log file
 	open_list_keybind=[[
 	[ ["b", "all"], ["B", "all"], ["k", "keybinds"], ["K", "keybinds"] ]
-	]], --Keybind that will be used to open the list along with the specified filter. Available filters: 'all', 'keybinds', 'recents', 'distinct', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'keywords'. Also defined groups can be called by using /:group%Group Name%
+	]], --Keybind that will be used to open the list along with the specified filter.
 	list_filter_jump_keybind=[[
 	[ ["b", "all"], ["B", "all"], ["k", "keybinds"], ["K", "keybinds"], ["!", "/:group%TV Shows%"], ["@", "/:group%Movies%"], ["SHARP", "/:group%Anime%"], ["$", "/:group%Anime Movies%"], ["%", "/:group%Cartoon%"], ["r", "recents"], ["R", "recents"], ["d", "distinct"], ["D", "distinct"], ["f", "fileonly"], ["F", "fileonly"] ]
 	]], --Keybind that is used while the list is open to jump to the specific filter (it also enables pressing a filter keybind twice to close list). Available fitlers: 'all', 'keybinds', 'recents', 'distinct', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'keywords'.
@@ -63,7 +67,7 @@ local o = {
 	]], --Keybind to add an item to the group, this cycles through all the different available groups when list is open
 	list_group_add_cycle_highlighted_keybind=[[
 	["ctrl+G"]
-	]], --Keybind to add an item to the group, this cycles through all the different available groups when list is open
+	]], --Keybind to add highlighted items to the group, this cycles through all the different available groups when list is open
 
 	-----Logging Settings-----
 	log_path = '/:dir%mpvconf%', --Change to '/:dir%script%' for placing it in the same directory of script, OR change to '/:dir%mpvconf%' for mpv portable_config directory. OR write any variable using '/:var' then the variable '/:var%APPDATA%' you can use path also, such as: '/:var%APPDATA%\\mpv' OR '/:var%HOME%/mpv' OR specify the absolute path , e.g.: 'C:\\Users\\Eisa01\\Desktop\\'
@@ -90,9 +94,8 @@ local o = {
 	search_behavior = 'any', --'specific' to find a match of either a date, title, path / url, time. 'any' to find any typed search based on combination of date, title, path / url, and time. 'any-notime' to find any typed search based on combination of date, title, and path / url, but without looking for time (this is to reduce unwanted results).
 	
 	-----Filter Settings------
-	--available filters: "all" to display all the items. Or 'keybinds' to display the list filtered with keybind slots. Or "recents" to display recently added items to log without duplicate. Or "distinct" to show recent saved entries for files in different paths. Or "fileonly" to display files saved without time. Or "timeonly" to display files that have time only. Or "keywords" to display files with matching keywords specified in the configuration. Or "playing" to show list of current playing file.
 	filters_and_sequence=[[
-	["all", "keybinds", "groups", "/:group%TV Shows%", "/:group%Movies%", "/:group%Anime%", "/:group%Anime Movies%", "/:group%Cartoon%", "/:group%Animated Movies%", "protocols", "fileonly", "titleonly", "timeonly", "playing", "keywords", "recents", "distinct"]
+	["all", "keybinds", "groups", "/:group%TV Shows%", "/:group%Movies%", "/:group%Anime%", "/:group%Anime Movies%", "/:group%Cartoon%", "/:group%Animated Movies%", "protocols", "fileonly", "titleonly", "timeonly", "playing", "keywords", "recents", "distinct", "keybinds%+%groups", "all%-%groups%-%keybinds"]
 	]], --Jump to the following filters and in the shown sequence when navigating via left and right keys. You can change the sequence and delete filters that are not needed.
 	next_filter_sequence_keybind=[[
 	["RIGHT", "MBTN_FORWARD"]
@@ -106,8 +109,9 @@ local o = {
 	]], --Create a filter out of your desired 'keywords', e.g.: youtube.com will filter out the videos from youtube. You can also insert a portion of filename or title, or extension or a full path / portion of a path. e.g.: ["youtube.com", "mp4", "naruto", "c:\\users\\eisa01\\desktop"]. To disable this filter keep it empty []
 
 	-----Sort Settings------
-	--available sort: 'added-asc' is for the newest added item to show first. Or 'added-desc' for the newest added to show last. Or 'alphanum-asc' is for A to Z approach with filename and episode number lower first. Or 'alphanum-desc' is for its Z to A approach. Or 'time-asc', 'time-desc' to sort the list based on time.
-	list_default_sort = 'added-asc', --the default sorting method for all the different filters in the list. select between 'added-asc', 'added-desc', 'time-asc', 'time-desc', 'alphanum-asc', 'alphanum-desc'
+	--Available sorts: 'added-asc', 'added-desc', 'time-asc', 'time-desc', 'alphanum-asc', 'alphanum-desc'
+	--Sorts description: 'added-asc' is for the newest added item to show first. Or 'added-desc' for the newest added to show last. Or 'alphanum-asc' is for A to Z approach with filename and episode number lower first. Or 'alphanum-desc' is for its Z to A approach. Or 'time-asc', 'time-desc' to sort the list based on time.
+	list_default_sort = 'added-asc', --the default sorting method for all the different filters in the list. Choose between available sorts.
 	list_filters_sort=[[
 	[ ["keybinds", "keybind-asc"], ["fileonly", "alphanum-asc"], ["playing", "time-asc"] ]
 	]], --Default sort for specific filters, e.g.: [ ["all", "alphanum-asc"], ["playing", "added-desc"] ]
@@ -301,13 +305,13 @@ local log_time_text = 'time='
 local log_keybind_text = 'slot='
 local log_group_text = 'group='
 local protocols = {'https?:', 'magnet:', 'rtmps?:', 'smb:', 'ftps?:', 'sftp:'}
-local available_filters = {'all', 'keybinds', 'groups', 'recents', 'distinct', 'playing', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'keywords'}
 
-if o.groups_list_and_keybind ~= nil and o.groups_list_and_keybind[1] then
+--local available_filters = {'all', 'keybinds', 'groups', 'recents', 'distinct', 'playing', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'keywords'} --1.3# temp: remove available_filters
+--[[if o.groups_list_and_keybind ~= nil and o.groups_list_and_keybind[1] then
 	for i = 1, #o.groups_list_and_keybind do
 		table.insert(available_filters, '/:group%'..o.groups_list_and_keybind[i][1]..'%')
 	end
-end
+end--]]
 
 local available_sorts = {'added-asc', 'added-desc', 'time-asc', 'time-desc', 'alphanum-asc', 'alphanum-desc'}
 local search_string = ''
@@ -724,9 +728,83 @@ function search_log_contents(arr_contents)--1.3# seperate search from get_osd_lo
 
 end
 
-function filter_log_contents(arr_contents, filter) --1.3# create a seperate function to filter osd_log_contents
+function filter_log_contents(arr_contents, filter) --1.3# function to immediately choose the filter that will be applied for get_osd_log_contents
 	if not arr_contents or not arr_contents[1] or not filter or filter == 'all' then return false end
+	local filtered_arr_contents = {}
 
+	if filter:match('%%%+%%') then
+		if filter_stack(arr_contents,filter) then filtered_arr_contents = filter_stack(arr_contents, filter) end
+	elseif filter:match('%%%-%%') then
+		if filter_omit(arr_contents,filter) then filtered_arr_contents = filter_omit(arr_contents, filter) end
+	else
+		if filter_apply(arr_contents, filter) then filtered_arr_contents = filter_apply(arr_contents, filter) end --1.3# if the filter returns true, then change osd_log_contents to the filter
+	end
+
+	return filtered_arr_contents
+end
+
+
+function filter_omit(arr_contents, filter)
+	if not arr_contents or not arr_contents[1] or not filter or filter == 'all' or not filter:match('%%%-%%') then return false end --1.3# only go through this function if the stack variable and filter is passed
+	local omitted_arr_table = arr_contents
+
+	local filter_items = {}
+	for f in filter:gmatch("[^%%%-%%\r+]+") do
+		table.insert(filter_items, f)
+	end
+
+	local temp_filtered_contents = arr_contents --1.3# initilaize with the passed table (solves error if used all filter)
+	for i=1, #filter_items do --1.3# loop through all filters
+		if i== 1 and filter_apply(arr_contents, filter_items[i]) then omitted_arr_table = filter_apply(arr_contents, filter_items[i]) end --1.3# (only apply filter for the first item, then just omit from the table --1.3# use the if statement
+		if i > 1 then --1.3# for the second iteration or above, omit items
+			if filter_apply(arr_contents, filter_items[i]) then temp_filtered_contents = filter_apply(arr_contents, filter_items[i]) end --1.3# apply the filter on the temp variable
+			for j=1, #temp_filtered_contents do --1.3# a nested loop for going through all filtered content
+				for k=1, #omitted_arr_table do --1.3# a 2x nested loop for going through all items in the omitted table
+					if temp_filtered_contents[j] and omitted_arr_table[k] and temp_filtered_contents[j].found_sequence == omitted_arr_table[k].found_sequence then --1.3# if the filtered table item equals any of the omitted table items then remove it
+						table.remove(omitted_arr_table, k)
+					end
+				end
+			end
+		end
+	end
+
+	table.sort(omitted_arr_table, function(a, b) return a['found_sequence'] < b['found_sequence'] end) --1.3# sort the items based on the sequence
+
+	return omitted_arr_table
+end
+
+function filter_stack(arr_contents, filter)
+	if not arr_contents or not arr_contents[1] or not filter or filter == 'all' or not filter:match('%%%+%%') then return false end --1.3# only go through this function if the stack variable and filter is passed
+	local stacked_arr_table = {}
+	
+	--filter = filter:match("%%(.*)%%") --1.3# reference: just to get stuff between %%
+	--filter = filter:gsub('%%%+%%', " ") --1.3# if I want to change the %variable% to make it for universal loop whether it is %+% or %-%, 
+	--e.g.: converted example: for c in filter:gmatch("[^%%s%\r+]+") do
+	--e.g.: normal example: for c in filter:gmatch("[^%%%+%%\r+]+")
+	local filter_items = {}
+	for f in filter:gmatch("[^%%%+%%\r+]+") do
+		table.insert(filter_items, f)
+	end
+
+	local unique_values = {} --1.3# function that stacks the filters when %+% is found in string
+	local temp_filtered_contents = arr_contents --1.3# initilaize with the passed table (solves error if used all filter)
+	for i=1, #filter_items do
+		if filter_apply(arr_contents, filter_items[i]) then temp_filtered_contents = filter_apply(arr_contents, filter_items[i]) end --1.3# use the if statement
+			for j=1, #temp_filtered_contents do
+				if not has_value(unique_values, temp_filtered_contents[j].found_sequence) then --1.3# if the item is not in the unique_values table then add it, as well as add it to the stacked table
+					table.insert(unique_values, temp_filtered_contents[j].found_sequence) --1.3# if the value was not inserted into stacked_arr_table, then insert it
+					table.insert(stacked_arr_table, temp_filtered_contents[j])
+				end
+			end
+	end
+	table.sort(stacked_arr_table, function(a, b) return a['found_sequence'] < b['found_sequence'] end) --1.3# sort the items based on the sequence
+
+	return stacked_arr_table
+
+end
+
+function filter_apply(arr_contents, filter) --1.3# create a seperate function to specifically choose what each filter does
+	if not arr_contents or not arr_contents[1] or not filter or filter == 'all' then return false end
 	local filtered_arr_contents = {}
 
 	if filter == 'groups' then
@@ -739,7 +817,6 @@ function filter_log_contents(arr_contents, filter) --1.3# create a seperate func
 	
 	if filter:match('/:group%%(.*)%%') then
 		filter = filter:match('/:group%%(.*)%%')
-		
 		for i = 1, #arr_contents do
 			if arr_contents[i].found_group and filter == get_group_properties(tonumber(arr_contents[i].found_group)).name then
 				table.insert(filtered_arr_contents, arr_contents[i])
@@ -1008,7 +1085,8 @@ function list_empty_error_msg()
 end
 
 function display_list(filter, sort, action)
-	if not filter or not has_value(available_filters, filter) then filter = 'all' end
+	--if not filter or not has_value(available_filters, filter) then filter = 'all' end --1.3#temp: remove available_filters
+	if not filter then filter = 'all' end
 	if not sortName then sortName = get_list_sort(filter) end
 	
 	local prev_sort = sortName
@@ -2621,7 +2699,8 @@ mp.register_event('file-loaded', function()
 end)
 
 mp.observe_property("idle-active", "bool", function(_, v)
-	if v and has_value(available_filters, o.auto_run_list_idle) then
+	--if v and has_value(available_filters, o.auto_run_list_idle) then--1.3#temp: remove available_filters
+	if v and o.auto_run_list_idle ~= 'none' then
 		display_list(o.auto_run_list_idle, nil, 'hide-osd')
 	end
 end)
