@@ -863,6 +863,7 @@ function draw_list()
 			end
 		end
 		
+		p = p:gsub("\\", "/"):gsub("{", "\\{"):gsub("^ ", "\\h")
 		osd_msg = osd_msg .. osd_color .. osd_key .. osd_index .. p
 		
 		if list_contents[#list_contents - i][osd_time_type] and tonumber(list_contents[#list_contents - i][osd_time_type]) > 0 then

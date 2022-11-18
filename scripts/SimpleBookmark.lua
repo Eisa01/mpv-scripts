@@ -1046,6 +1046,7 @@ function draw_list(arr_contents) --1.3#added contents table to be able to pass t
 			end
 		end
 		
+		p = p:gsub("\\", "/"):gsub("{", "\\{"):gsub("^ ", "\\h")
 		osd_msg = osd_msg .. osd_color .. osd_key .. osd_index .. p
 		
 		if arr_contents[#arr_contents - i][osd_time_type] and tonumber(arr_contents[#arr_contents - i][osd_time_type]) > 0 then
