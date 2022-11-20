@@ -2,7 +2,7 @@
 -- License: BSD 2-Clause License
 -- Creator: Eisa AlAwadhi
 -- Project: SimpleBookmark
--- Version: 1.2.3
+-- Version: 1.2.4
 
 local o = {
 ---------------------------USER CUSTOMIZATION SETTINGS---------------------------
@@ -416,10 +416,10 @@ function get_file() --1.3# removed prefer filename overtitle
 	return path, title, length
 end
 
-function get_local_names(target, property) --1.3# function to get names and fall back to whatever is found
-	local target_filename = target.found_name or target.found_title or target.found_path or ""
-	local target_filepath = target.found_path or target.found_name or target.found_title or ""
-	local target_filetitle = target.found_title or target.found_name or target.found_path or ""
+function get_local_names(target, property) --1.3# function to get names and fall back to whatever is found --1.2.4# removed or "" so that I can check for errors if the returned value is nil
+	local target_filename = target.found_name or target.found_title or target.found_path
+	local target_filepath = target.found_path or target.found_name or target.found_title
+	local target_filetitle = target.found_title or target.found_name or target.found_path
 	if not property then
 		return target_filename, target_filepath, target_filetitle
 	elseif property == 'osd' then --1.3# added osd property so it removes special character functions when displaying osd in mpv (uses gsub from search)
@@ -2392,9 +2392,9 @@ function list_slot_add(index)
 	if not osd_log_contents or not osd_log_contents[1] then return end
 	if not index then return end
 	
-	local cursor_filetitle = osd_log_contents[#osd_log_contents - list_cursor + 1].found_name
+	local cursor_filename, cursor_filepath, cursor_filetitle = get_local_names(osd_log_contents[#osd_log_contents - list_cursor + 1]) --1.2.4# added the new name calling method to fix issue of unable to add urls into groups or slots
 	local cursor_seektime = tonumber(osd_log_contents[#osd_log_contents - list_cursor + 1].found_time)
-	if not cursor_filetitle or not cursor_seektime then
+	if not cursor_filename or not cursor_seektime then
 		msg.info("Failed to add slot")
 		return
 	end
@@ -2483,16 +2483,16 @@ function list_group_add(index)
 	if not osd_log_contents or not osd_log_contents[1] then return end
 	if not index then return end
 	
-	local cursor_filetitle = osd_log_contents[#osd_log_contents - list_cursor + 1].found_name
+	local cursor_filename, cursor_filepath, cursor_filetitle = get_local_names(osd_log_contents[#osd_log_contents - list_cursor + 1]) --1.2.4# added the new name calling method to fix issue of unable to add urls into groups or slots
 	local cursor_seektime = tonumber(osd_log_contents[#osd_log_contents - list_cursor + 1].found_time)
-	if not cursor_filetitle or not cursor_seektime then
+	if not cursor_filename or not cursor_seektime then
 		msg.info("Failed to add group")
 		return
 	end
 	
 	list_group_remove('silent')
 	add_additional_log_entry(index, #osd_log_contents-list_cursor+1, log_group_text)
-	msg.info('Added Group:\n' .. cursor_filetitle .. ' 🕒 ' .. format_time(cursor_seektime) .. ' 🖿 ' .. get_group_properties(index).name)
+	msg.info('Added Group:\n' .. cursor_filename .. ' 🕒 ' .. format_time(cursor_seektime) .. ' 🖿 ' .. get_group_properties(index).name)
 end
 
 function list_group_add_highlighted(index)
