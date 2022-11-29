@@ -2,7 +2,7 @@
 -- License: BSD 2-Clause License
 -- Creator: Eisa AlAwadhi
 -- Project: SimpleHistory
--- Version: 1.1.1
+-- Version: 1.1.2
 
 local o = {
 ---------------------------USER CUSTOMIZATION SETTINGS---------------------------
@@ -20,7 +20,7 @@ local o = {
 	invert_history_blacklist = false, --true so that blacklist becomes a whitelist, resulting in stuff such as paths / websites that are added to history_blacklist to be saved into history
 	history_blacklist=[[
 	[""]
-	]], --Paths / URLs / Websites / Files / Protocols / Extensions, that wont be added to history automatically, e.g.: ["c:\\users\\eisa01\\desktop", "c:\\temp\\naruto-01.mp4", "youtube.com", "https://dailymotion.com/", "avi", "https://www.youtube.com/watch?v=e8YBesRKq_U", ".jpeg", "magnet:", "https://", "ftp"]
+	]], --Paths / URLs / Websites / Files / Protocols / Extensions, that wont be added to history automatically, e.g.: ["c:\\users\\eisa01\\desktop", "c:\\users\\eisa01\\desktop\\*", "c:\\temp\\naruto-01.mp4", "youtube.com", "https://dailymotion.com/", "avi", "https://www.youtube.com/watch?v=e8YBesRKq_U", ".jpeg", "magnet:", "https://", "ftp"]
 	history_resume_keybind=[[
 	["ctrl+r", "ctrl+R"]
 	]], --Keybind that will be used to immediately load and resume last item when no video is playing. If video is playing it will resume to the last found position
@@ -1966,6 +1966,13 @@ function history_blacklist_check()
 		has_value(o.history_blacklist, "."..filePath:match('%.([^%.]+)$'), nil) then
 			msg.info(blacklist_msg)
 			return invertable_return[1]
+		else --1.1.2# check to add any subfolder after /* to blacklist. issue #70
+			for i=1, #o.history_blacklist do --1.1.2# loop through blacklisted items, if the blacklist ends with * and it is a match after subbing of the current filePath then log it. #and additionally if it is the exact same path then ignore it.
+				if string.lower(filePath):match(string.lower(o.history_blacklist[i])) and o.history_blacklist[i]:sub(-1,#o.history_blacklist[i]) == '*' and string.lower(o.history_blacklist[i]:sub(1,-2)) ~= string.lower(filePath):match("(.*[\\/])") then
+					msg.info(blacklist_msg)
+					return invertable_return[1]
+				end
+			end
 		end
 	elseif starts_protocol(protocols, filePath) then
 		if has_value(o.history_blacklist, filePath:match('(.-)(:)'), nil) or
@@ -2218,6 +2225,10 @@ mp.add_hook('on_unload', 50, function()
 end)
 
 mp.observe_property("idle-active", "bool", function(_, v)
+	if v then --1.1.2# if idle is triggered
+		filePath, fileTitle, fileLength = nil --1.1.2# set it back to nil if idle is triggered for better trash collection. issue #69
+	end
+
 	if v and has_value(available_filters, o.auto_run_list_idle) then
 		display_list(o.auto_run_list_idle, nil, 'hide-osd')
 	end
