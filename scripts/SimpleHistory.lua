@@ -2,7 +2,7 @@
 -- License: BSD 2-Clause License
 -- Creator: Eisa AlAwadhi
 -- Project: SimpleHistory
--- Version: 1.1.2
+-- Version: 1.1.3
 
 local o = {
 ---------------------------USER CUSTOMIZATION SETTINGS---------------------------
@@ -286,6 +286,7 @@ local list_drawn = false
 local list_pages = {}
 local filePath, fileTitle, fileLength
 local seekTime = 0
+local logTime = 0 --1.3# use logTime since seekTime is used in multiple places
 local filterName = 'all'
 local sortName
 
@@ -2130,12 +2131,12 @@ function history_resume_option()
 	end
 end
 
-function history_save()
+function history_save(target_time)
 	if filePath ~= nil then
 		if history_blacklist_check() then
 			return
 		end
-		write_log(false, false, o.same_entry_limit)
+		write_log(target_time, false, o.same_entry_limit)
 		if list_drawn then
 			get_list_contents()
 			select(0)
@@ -2216,12 +2217,16 @@ mp.register_event('file-loaded', function()
 	end
 end)
 
-mp.add_hook('on_unload', 50, function()
+mp.add_hook('on_unload', 9, function()--1.1.3# get the LogTime only when using on_unload because big functions do not run fully in here
+	logTime = (mp.get_property_number('time-pos') or 0)
+end)
+mp.register_event('end-file', function()--1.1.3# use end-file instead so that it doesn't cause crash while seeking ( i am able to run big functions here)
 	if not incognito_mode then
 		if autosaved_entry == true then delete_log_entry_specific('last', filePath, 0) end
-		history_save()
+		history_save(logTime) --1.1.3# get the updated time from on_unload since it will still be preserved
 	end
 	autosaved_entry = false
+	logTime = 0 --1.1.3# reset logTime to 0
 end)
 
 mp.observe_property("idle-active", "bool", function(_, v)
