@@ -2,7 +2,7 @@
 -- License: BSD 2-Clause License
 -- Creator: Eisa AlAwadhi
 -- Project: SimpleHistory
--- Version: 1.1.4
+-- Version: 1.1.5
 
 local o = {
 ---------------------------USER CUSTOMIZATION SETTINGS---------------------------
@@ -11,6 +11,7 @@ local o = {
 
 	-----Script Settings----
 	auto_run_list_idle = 'recents', --Auto run the list when opening mpv and there is no video / file loaded. 'none' for disabled. Or choose between: 'all', 'recents', 'distinct', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'keywords'.
+	startup_idle_behavior = 'none', --The behavior when mpv launches and nothing is loaded. 'none' for disabled. 'resume' to automatically resume your last played item. 'resume-notime' to resume your last played item but starts from the beginning.
 	toggle_idlescreen = false, --hides OSC idle screen message when opening and closing menu (could cause unexpected behavior if multiple scripts are triggering osc-idlescreen off)
 	resume_offset = -0.65, --change to 0 so item resumes from the exact position, or decrease the value so that it gives you a little preview before loading the resume point
 	osd_messages = true, --true is for displaying osd messages when actions occur. Change to false will disable all osd messages generated from this script
@@ -277,6 +278,7 @@ local incognito_mode = false
 local autosaved_entry = false
 local incognito_auto_run_triggered = false
 
+local loadTriggered = false --1.1.5# to identify if load is triggered atleast once for idle option
 local resume_selected = false
 local list_contents = {}
 local list_start = 0
@@ -2206,6 +2208,7 @@ end
 mp.register_event('file-loaded', function()
 	list_close_and_trash_collection()
 	filePath, fileTitle, fileLength = get_file()
+	loadTriggered = true --1.1.5# for resume and resume-notime startup behavior (so that it only triggers if started as idle and only once)
 	if (resume_selected == true and seekTime > 0) then
 		mp.commandv('seek', seekTime, 'absolute', 'exact')
 		resume_selected = false
@@ -2234,8 +2237,12 @@ mp.observe_property("idle-active", "bool", function(_, v)
 	if v then --1.1.2# if idle is triggered
 		filePath, fileTitle, fileLength = nil --1.1.2# set it back to nil if idle is triggered for better trash collection. issue #69
 	end
-
-	if v and has_value(available_filters, o.auto_run_list_idle) then
+	
+	if v and o.startup_idle_behavior == 'resume' and not loadTriggered then --1.1.5# option to resume on startup
+		history_resume()
+	elseif v and o.startup_idle_behavior == 'resume-notime' and not loadTriggered then --1.1.5# option to load last item on startup
+		history_load_last()
+	elseif v and has_value(available_filters, o.auto_run_list_idle) then
 		display_list(o.auto_run_list_idle, nil, 'hide-osd')
 	end
 	
