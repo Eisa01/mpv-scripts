@@ -2,7 +2,7 @@
 -- License: BSD 2-Clause License
 -- Creator: Eisa AlAwadhi
 -- Project: SimpleHistory
--- Version: 1.1.3
+-- Version: 1.1.4
 
 local o = {
 ---------------------------USER CUSTOMIZATION SETTINGS---------------------------
@@ -2100,6 +2100,7 @@ end
 function history_resume_option()
 	if o.resume_option == 'notification' or o.resume_option == 'force' then
 		local video_time = mp.get_property_number('time-pos')
+		local video_path = mp.get_property('path') --1.1.4# local variable instead of filePath
 		if video_time > 0 then return end
 		local logged_time = 0
 		local percentage = 0
@@ -2107,7 +2108,7 @@ function history_resume_option()
 		list_contents = read_log_table()
 		if not list_contents or not list_contents[1] then return end
 		for i = #list_contents, 1, -1 do
-			if list_contents[i].found_path == filePath and tonumber(list_contents[i].found_time) > 0 then
+			if list_contents[i].found_path == video_path and tonumber(list_contents[i].found_time) > 0 then --1.1.4# instead of filePath in case it is causing issue
 				logged_time = tonumber(list_contents[i].found_time) + o.resume_offset
 				break
 			end
@@ -2209,7 +2210,7 @@ mp.register_event('file-loaded', function()
 		mp.commandv('seek', seekTime, 'absolute', 'exact')
 		resume_selected = false
 	end
-	mp.add_timeout(0,history_resume_option)
+	history_resume_option() --1.1.4# remove timeout, cant remember why I put it in first place
 	mark_chapter()
 	if not incognito_mode then
 		history_fileonly_save()
