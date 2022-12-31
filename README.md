@@ -217,15 +217,7 @@ The following are the default keybinds, they can be changed in the conf file of 
 # Misc
 ### MPV.net Support
 [MPV.net](https://github.com/stax76/mpv.net) users must change the option `input-default-bindings = no` to `input-default-bindings = yes` located in `MPV.net/mpv.conf` 
-### Hide mpv Logo
-To hide mpv logo when nothing is playing, as it interferes with LogManager when using auto_run_list_idle; create / edit  `mpv.conf` found in mpv directory `mpv\mpv.conf` to include the following:
-```
-#hides osc when mpv is idle
-[hide-osc idle]
-profile-cond=idle_active
-script-opts=osc-visibility=never
-profile-restore=copy
-```
+
 ### Special Thanks
 Below is list of contributors/ honorable mentions.
 - **SmartCopyPaste Script:** For the handlers that are used inside the script, which added compatibility for newer mpv versions, the method was originally forked and edited from [@jonniek](https://github.com/jonniek) appendURL script. Specical thanks for his work.
