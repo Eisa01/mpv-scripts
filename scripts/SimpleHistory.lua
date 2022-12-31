@@ -2,7 +2,7 @@
 -- License: BSD 2-Clause License
 -- Creator: Eisa AlAwadhi
 -- Project: SimpleHistory
--- Version: 1.1.5
+-- Version: 1.1.6
 
 local o = {
 ---------------------------USER CUSTOMIZATION SETTINGS---------------------------
@@ -978,7 +978,7 @@ function display_list(filter, sort, action)
 	if not search_active then get_page_properties(filter) else update_search_results('','') end
 	draw_list()
 	utils.shared_script_property_set("simplehistory-menu-open", "yes")
-	if o.toggle_idlescreen then mp.commandv('script-message', 'osc-idlescreen', 'yes', 'no_osd') end
+	if o.toggle_idlescreen then mp.commandv('script-message', 'osc-idlescreen', 'no', 'no_osd') end --1.1.6# fix osc-idlescreen (value was yes for some reason)
 	list_drawn = true
 	if not search_active then get_list_keybinds() end
 end
