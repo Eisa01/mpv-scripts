@@ -1,8 +1,8 @@
--- Copyright (c) 2022, Eisa AlAwadhi
+-- Copyright (c) 2023, Eisa AlAwadhi
 -- License: BSD 2-Clause License
 -- Creator: Eisa AlAwadhi
 -- Project: SimpleBookmark
--- Version: 1.2.8
+-- Version: 1.2.9
 
 local o = {
 ---------------------------USER CUSTOMIZATION SETTINGS---------------------------
@@ -391,14 +391,14 @@ function format_time(seconds, sep, decimals, style)
 		sep = sep and sep or ":"
 		return string.format("%02d"..sep.."%02d"..sep..second_format, h, m, s)
 	elseif style == 'hms' or style == 'hms-full' then
-	  sep = sep ~= nil and sep or " "
-	  if style == 'hms-full' or h > 0 then
+		sep = sep ~= nil and sep or " "
+		if style == 'hms-full' or h > 0 then
 		return string.format("%dh"..sep.."%dm"..sep.."%." .. tostring(decimals) .. "fs", h, m, s)
-	  elseif m > 0 then
+		elseif m > 0 then
 		return string.format("%dm"..sep.."%." .. tostring(decimals) .. "fs", m, s)
-	  else
+		else
 		return string.format("%." .. tostring(decimals) .. "fs", s)
-	  end
+		end
 	elseif style == 'timestamp' then
 		return string.format("%." .. tostring(decimals) .. "f", seconds)
 	elseif style == 'timestamp-concise' then
@@ -2580,7 +2580,7 @@ function mark_chapter()
 	mp.set_property_native("chapter-list", all_chapters)
 end
 
-function write_log(target_time, key_index, update_seekTime, entry_limit)
+function write_log(target_time, update_seekTime, entry_limit)
 	if not filePath then return end
 	local prev_seekTime = seekTime
 	local deleted_entries = {} --1.2.7# add it above since we need to call it later for preserving properties
@@ -2598,10 +2598,6 @@ function write_log(target_time, key_index, update_seekTime, entry_limit)
 	end
 	deleted_entries = same_path_log_delete(filePath, entry_limit) --1.2.5# seperate function to delete any additional entries based on the same_entry_limit set by user --1.2.7# assign it to varible since function now returns status and an array of deleted_entries --1.2.8# removed calling the array earlier and automatically call inside function
 
-	if key_index then
-		remove_all_additional_param_log_entry(key_index, log_keybind_text)
-	end
-
 	local f = io.open(log_fullpath, "a+")--1.3# dont allow customization to date_format so it can be saved in a standard in which I can parse for search results, etc..
 	if o.file_title_logging == 'all' then
 		f:write(("[%s] \"%s\" | %s | %s | %s | "):format(os.date("%Y-%m-%dT%H:%M:%S"), fileTitle, filePath, log_length_text .. tostring(fileLength), log_time_text .. tostring(seekTime)))
@@ -2612,9 +2608,7 @@ function write_log(target_time, key_index, update_seekTime, entry_limit)
 	else
 		f:write(("[%s] %s | %s | %s | "):format(os.date("%Y-%m-%dT%H:%M:%S"), filePath, log_length_text .. tostring(fileLength), log_time_text .. tostring(seekTime)))
 	end
-	if key_index then
-		f:write(' | ' .. log_keybind_text .. key_index)
-	end
+
 	f:write('\n')
 	f:close()
 
@@ -2625,7 +2619,7 @@ function write_log(target_time, key_index, update_seekTime, entry_limit)
 		if not temp_log_contents or not temp_log_contents[1] then return end
 		--1.2.6# when a slot or group was found previously, then add it
 		if found_entry['found_slot'] then
-			list_slot_remove(found_entry['found_slot'], 'silent') --1.2.7# remove all other same slots
+			remove_all_additional_param_log_entry(found_entry['found_slot'], log_keybind_text) --1.2.9# replaced list_slot_remove with remove_all_.. function to avoid possible errors since list_slot_remove has a check for list_drawn
 			add_additional_param_log_entry(found_entry['found_slot'], #temp_log_contents, log_keybind_text)
 		end
 		if found_entry['found_group'] then
@@ -2642,7 +2636,7 @@ function write_log(target_time, key_index, update_seekTime, entry_limit)
 		for i = 1, #deleted_entries do
 			if deleted_entries[i] then
 				if deleted_entries[i].found_slot then
-					list_slot_remove(deleted_entries[i].found_slot, 'silent') --1.2.7# remove all other same slots
+					remove_all_additional_param_log_entry(deleted_entries[i].found_slot, log_keybind_text) --1.2.9# replaced list_slot_remove with remove_all_.. function to avoid possible errors since list_slot_remove has a check for list_drawn
 					add_additional_param_log_entry(deleted_entries[i].found_slot, #temp_log_contents, log_keybind_text)
 					break_table = true --1.2.7# break the table after addition is added since no need to continue looking for more
 				end
@@ -2718,9 +2712,19 @@ function add_load_slot(key_index)
 				if o.keybinds_empty_auto_create then
 					if filePath ~= nil then
 						if o.keybinds_empty_fileonly then
-							write_log(0, key_index)
+							write_log(0) --1.2.9# reflect removal of key_index in write_log function, fixes bug and cleaner code
+							get_osd_log_contents() --1.2.9# reflect removal of key_index in write_log function, fixes bug and cleaner code -- also used get_osd instead of local because add_additional_param uses osd_log inside its function perhaps this should be changed
+							local current_slot = tonumber(osd_log_contents[#osd_log_contents].found_slot) --1.2.9# gets the slot of the current item
+							remove_all_additional_param_log_entry(current_slot, log_keybind_text) --1.2.9# removes all the slots of the current item
+							remove_all_additional_param_log_entry(key_index, log_keybind_text) --1.2.9# removes all the slots that are going to be added based on passed index
+							add_additional_param_log_entry(key_index, #osd_log_contents, log_keybind_text) --1.2.9# adds the slot of the passed index
 						else
-							write_log(false, key_index)
+							write_log(false) --1.2.9# reflect removal of key_index in write_log function, fixes bug and cleaner code
+							get_osd_log_contents() --1.2.9# reflect removal of key_index in write_log function, fixes bug and cleaner code
+							local current_slot = tonumber(osd_log_contents[#osd_log_contents].found_slot) --1.2.9# gets the slot of the current item
+							remove_all_additional_param_log_entry(current_slot, log_keybind_text) --1.2.9# removes all the slots of the current item
+							remove_all_additional_param_log_entry(key_index, log_keybind_text) --1.2.9# removes all the slots that are going to be added based on passed index
+							add_additional_param_log_entry(key_index, #osd_log_contents, log_keybind_text) --1.2.9# adds the slot of the passed index
 						end
 						if o.osd_messages == true then
 							mp.osd_message('Bookmarked & Added Keybind:\n' .. fileTitle .. ' 🕒 ' .. format_time(mp.get_property_number('time-pos'), o.osd_time_format[3], o.osd_time_format[2], o.osd_time_format[1]) .. ' ⌨ ' .. get_slot_keybind(key_index))
@@ -2756,13 +2760,25 @@ function quicksave_slot(key_index)
 	else
 		if filePath ~= nil then
 			if o.keybinds_quicksave_fileonly then
-				write_log(0, key_index)
+				write_log(0) --1.2.9# reflect removal of key_index in write_log function, fixes bug and cleaner code -- also used get_osd instead of local because add_additional_param uses osd_log inside its function perhaps this should be changed
+				get_osd_log_contents() --1.2.9# reflect removal of key_index in write_log function, fixes bug and cleaner code
+				local current_slot = tonumber(osd_log_contents[#osd_log_contents].found_slot) --1.2.9# gets the slot of the current item
+				remove_all_additional_param_log_entry(current_slot, log_keybind_text) --1.2.9# removes all the slots of the current item
+				remove_all_additional_param_log_entry(key_index, log_keybind_text) --1.2.9# removes all the slots that are going to be added based on passed index
+				add_additional_param_log_entry(key_index, #osd_log_contents, log_keybind_text) --1.2.9# adds the slot of the passed index
+
 				if o.osd_messages == true then
 					mp.osd_message('Bookmarked Fileonly & Added Keybind:\n' .. fileTitle .. ' ⌨ ' .. get_slot_keybind(key_index))
 				end
 				msg.info('Bookmarked the below & added keybind:\n' .. fileTitle .. ' ⌨ ' .. get_slot_keybind(key_index))
 			else
-				write_log(false, key_index, true)
+				write_log(false, true) --1.2.9# reflect removal of key_index in write_log function, fixes bug and cleaner code
+				get_osd_log_contents() --1.2.9# reflect removal of key_index in write_log function, fixes bug and cleaner code
+				local current_slot = tonumber(osd_log_contents[#osd_log_contents].found_slot) --1.2.9# gets the slot of the current item
+				remove_all_additional_param_log_entry(current_slot, log_keybind_text) --1.2.9# removes all the slots of the current item
+				remove_all_additional_param_log_entry(key_index, log_keybind_text) --1.2.9# removes all the slots that are going to be added based on passed index
+				add_additional_param_log_entry(key_index, #osd_log_contents, log_keybind_text) --1.2.9# adds the slot of the passed index
+				
 				if o.osd_messages == true then
 					mp.osd_message('Bookmarked & Added Keybind:\n' .. fileTitle .. ' 🕒 ' .. format_time(seekTime, o.osd_time_format[3], o.osd_time_format[2], o.osd_time_format[1]) .. ' ⌨ ' .. get_slot_keybind(key_index))
 				end
@@ -2779,7 +2795,7 @@ end
 
 function bookmark_save()
 	if filePath ~= nil then
-		write_log(false, false, true, o.same_entry_limit)
+		write_log(false, true, o.same_entry_limit) --1.2.9# reflect removal of key_index in write_log function
 		if list_drawn then
 			get_osd_log_contents()
 			select(0)
@@ -2801,7 +2817,7 @@ end
 
 function bookmark_fileonly_save()
 	if filePath ~= nil then
-		write_log(0, false, false, o.same_entry_limit)
+		write_log(0, false, o.same_entry_limit) --1.2.9# reflect removal of key_index in write_log function
 		if list_drawn then
 			get_osd_log_contents()
 			select(0)
