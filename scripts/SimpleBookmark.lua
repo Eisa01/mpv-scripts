@@ -2,7 +2,7 @@
 -- License: BSD 2-Clause License
 -- Creator: Eisa AlAwadhi
 -- Project: SimpleBookmark
--- Version: 1.2.9
+-- Version: 1.3.0
 
 local o = {
 ---------------------------USER CUSTOMIZATION SETTINGS---------------------------
@@ -14,7 +14,8 @@ local o = {
 	--Filters description: "all" to display all the items. Or 'groups' to display the list filtered with items added to any group. Or 'keybinds' to display the list filtered with keybind slots. Or "recents" to display recently added items to log without duplicate. Or "distinct" to show recent saved entries for files in different paths. Or "fileonly" to display files saved without time. Or "timeonly" to display files that have time only. Or "keywords" to display files with matching keywords specified in the configuration. Or "playing" to show list of current playing file.
 	--Filters can also be stacked by using %+% or omitted by using %-%. e.g.: "groups%+%keybinds" shows only groups and keybinds, "all%-%groups%-%keybinds" shows all items without groups and without keybinds.
 	--Also defined groups can be called by using /:group%Group Name%
-	auto_run_list_idle = 'none',  --Auto run the list when opening mpv and there is no video / file loaded. 'none' for disabled. Or choose between available filters.
+	auto_run_list_idle = 'none',  --Auto run the list when opening mpv and there is no video / file loaded. none for disabled. Or choose between available filters.
+	load_item_on_startup = 0, --runs a saved entry when mpv starts based on its number. -1 for oldest entry, 1 for latest entry, or select the number to load a specific entry, 0 for disabled
 	toggle_idlescreen = true, --hides OSC idle screen message when opening and closing menu (could cause unexpected behavior if multiple scripts are triggering osc-idlescreen off)
 	resume_offset = -0.65, --change to 0 so item resumes from the exact position, or decrease the value so that it gives you a little preview before loading the resume point
 	osd_messages = true, --true is for displaying osd messages when actions occur. Change to false will disable all osd messages generated from this script
@@ -118,7 +119,7 @@ local o = {
 	slice_name = false, --Change to true or false. Slices long names per the amount specified below
 	slice_name_amount = 55, --Amount for slicing long names (for path, name, and title) list_content_text variables
 	list_show_amount = 10, --Change maximum number to show items at once
-	list_content_text = '%number%. %name%%0_duration%%duration%%0_keybind%%keybind%%0_group%%group%%1_group%', --Text to be shown as header for the list
+	list_content_text = '%number%. %name%%0_duration%%duration%%0_keybind%%keybind%%0_group%%group%%1_group%\\h\\N\\N', --Text to be shown as header for the list
 		--list_content_text variables: %quickselect%, %number%, %name%, %title%, %path%, %duration%, %length%, %remaining%, %dt%, %dt_"format%"%
 		--Variables explanation: %quickselect%: keybind for quickselect. %number%: numbered sequence of the item position. %name%: shows the file name. %title%: shows file title. %path%: shows the filepath or url. %duration%: the reached playback time of item. %length%: the total time length of the file. %remaining% the remaining playback time of file. %dt%: the logged date and time.
 		--You can also use %dt_"format%"%" as per lua date formatting (https://www.lua.org/pil/22.1.html). It is specified after dt_ ..example: (%dt_%a% %dt_%b% %dt_%y%) for abbreviated day month year
@@ -140,7 +141,7 @@ local o = {
 	header_color = 'ffffaa', --Header color in BGR hexadecimal
 	header_scale = 55, --Header text size for the list
 	header_border = 0.8, --Black border size for the Header of list
-	header_text = '🔖 Bookmarks [%cursor%/%total%]%0_highlight%%highlight%%0_filter%%filter%%1_filter%%0_sort%%sort%%1_sort%%0_search%%search%%1_search%', --The formatting of the items when you open the list
+	header_text = '🔖 Bookmarks [%cursor%/%total%]%0_highlight%%highlight%%0_filter%%filter%%1_filter%%0_sort%%sort%%1_sort%%0_search%%search%%1_search%\\h\\N\\N', --The formatting of the items when you open the list
 		--header_text variables: %cursor%, %total%, %highlight%, %filter%, %search%, %duration%, %length%, %remaining%.
 		--Variables explanation: %cursor%: the number of cursor position. %total%: total amount in current list. %highlight%: total number of highlighted items.  %filter%: shows the filter name, %search%: shows the typed search. %duration%: the total reached playback time of all displayed items. %length%: the total time length of the file for all displayed items. %remaining% the remaining playback time of file for all the displayed items.
 	header_variables=[[
@@ -308,6 +309,7 @@ local protocols = {'https?:', 'magnet:', 'rtmps?:', 'smb:', 'ftps?:', 'sftp:'}
 local available_sorts = {'added-asc', 'added-desc', 'time-asc', 'time-desc', 'alphanum-asc', 'alphanum-desc'}
 local search_string = ''
 local search_active = false
+local loadTriggered = false --1.3.0# to identify if load is triggered atleast once for idle option
 local resume_selected = false
 local osd_log_contents = {}
 local list_start = 0
@@ -1112,8 +1114,7 @@ function draw_list(arr_contents)
 	local item_properties = {} --1.3# to hold all of the stuff that we extract from within this table, such as the osd_index, etc..
 	
 	if o.header_text ~= '' then
-		osd_msg = osd_msg .. osd_header .. parse_header(o.header_text)
-		osd_msg = osd_msg .. "\\h\\N\\N" .. osd_msg_end
+		osd_msg = osd_msg .. osd_header .. parse_header(o.header_text) .. osd_msg_end --1.3.0# made line break part of the config
 	end
 	
 	if search_active and not osd_log_contents[1] then
@@ -1164,10 +1165,8 @@ function draw_list(arr_contents)
 		end
 
 		if o.list_content_text ~= '' then --1.3# use parse_list_item to make the list customizable
-			osd_msg = osd_msg..osd_color..parse_list_item(o.list_content_text, item_properties)
+			osd_msg = osd_msg..osd_color..parse_list_item(o.list_content_text, item_properties) .. osd_msg_end --1.3.0# made line break part of the config
 		end
-
-		osd_msg = osd_msg .. '\\h\\N\\N' .. osd_msg_end
 
 		if i == list_start + o.list_show_amount - 1 and not showall and not showrest then
 			osd_msg = osd_msg .. o.list_sliced_suffix
@@ -1436,7 +1435,8 @@ end
 function load(list_cursor, add_playlist, target_time)
 	if not osd_log_contents or not osd_log_contents[1] then return end
 	if not target_time then
-		seekTime = tonumber(osd_log_contents[#osd_log_contents - list_cursor + 1].found_time) + o.resume_offset
+		if not osd_log_contents[#osd_log_contents - list_cursor + 1] then return end --1.3.0# fixes crash when loading an entry that doesn't exist
+		seekTime = tonumber(osd_log_contents[#osd_log_contents - list_cursor + 1].found_time) + o.resume_offset 
 		if (seekTime < 0) then
 			seekTime = 0
 		end
@@ -2840,6 +2840,7 @@ end
 mp.register_event('file-loaded', function()
 	list_close_and_trash_collection()
 	filePath, fileTitle, fileLength = get_file()
+	loadTriggered = true --1.1.5# for resume and resume-notime startup behavior (so that it only triggers if started as idle and only once)
 	if (resume_selected == true and seekTime ~= nil) then
 		mp.commandv('seek', seekTime, 'absolute', 'exact')
 		resume_selected = false
@@ -2848,8 +2849,22 @@ mp.register_event('file-loaded', function()
 end)
 
 mp.observe_property("idle-active", "bool", function(_, v)
+	if v then --1.3.0# if idle is triggered
+		filePath, fileTitle, fileLength = nil --1.3.0# set it back to nil if idle is triggered for better trash collection. issue #69
+	end
+
 	if v and o.auto_run_list_idle ~= 'none' then
 		display_list(o.auto_run_list_idle, nil, 'hide-osd')
+	end
+	
+	if v and type(o.load_item_on_startup) == "number" and not loadTriggered then --1.3.0# option to immediately load an entry based on number
+		if o.load_item_on_startup == 0 then return end --1.3.0# if the entry loaded is 0 then exit this, this is automatically handled in load also but it is better to exit here since there will be a loop below this
+		
+		osd_log_contents = read_log_table() --1.3.0# get the item list to use load function
+		if not osd_log_contents or not osd_log_contents[1] then return end
+
+		if o.load_item_on_startup == -1 then o.load_item_on_startup = #osd_log_contents end --1.3.0# specify -1 as last entry
+		load(o.load_item_on_startup)
 	end
 end)
 
