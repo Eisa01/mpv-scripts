@@ -2,7 +2,7 @@
 -- License: BSD 2-Clause License
 -- Creator: Eisa AlAwadhi
 -- Project: SimpleBookmark
--- Version: 1.3.0
+-- Version: 1.3.1
 
 local o = {
 ---------------------------USER CUSTOMIZATION SETTINGS---------------------------
@@ -22,6 +22,7 @@ local o = {
 	bookmark_loads_last_idle = true, --When attempting to bookmark, if there is no video / file loaded, it will instead jump to your last bookmarked item and resume it.
 	bookmark_fileonly_loads_last_idle = true, --When attempting to bookmark fileonly, if there is no video / file loaded, it will instead jump to your last bookmarked item without resuming.
 	mark_bookmark_as_chapter = false, --true is for marking the time as a chapter. false disables mark as chapter behavior.
+	preserve_video_settings = false, --(true/false). Preserve video settings when bookmarking items and loading bookmarks by writing mpv watch-later config
 	bookmark_save_keybind=[[
 	["ctrl+b", "ctrl+B"]
 	]], --Keybind that will be used to save the video and its time to log file
@@ -510,6 +511,7 @@ function read_log(func)
 	local f = io.open(log_fullpath, "r")
 	if not f then return end
 	local contents = {}
+	local line_count = 0
 	for line in f:lines() do
 		table.insert(contents, (func(line)))
 	end
@@ -586,10 +588,14 @@ function parse_list_item(str, properties) --1.3#add ability to parse the content
 	
 	local list_filename, list_filepath, list_filetitle = get_local_names(properties["item"],'osd')--1.3# added osd property so it removes special characters for displaying list
 
-	if o.slice_name and p:len() > o.slice_name_amount then
-		list_filename = list_filename:sub(1, o.slice_name_amount) .. "..." --1.3# perhaps seperate the option for slicing filename / path
+	if o.slice_name and list_filepath:len() > o.slice_name_amount then --1.3.1# fix #86 since p doesn't exist anymore, and checks for specific filename / filepath / filetitle, so slicing is accurate.
 		list_filepath = list_filepath:sub(1, o.slice_name_amount) .. "..."
-		list_filetitle = list_filetitle:sub(1, o.slice_name_amount) .. "..."		
+	end
+	if o.slice_name and list_filename:len() > o.slice_name_amount then
+		list_filename = list_filename:sub(1, o.slice_name_amount) .. "..."
+	end
+	if o.slice_name and list_filetitle:len() > o.slice_name_amount then
+		list_filetitle = list_filetitle:sub(1, o.slice_name_amount) .. "..."
 	end
 
 	str = str:gsub("%%name%%", list_filename)
@@ -807,50 +813,50 @@ function search_log_contents(arr_contents)
 
 	local search_arr_contents = {}
 
-	for i = 1, #osd_log_contents do --1.3# removed specific search method as it doesn't seem useful anymore
+	for i = 1, #arr_contents do --1.3# removed specific search method as it doesn't seem useful anymore, --1.3.1# utilize arr_contents instead of osd_log_contents
 		if o.search_behavior == 'any' then
-			contents_string = osd_log_contents[i].found_datetime --1.3# seperated date and time for search
-			if parse_8601(osd_log_contents[i].found_datetime) then --1.3# an if statement to check if date could be parsed --1.3# allows for all type of dates to be searched thanks to the loop
+			contents_string = arr_contents[i].found_datetime --1.3# seperated date and time for search
+			if parse_8601(arr_contents[i].found_datetime) then --1.3# an if statement to check if date could be parsed --1.3# allows for all type of dates to be searched thanks to the loop
 				local os_date_tag= {'%a', '%A', '%b', '%B', '%c', '%d', '%H', '%I', '%M', '%m', '%p', '%S', '%w', '%x', '%X', '%Y', '%y'} --1.3# add all lua date time parameters
 				for j=1, #os_date_tag do --1.3# replace all lua parameters with date values that can be searched
-					contents_string = contents_string..os.date(os_date_tag[j], parse_8601(osd_log_contents[i].found_datetime))
+					contents_string = contents_string..os.date(os_date_tag[j], parse_8601(arr_contents[i].found_datetime))
 				end
 			end
-			contents_string = contents_string..(osd_log_contents[i].found_title or '')..(osd_log_contents[i].found_name or '')..osd_log_contents[i].found_path --1.3# added found_name since parsing is different now
-			if tonumber(osd_log_contents[i].found_time) > 0 then
-				contents_string = contents_string..format_time(osd_log_contents[i].found_time, o.list_duration_time_format[3], o.list_duration_time_format[2], o.list_duration_time_format[1])
+			contents_string = contents_string..(arr_contents[i].found_title or '')..(arr_contents[i].found_name or '')..arr_contents[i].found_path --1.3# added found_name since parsing is different now
+			if tonumber(arr_contents[i].found_time) > 0 then
+				contents_string = contents_string..format_time(arr_contents[i].found_time, o.list_duration_time_format[3], o.list_duration_time_format[2], o.list_duration_time_format[1])
 			end
-			if tonumber(osd_log_contents[i].found_length) > 0 then
-				contents_string = contents_string..format_time(osd_log_contents[i].found_length, o.list_length_time_format[3], o.list_length_time_format[2], o.list_length_time_format[1])
+			if tonumber(arr_contents[i].found_length) > 0 then
+				contents_string = contents_string..format_time(arr_contents[i].found_length, o.list_length_time_format[3], o.list_length_time_format[2], o.list_length_time_format[1])
 			end
-			if tonumber(osd_log_contents[i].found_remaining) > 0 then
-				contents_string = contents_string..format_time(osd_log_contents[i].found_remaining, o.list_remaining_time_format[3], o.list_remaining_time_format[2], o.list_remaining_time_format[1])
+			if tonumber(arr_contents[i].found_remaining) > 0 then
+				contents_string = contents_string..format_time(arr_contents[i].found_remaining, o.list_remaining_time_format[3], o.list_remaining_time_format[2], o.list_remaining_time_format[1])
 			end			
-			if osd_log_contents[i].found_slot then
-				contents_string = contents_string..get_slot_keybind(tonumber(osd_log_contents[i].found_slot))
+			if arr_contents[i].found_slot then
+				contents_string = contents_string..get_slot_keybind(tonumber(arr_contents[i].found_slot))
 			end
-			if osd_log_contents[i].found_group then
-				contents_string = contents_string..get_group_properties(tonumber(osd_log_contents[i].found_group)).name
+			if arr_contents[i].found_group then
+				contents_string = contents_string..get_group_properties(tonumber(arr_contents[i].found_group)).name
 			end
 		elseif o.search_behavior == 'any-notime' then
-			contents_string = osd_log_contents[i].found_datetime --1.3# seperated date and time for search
-			if parse_8601(osd_log_contents[i].found_datetime) then --1.3# an if statement to check if date could be parsed
+			contents_string = arr_contents[i].found_datetime --1.3# seperated date and time for search
+			if parse_8601(arr_contents[i].found_datetime) then --1.3# an if statement to check if date could be parsed
 				local os_date_tag= {'%a', '%A', '%b', '%B', '%c', '%d', '%H', '%I', '%M', '%m', '%p', '%S', '%w', '%x', '%X', '%Y', '%y'} --1.3# add all lua date time parameters
 				for j=1, #os_date_tag do --1.3# replace all lua parameters with values that can be searched
-					contents_string = contents_string..os.date(os_date_tag[j], parse_8601(osd_log_contents[i].found_datetime))
+					contents_string = contents_string..os.date(os_date_tag[j], parse_8601(arr_contents[i].found_datetime))
 				end
 			end
-			contents_string = contents_string..(osd_log_contents[i].found_title or '')..(osd_log_contents[i].found_name or '')..osd_log_contents[i].found_path --1.3# added found_name since parsing is different now
-			if osd_log_contents[i].found_slot then
-				contents_string = contents_string..get_slot_keybind(tonumber(osd_log_contents[i].found_slot))
+			contents_string = contents_string..(arr_contents[i].found_title or '')..(arr_contents[i].found_name or '')..arr_contents[i].found_path --1.3# added found_name since parsing is different now
+			if arr_contents[i].found_slot then
+				contents_string = contents_string..get_slot_keybind(tonumber(arr_contents[i].found_slot))
 			end
-			if osd_log_contents[i].found_group then
-				contents_string = contents_string..get_group_properties(tonumber(osd_log_contents[i].found_group)).name
+			if arr_contents[i].found_group then
+				contents_string = contents_string..get_group_properties(tonumber(arr_contents[i].found_group)).name
 			end
 		end
 		
 		if string.lower(contents_string):match(string.lower(search_query)) then
-			table.insert(search_arr_contents, osd_log_contents[i])
+			table.insert(search_arr_contents, arr_contents[i])
 		end
 	end
 
@@ -1117,7 +1123,7 @@ function draw_list(arr_contents)
 		osd_msg = osd_msg .. osd_header .. parse_header(o.header_text) .. osd_msg_end --1.3.0# made line break part of the config
 	end
 	
-	if search_active and not osd_log_contents[1] then
+	if search_active and not arr_contents[1] then --1.3.1# changed osd_log_contents to arr_contents
 		osd_msg = osd_msg .. 'No search results found' .. osd_msg_end
 	end
 	
@@ -1446,6 +1452,7 @@ function load(list_cursor, add_playlist, target_time)
 	if file_exists(osd_log_contents[#osd_log_contents - list_cursor + 1].found_path) or starts_protocol(protocols, osd_log_contents[#osd_log_contents - list_cursor + 1].found_path) then
 		local list_filename, list_filepath, list_filetitle = get_local_names(osd_log_contents[#osd_log_contents - list_cursor + 1]) --1.3# use the name that automatically falls back instead for osd printing or msg (solves the issue that causes concatinating found_name to crash because it sometimes doesn't exist due to parsing changes)
 		if not add_playlist then
+			if o.preserve_video_settings then mp.command("write-watch-later-config") end--1.3.1# option to preserve video settings by using write-watch-later-config when loading bookmark replaces current file #84
 			if filePath ~= osd_log_contents[#osd_log_contents - list_cursor + 1].found_path then
 				mp.commandv('loadfile', osd_log_contents[#osd_log_contents - list_cursor + 1].found_path)
 				resume_selected = true
@@ -2582,6 +2589,8 @@ end
 
 function write_log(target_time, update_seekTime, entry_limit)
 	if not filePath then return end
+	if o.preserve_video_settings then mp.command("write-watch-later-config") end--1.3.1# option to preserve video settings by using write-watch-later-config when saving bookmark #84
+    
 	local prev_seekTime = seekTime
 	local deleted_entries = {} --1.2.7# add it above since we need to call it later for preserving properties
 
@@ -2679,6 +2688,7 @@ function add_load_slot(key_index)
 			if slot_taken then
 				if file_exists(list_filepath) or starts_protocol(protocols, list_filepath) then
 					if list_filepath ~= current_filePath then
+						if o.preserve_video_settings then mp.command("write-watch-later-config") end--1.3.1# option to preserve video settings by using write-watch-later-config when loading bookmark replaces current file #84
 						mp.commandv('loadfile', list_filepath)
 						if o.keybinds_auto_resume then
 							resume_selected = true
