@@ -2,8 +2,8 @@
 -- License: BSD 2-Clause License
 -- Creator: Eisa AlAwadhi
 -- Project: SmartSkip
--- Version: 1.0
--- Date: 07-09-2023
+-- Version: 1.01
+-- Date: 08-09-2023
 
 -- Related forked projects: 
 --  https://github.com/detuur/mpv-scripts/blob/master/skiptosilence.lua
@@ -95,7 +95,10 @@ local file_length = 0
 local keep_open_state = "yes"
 if mp.get_property("config") ~= "no" then keep_open_state = mp.get_property("keep-open") end
 local autoload_playlist = o.autoload_playlist --0.19# for activate autoload keybind
-local autoskip_chapter = o.autoskip_chapter --1.0# to make autoskip_chapter toggle-able 
+local autoskip_chapter = o.autoskip_chapter --1.0# to make autoskip_chapter toggle-able
+local playlist_osd = false --1.01# for fixing universal playlist-osd
+local autoskip_playlist_osd = false --1.01# for custom autoskip_playlist_osd
+local g_playlist_pos = 0 --1.01# detect change in playlist to show osd
 
 -- utility functions --
 function has_value(tab, val, array2d) --1.07# needed when using arrays for user config
@@ -1112,7 +1115,14 @@ function chapterskip(_, current)
                 skip = i
             end
         elseif skip then
-			mp.commandv(o.autoskip_osd, 'add', 'chapter', 1) --0.19# instead of skipping to time, just skip the chapter - Also show osd message to demonstrate that autoskip triggered
+			local autoskip_osd = o.autoskip_osd --1.01# show custom osd-msg-bar instead of default
+			if o.autoskip_osd == 'osd-msg-bar' then autoskip_osd = 'osd-bar' end --1.01# change it only to bar and show the custom osd message
+			if o.autoskip_osd == 'osd-msg' then autoskip_osd = 'no-osd' end --1.01# change it to no-osd for osd-msg so it shows the custom message
+			if o.autoskip_osd == 'osd-msg-bar' or o.autoskip_osd == 'osd-msg' then
+				mp.command('show-text "➤ Auto-Skip: Chapter ${chapter}"') --1.01# this has to be above skipping chapter because I want to show the name of the chapter before skipping
+			end
+			mp.commandv(autoskip_osd, 'add', 'chapter', 1) --0.19# instead of skipping to time, just skip the chapter - Also show osd message to demonstrate that autoskip triggered
+			--mp.command('show-progress')
             skipped[skip] = true
             return
         end
@@ -1122,6 +1132,7 @@ function chapterskip(_, current)
             return mp.set_property("time-pos", mp.get_property_native("duration"))
         end
         mp.commandv("playlist-next")
+		if o.autoskip_osd ~= 'no-osd' then autoskip_playlist_osd = true end
     end
 end
 
@@ -1149,7 +1160,11 @@ mp.register_event("file-loaded", function() skipped = {} end) -- chapterskip.lua
 
 mp.register_event('file-loaded', function()
 	file_length = (mp.get_property_native('duration') or 0)
-	if o.playlist_osd then mp.command("show-text '[${playlist-pos-1}/${playlist-count}] ${filename}'") end --1.10# adds playlist_osd
+	if o.playlist_osd and g_playlist_pos > 0 then playlist_osd = true end
+	if playlist_osd and not autoskip_playlist_osd then mp.command("show-text '[${playlist-pos-1}/${playlist-count}] ${filename}'") end --1.10# adds playlist_osd
+	if autoskip_playlist_osd then mp.command("show-text '➤ Auto-Skip\n[${playlist-pos-1}/${playlist-count}] ${filename}'") end
+	playlist_osd = false --1.01# reset playlist osd
+	autoskip_playlist_osd = false --1.01# reset autoskip playlist osd
 	force_silence_skip = false --1.10# reset force silence skip
 	initial_chapter_count = mp.get_property_number("chapter-list/count")
 	if initial_chapter_count > 0 and chapter_state ~= 'external-chapters' then chapter_state = 'internal-chapters' end --1.07# only set internal chapters if external-chapters were not loaded and the chapters count is more than 0
@@ -1169,6 +1184,7 @@ mp.add_hook('on_unload', 9, function()
 	if o.modified_chapters_autosave == true or has_value(o.modified_chapters_autosave, chapter_state) then write_chapters(false) end --1.07# moved auto_save chapters here since I revert no_chapters here
 	mp.set_property("keep-open", keep_open_state)
 	chapter_state = 'no-chapters' --1.07# revert chapter state
+	g_playlist_pos = (mp.get_property_native('playlist-playing-pos')+1 or 0)
 end)
 
 mp.observe_property('eof-reached', 'bool', eofHandler)
