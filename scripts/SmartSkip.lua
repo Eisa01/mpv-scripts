@@ -2,7 +2,7 @@
 -- License: BSD 2-Clause License
 -- Creator: Eisa AlAwadhi
 -- Project: SmartSkip
--- Version: 0.19
+-- Version: 1.0
 -- Date: 07-09-2023
 
 -- Related forked projects: 
@@ -33,7 +33,7 @@ local o = {
 	add_chapter_pause_for_input = false, -- pause the playback when asking for chapter title
     add_chapter_placeholder_title = "Chapter ", -- placeholder when asking for title of a new chapter
 	--chapters auto skip user config--
-    autoskip_chapter = false, --(yes/no) or specify types e.g.: [[ ["internal-chapters", "external-chapters"] ]])
+    autoskip_chapter = false, --(yes/no) -- removed option for based on chapters
     skip_once = true, --(yes/no) or specify types e.g.: [[ ["internal-chapters", "external-chapters"] ]])
 	categories = [[ [ ["internal-chapters", "prologue>Prologue/^Intro; opening>OP/ OP$/^Opening; ending>^ED/ ED$/^Ending; preview>Preview$"], ["external-chapters", "idx->0/2"] ] ]], --0.16# write the string for any chapter type, e.g.: categories = "prologue>Prologue/^Intro; opening>OP/ OP$/^Opening; ending>^ED/ ED$/^Ending; preview>Preview$; idx->0/2", or specify categories for each chapter
 	skip = [[ [ ["internal-chapters", "opening;ending;preview"], ["external-chapters", "idx-"] ] ]], -- write the string .e.g: skip = "opening;ending", OR define the skip category for each chapter type: [[ [ ["internal-chapters", "prologue;ending"], ["external-chapters", "idx-"] ] ]]
@@ -74,7 +74,6 @@ if o.modified_chapters_autosave ~= false and o.modified_chapters_autosave ~= tru
 o.last_chapter_skip_behavior = utils.parse_json(o.last_chapter_skip_behavior)
 if utils.parse_json(o.skip) ~= nil then o.skip = utils.parse_json(o.skip) end --0.17# only if it is an appropriate json string then convert it into table
 if utils.parse_json(o.categories) ~= nil then o.categories = utils.parse_json(o.categories) end --0.17# only if it is an appropriate json string then convert it into table
-if o.autoskip_chapter ~= false and o.autoskip_chapter ~= true then o.autoskip_chapter = utils.parse_json(o.autoskip_chapter) end --0.18 yes/no + json for autoskip_chapter
 if o.skip_once ~= false and o.skip_once ~= true then o.skip_once = utils.parse_json(o.skip_once) end --0.18 yes/no + json for skip_once
 
 package.path = mp.command_native({"expand-path", "~~/script-modules/?.lua;"}) .. package.path
@@ -96,6 +95,7 @@ local file_length = 0
 local keep_open_state = "yes"
 if mp.get_property("config") ~= "no" then keep_open_state = mp.get_property("keep-open") end
 local autoload_playlist = o.autoload_playlist --0.19# for activate autoload keybind
+local autoskip_chapter = o.autoskip_chapter --1.0# to make autoskip_chapter toggle-able 
 
 -- utility functions --
 function has_value(tab, val, array2d) --1.07# needed when using arrays for user config
@@ -1067,8 +1067,7 @@ local parsed = {}
 
 function chapterskip(_, current)
 	if chapter_state == 'no-chapters' then return end --0.17#FINALLY: solve crash because of the table, basically only proceed with this function to skip_chapters if its not defined as no-chapters.
-    if not o.autoskip_chapter then return end
-	if o.autoskip_chapter ~= false and o.autoskip_chapter ~= true and not has_value(o.autoskip_chapter, chapter_state) then return end --0.18 allow yes/no + json for specific chapters
+    if not autoskip_chapter then return end --1.0# changed to global variable for toggle-able
 	
 	local opt_categories = o.categories --0.17 initiate as opt_categories
 	if type(o.categories) == 'table' then --0.17# if it is table then find the appropriate value based on chapter
@@ -1126,6 +1125,19 @@ function chapterskip(_, current)
     end
 end
 
+function toggle_autoskip() --1.0# add option to toggle autoskip
+	if autoskip_chapter == true then
+		autoskip_chapter = false
+		if o.osd_msg then mp.osd_message('Disabled autoskip') end
+		msg.info('Disabled autoskip')
+	elseif autoskip_chapter == false then 
+		autoskip_chapter = true
+		if o.osd_msg then mp.osd_message('Enabled autoskip') end
+		msg.info('Enabled autoskip')
+	end
+end
+
+
 -- HOOKS --------------------------------------------------------------------
 if user_input_module then mp.add_hook("on_unload", 50, function () input.cancel_user_input() end) end -- chapters.lua
 mp.register_event("start-file", find_and_add_entries) -- autoload.lua
@@ -1164,6 +1176,7 @@ mp.observe_property('eof-reached', 'bool', eofHandler)
 -- BINDINGS --------------------------------------------------------------------
 
 mp.add_key_binding("", "toggle-autoload", toggle_autoload)
+mp.add_key_binding("ctrl+.", "toggle-autoskip", toggle_autoskip)
 mp.add_key_binding("n", "add-chapter", add_chapter)
 mp.add_key_binding("alt+n", "remove-chapter", remove_chapter)
 mp.add_key_binding("ctrl+n", "write-chapters", function () write_chapters(true) end)
