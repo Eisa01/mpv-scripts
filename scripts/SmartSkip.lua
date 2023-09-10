@@ -2,7 +2,7 @@
 -- License: BSD 2-Clause License
 -- Creator: Eisa AlAwadhi
 -- Project: SmartSkip
--- Version: 1.03
+-- Version: 1.04
 -- Date: 10-09-2023
 
 -- Related forked projects: 
@@ -246,7 +246,7 @@ function smartPrev() --1.10# changed to smartPrev to only handle cases where pre
 
 	if chapter-1 < 0 and timepos > 1 and chapters_count == 0 then --1.11# made the if statement more clear
 		mp.commandv('seek', 0, 'absolute', 'exact')
-		mp.commandv(o.seek_osd, "show_progress")
+		mp.commandv(o.seek_osd, "show-progress")
 	elseif chapter-1 < 0 and timepos < 1 then --1.10# only go to previous playlist if its less than 1 second, otherwise chapter will trigger (perhaps add a check to exit function doing nothing when in first playlist entry)
         mp.command('playlist_prev')
     elseif chapter-1 <= chapters_count then --1.10# if there is previous chapter then go to it
@@ -264,7 +264,7 @@ function chapterSeek(direction) --0.14# change variables to be same as smartPrev
 
     if chapter+direction < 0 and timepos > 1 and chapters_count == 0 then --1.11# allows chapterSeek to go to begining of file even if no chapter and before first chapter
 		mp.commandv('seek', 0, 'absolute', 'exact')
-		mp.commandv(o.seek_osd, "show_progress")	
+		mp.commandv(o.seek_osd, "show-progress")	
 	elseif chapter+direction < 0 and timepos < 1 then --1.11# only if at the begining of the file then go back to previous playlist
 	    mp.command('playlist_prev')
     elseif chapter+direction >= chapters_count then
@@ -282,7 +282,7 @@ function silenceSkip(action)
 	local width = mp.get_property_native("osd-width")
 	local height = mp.get_property_native("osd-height")
 	mp.set_property_native("geometry", ("%dx%d"):format(width, height))
-	mp.commandv(o.seek_osd, "show_progress")
+	mp.commandv(o.seek_osd, "show-progress")
 	
 	mp.command(
 		"no-osd af add @skiptosilence:lavfi=[silencedetect=noise=" ..
@@ -313,7 +313,7 @@ function silenceSkip(action)
 	timer = mp.add_periodic_timer(0.5, function()
 		local video_time = (mp.get_property_native("time-pos") or 0)
 		handleMinMaxDuration(video_time)
-		if skip_flag then mp.commandv(o.seek_osd, "show_progress") end
+		if skip_flag then mp.commandv(o.seek_osd, "show-progress") end
 	end)
 end
 
@@ -1127,10 +1127,11 @@ function chapterskip(_, current)
 			local autoskip_osd = o.autoskip_osd --1.01# show custom osd-msg-bar instead of default
 			if o.autoskip_osd == 'osd-msg-bar' then autoskip_osd = 'osd-bar' end --1.01# change it only to bar and show the custom osd message
 			if o.autoskip_osd == 'osd-msg' then autoskip_osd = 'no-osd' end --1.01# change it to no-osd for osd-msg so it shows the custom message
+			mp.commandv(autoskip_osd, "show-progress") --1.04# use it only for osd, for the text I am using custom show-text 
 			if o.autoskip_osd == 'osd-msg-bar' or o.autoskip_osd == 'osd-msg' then
 				mp.command('show-text "➤ Auto-Skip: Chapter ${chapter}"') --1.01# this has to be above skipping chapter because I want to show the name of the chapter before skipping
 			end
-			mp.commandv(autoskip_osd, 'add', 'chapter', 1) --0.19# instead of skipping to time, just skip the chapter - Also show osd message to demonstrate that autoskip triggered
+			mp.set_property("time-pos", chapters[i].time) --1.04# Fixes bug of not skipping consecutive chapters
             skipped[skip] = true
             return
         end
@@ -1156,7 +1157,6 @@ function toggle_autoskip() --1.0# add option to toggle autoskip
 	end
 end
 
-
 function toggle_category_autoskip() --1.02# option to add / remove categories from autoskip
 	if chapter_state == 'no-chapters' then return end --1.02# exit if there are no chapters
 	if not mp.get_property_number("chapter") then return end --1.02# if unable to get any chapter index then return
@@ -1178,8 +1178,6 @@ end
 if user_input_module then mp.add_hook("on_unload", 50, function () input.cancel_user_input() end) end -- chapters.lua
 mp.register_event("start-file", find_and_add_entries) -- autoload.lua
 mp.observe_property("chapter", "number", chapterskip) -- chapterskip.lua
-mp.register_event("file-loaded", function() skipped = {} end) -- chapterskip.lua
-
 
 -- smart skip events / properties / hooks --
 
@@ -1191,6 +1189,7 @@ mp.register_event('file-loaded', function()
 	playlist_osd = false --1.01# reset playlist osd
 	autoskip_playlist_osd = false --1.01# reset autoskip playlist osd
 	force_silence_skip = false --1.10# reset force silence skip
+	skipped = {} --1.04# reset skipped autoskip flag
 	initial_chapter_count = mp.get_property_number("chapter-list/count")
 	if initial_chapter_count > 0 and chapter_state ~= 'external-chapters' then chapter_state = 'internal-chapters' end --1.07# only set internal chapters if external-chapters were not loaded and the chapters count is more than 0
 end)
