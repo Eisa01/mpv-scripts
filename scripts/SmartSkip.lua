@@ -2,8 +2,8 @@
 -- License: BSD 2-Clause License
 -- Creator: Eisa AlAwadhi
 -- Project: SmartSkip
--- Version: 1.01
--- Date: 08-09-2023
+-- Version: 1.02
+-- Date: 10-09-2023
 
 -- Related forked projects: 
 --  https://github.com/detuur/mpv-scripts/blob/master/skiptosilence.lua
@@ -18,6 +18,7 @@ local o = {
 	ignore_silence_duration=1,
 	min_skip_duration = 0,
 	max_skip_duration = 120,
+	keybind_twice_cancel_skip = true, --1.02# (yes/no) press keybind again silence-skip is active to cancel
 	skip_to_end_behavior = "playlist-next",
 	add_chapter_on_skip = true, --1.07# add the following options --- (yes/no) or specify types ["no-chapters", "internal-chapters", "external-chapters"]. e.g.: [[ ["no-chapters", "external-chapters"] ]])
 	force_mute_on_skip = false,
@@ -35,8 +36,8 @@ local o = {
 	--chapters auto skip user config--
     autoskip_chapter = false, --(yes/no) -- removed option for based on chapters
     skip_once = true, --(yes/no) or specify types e.g.: [[ ["internal-chapters", "external-chapters"] ]])
-	categories = [[ [ ["internal-chapters", "prologue>Prologue/^Intro; opening>OP/ OP$/^Opening; ending>^ED/ ED$/^Ending; preview>Preview$"], ["external-chapters", "idx->0/2"] ] ]], --0.16# write the string for any chapter type, e.g.: categories = "prologue>Prologue/^Intro; opening>OP/ OP$/^Opening; ending>^ED/ ED$/^Ending; preview>Preview$; idx->0/2", or specify categories for each chapter
-	skip = [[ [ ["internal-chapters", "opening;ending;preview"], ["external-chapters", "idx-"] ] ]], -- write the string .e.g: skip = "opening;ending", OR define the skip category for each chapter type: [[ [ ["internal-chapters", "prologue;ending"], ["external-chapters", "idx-"] ] ]]
+	categories = [[ [ ["internal-chapters", "prologue>Prologue/^Intro; opening>^OP/ OP$/^Opening; ending>^ED/ ED$/^Ending; preview>Preview$"], ["external-chapters", "idx->0/2"] ] ]], --0.16# write the string for any chapter type, e.g.: categories = "prologue>Prologue/^Intro; opening>OP/ OP$/^Opening; ending>^ED/ ED$/^Ending; preview>Preview$; idx->0/2", or specify categories for each chapter.
+	skip = [[ [ ["internal-chapters", "opening;ending;preview;toggle"], ["external-chapters", "idx-;toggle"] ] ]], -- write the string .e.g: skip = "opening;ending", OR define the skip category for each chapter type: [[ [ ["internal-chapters", "prologue;ending"], ["external-chapters", "idx-"] ] ]]. idx- followed by the chapter index to autoskip based on index. toggle is for categories toggled during playback.
 	--autoload user config--
 	autoload_playlist = true,
     autoload_max_entries = 5000,
@@ -120,6 +121,10 @@ function has_value(tab, val, array2d) --1.07# needed when using arrays for user 
 	end
 	
 	return false
+end
+
+function esc_string(str)
+	return str:gsub("([%p])", "%%%1")
 end
 
 -- skip-silence utility functions --
@@ -250,7 +255,9 @@ function smartPrev() --1.10# changed to smartPrev to only handle cases where pre
 end
 
 -- chapter-next/prev main code --
-function chapterSeek(direction) --0.14# change variables to be same as smartPrev 
+function chapterSeek(direction) --0.14# change variables to be same as smartPrev
+	if skip_flag and direction == -1 then restoreProp(initial_skip_time) return end --1.02# cancel skip to silence if its on-going when going back
+
 	local chapters_count = (mp.get_property_number('chapters') or 0)
     local chapter  = (mp.get_property_number('chapter') or 0)
 	local timepos = (mp.get_property_native("time-pos") or 0)
@@ -269,7 +276,7 @@ end
 
 -- silence skip main code --
 function silenceSkip(action)
-	if skip_flag then return end
+	if skip_flag then if o.keybind_twice_cancel_skip then restoreProp(initial_skip_time) end return end --1.02# added option to cancel by pressing keybind again
 	initial_skip_time = (mp.get_property_native("time-pos") or 0)
 	if math.floor(initial_skip_time) == math.floor(mp.get_property_native('duration') or 0) then return end	
 	local width = mp.get_property_native("osd-width")
@@ -903,12 +910,12 @@ end
 function toggle_autoload() --0.19# add option to toggle autoload for enable / disabled
 	if autoload_playlist == true then
 		autoload_playlist = false
-		if o.osd_msg then mp.osd_message('Disabled autoload') end
-		msg.info('Disabled autoload')
+		if o.osd_msg then mp.osd_message('○ Auto-Load Disabled') end --1.02# change osd message
+		msg.info('○ Auto-Load Disabled')
 	elseif autoload_playlist == false then 
 		autoload_playlist = true
-		if o.osd_msg then mp.osd_message('Enabled autoload') end
-		msg.info('Enabled autoload')
+		if o.osd_msg then mp.osd_message('● Auto-Load Enabled') end
+		msg.info('● Auto-Load Enabled')
 	end
 	if autoload_playlist then find_and_add_entries() end
 end
@@ -1031,7 +1038,9 @@ end
 
 --modified fork of chapterskip.lua--
 
-local categories = {}
+local categories = { --1.02# added default as a pre-defined category
+	toggle = "",
+}
 
 function matches(i, title)
 	local opt_skip = o.skip --0.17# initiate opt_skip as o.skip, however if it was table then find the appropriate value based on chapter
@@ -1122,7 +1131,6 @@ function chapterskip(_, current)
 				mp.command('show-text "➤ Auto-Skip: Chapter ${chapter}"') --1.01# this has to be above skipping chapter because I want to show the name of the chapter before skipping
 			end
 			mp.commandv(autoskip_osd, 'add', 'chapter', 1) --0.19# instead of skipping to time, just skip the chapter - Also show osd message to demonstrate that autoskip triggered
-			--mp.command('show-progress')
             skipped[skip] = true
             return
         end
@@ -1139,15 +1147,39 @@ end
 function toggle_autoskip() --1.0# add option to toggle autoskip
 	if autoskip_chapter == true then
 		autoskip_chapter = false
-		if o.osd_msg then mp.osd_message('Disabled autoskip') end
-		msg.info('Disabled autoskip')
+		if o.osd_msg then mp.osd_message('○ Auto-Skip Disabled') end --1.02# change osd message
+		msg.info('○ Auto-Skip Disabled')
 	elseif autoskip_chapter == false then 
 		autoskip_chapter = true
-		if o.osd_msg then mp.osd_message('Enabled autoskip') end
-		msg.info('Enabled autoskip')
+		if o.osd_msg then mp.osd_message('● Auto-Skip Enabled') end
+		msg.info('● Auto-Skip Enabled')
 	end
 end
 
+
+function toggle_category_autoskip() --1.02# option to add / remove categories from autoskip
+	if chapter_state == 'no-chapters' then return end --1.02# exit if there are no chapters
+	if not mp.get_property_number("chapter") then return end --1.02# if unable to get any chapter index then return
+	local chapters = mp.get_property_native("chapter-list")
+	local current_chapter = mp.get_property_number("chapter") + 1
+	
+	if chapters[current_chapter] and matches(current_chapter, chapters[current_chapter].title) then --1.02# check if chapter first, and check if its in user config
+		--print("EXISTS: "..chapters[current_chapter].title)
+		if o.osd_msg then mp.osd_message('Chapter is already configured for Auto-Skip') end
+		msg.info('Chapter is already configured for Auto-Skip')
+		if string.match(categories.toggle, chapters[current_chapter].title) then --1.02# check if category is within toggle
+			--print("THIS CHAPTER WAS ADDED BY TOGGLE - Removing again")
+			if o.osd_msg then mp.osd_message('○ Removed from Auto-Skip\nChapter: '..chapters[current_chapter].title) end
+			msg.info('○ Removed from Auto-Skip\nChapter: '..chapters[current_chapter].title)
+			categories.toggle = categories.toggle:gsub(esc_string("^"..chapters[current_chapter].title.."/"), "") --1.02# if category is within toggle then remove it
+		end
+	else
+		--print("DOES NOT EXIST: ".. chapters[current_chapter].title)
+		if o.osd_msg then mp.osd_message('● Added to Auto-Skip\nChapter: '..chapters[current_chapter].title) end
+		msg.info('● Added to Auto-Skip\nChapter: '..chapters[current_chapter].title)
+		categories.toggle = categories.toggle.."^"..chapters[current_chapter].title.."/" --1.02# if not within toggle then add chapter to toggle category
+    end
+end
 
 -- HOOKS --------------------------------------------------------------------
 if user_input_module then mp.add_hook("on_unload", 50, function () input.cancel_user_input() end) end -- chapters.lua
@@ -1193,6 +1225,7 @@ mp.observe_property('eof-reached', 'bool', eofHandler)
 
 mp.add_key_binding("", "toggle-autoload", toggle_autoload)
 mp.add_key_binding("ctrl+.", "toggle-autoskip", toggle_autoskip)
+mp.add_key_binding("alt+.", "toggle-category-autoskip", toggle_category_autoskip)
 mp.add_key_binding("n", "add-chapter", add_chapter)
 mp.add_key_binding("alt+n", "remove-chapter", remove_chapter)
 mp.add_key_binding("ctrl+n", "write-chapters", function () write_chapters(true) end)
