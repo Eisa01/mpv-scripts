@@ -2,7 +2,7 @@
 -- License: BSD 2-Clause License
 -- Creator: Eisa AlAwadhi
 -- Project: SmartSkip
--- Version: 1.02
+-- Version: 1.03
 -- Date: 10-09-2023
 
 -- Related forked projects: 
@@ -1163,18 +1163,11 @@ function toggle_category_autoskip() --1.02# option to add / remove categories fr
 	local chapters = mp.get_property_native("chapter-list")
 	local current_chapter = mp.get_property_number("chapter") + 1
 	
-	if chapters[current_chapter] and matches(current_chapter, chapters[current_chapter].title) then --1.02# check if chapter first, and check if its in user config
-		--print("EXISTS: "..chapters[current_chapter].title)
-		if o.osd_msg then mp.osd_message('Chapter is already configured for Auto-Skip') end
-		msg.info('Chapter is already configured for Auto-Skip')
-		if string.match(categories.toggle, chapters[current_chapter].title) then --1.02# check if category is within toggle
-			--print("THIS CHAPTER WAS ADDED BY TOGGLE - Removing again")
-			if o.osd_msg then mp.osd_message('○ Removed from Auto-Skip\nChapter: '..chapters[current_chapter].title) end
-			msg.info('○ Removed from Auto-Skip\nChapter: '..chapters[current_chapter].title)
-			categories.toggle = categories.toggle:gsub(esc_string("^"..chapters[current_chapter].title.."/"), "") --1.02# if category is within toggle then remove it
-		end
+	if string.match(categories.toggle, chapters[current_chapter].title) then --1.03# removed checking of chapters from different categories
+		if o.osd_msg then mp.osd_message('○ Removed from Auto-Skip\nChapter: '..chapters[current_chapter].title) end
+		msg.info('○ Removed from Auto-Skip\nChapter: '..chapters[current_chapter].title)
+		categories.toggle = categories.toggle:gsub(esc_string("^"..chapters[current_chapter].title.."/"), "") --1.02# if category is within toggle then remove it
 	else
-		--print("DOES NOT EXIST: ".. chapters[current_chapter].title)
 		if o.osd_msg then mp.osd_message('● Added to Auto-Skip\nChapter: '..chapters[current_chapter].title) end
 		msg.info('● Added to Auto-Skip\nChapter: '..chapters[current_chapter].title)
 		categories.toggle = categories.toggle.."^"..chapters[current_chapter].title.."/" --1.02# if not within toggle then add chapter to toggle category
