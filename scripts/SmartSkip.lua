@@ -2,8 +2,8 @@
 -- License: BSD 2-Clause License
 -- Creator: Eisa AlAwadhi
 -- Project: SmartSkip
--- Version: 1.04
--- Date: 10-09-2023
+-- Version: 1.05
+-- Date: 12-09-2023
 
 -- Related forked projects: 
 --  https://github.com/detuur/mpv-scripts/blob/master/skiptosilence.lua
@@ -55,6 +55,7 @@ local o = {
 	autoskip_osd = "osd-msg-bar", --Choose between (no-osd/osd-bar/osd-msg/osd-msg-bar)
 	playlist_osd = true, --1.07# true false to show osd when playlist entry changes --0.19# made it universal
 	osd_msg = true, -- all other osd messages
+	osd_duration = 2000, --duration for the osd message in milliseconds, applies to all osd_messages, -1 reverts to --osd-duration
 }
 
 local mp = require 'mp'
@@ -76,10 +77,10 @@ o.last_chapter_skip_behavior = utils.parse_json(o.last_chapter_skip_behavior)
 if utils.parse_json(o.skip) ~= nil then o.skip = utils.parse_json(o.skip) end --0.17# only if it is an appropriate json string then convert it into table
 if utils.parse_json(o.categories) ~= nil then o.categories = utils.parse_json(o.categories) end --0.17# only if it is an appropriate json string then convert it into table
 if o.skip_once ~= false and o.skip_once ~= true then o.skip_once = utils.parse_json(o.skip_once) end --0.18 yes/no + json for skip_once
-
 package.path = mp.command_native({"expand-path", "~~/script-modules/?.lua;"}) .. package.path
 local user_input_module, input = pcall(require, "user-input-module")
 
+if o.osd_duration == -1 then o.osd_duration = (mp.get_property_number('osd-duration') or 1000) end --1.05# actually -1 should automatically get osd-duration, however perhaps when not using show-text it might not be the case, well nothing to lose by having this.
 local speed_state = 1
 local pause_state = false
 local mute_state = false
@@ -95,12 +96,14 @@ local chapter_state = 'no-chapters' --1.07# initiate with no-chapters as the def
 local file_length = 0
 local keep_open_state = "yes"
 if mp.get_property("config") ~= "no" then keep_open_state = mp.get_property("keep-open") end
+local osd_duration_default = (mp.get_property_number('osd-duration') or 1000) --1.05# get the default osd_duration to revert
 local autoload_playlist = o.autoload_playlist --0.19# for activate autoload keybind
 local autoskip_chapter = o.autoskip_chapter --1.0# to make autoskip_chapter toggle-able
 local playlist_osd = false --1.01# for fixing universal playlist-osd
 local autoskip_playlist_osd = false --1.01# for custom autoskip_playlist_osd
 local g_playlist_pos = 0 --1.01# detect change in playlist to show osd
-
+local g_opt_categories = o.categories --1.05 change to global variable initiate as opt_categories
+local g_opt_skip_once = false --1.05# change to global variable and call once only on file load
 -- utility functions --
 function has_value(tab, val, array2d) --1.07# needed when using arrays for user config
 	if not tab then return msg.error('check value passed') end
@@ -125,6 +128,13 @@ end
 
 function esc_string(str)
 	return str:gsub("([%p])", "%%%1")
+end
+
+function prompt_msg(text, duration) --1.05# convert osd_messages into function
+	if not text then return end --1.05# text is mandotary
+	if not duration then duration = o.osd_duration end --1.05# initiate with osd_duration as default
+    if o.osd_msg then mp.commandv("show-text", text, duration) end
+	msg.info(text)
 end
 
 -- skip-silence utility functions --
@@ -153,22 +163,15 @@ function handleMinMaxDuration(timepos)
 		skip_duration = timepos - initial_skip_time
 		if o.min_skip_duration > 0 and skip_duration <= o.min_skip_duration then
 			restoreProp(initial_skip_time)
-			if o.osd_msg then mp.osd_message('Skipping Cancelled\nSilence less than minimum') end
-			msg.info('Skipping Cancelled\nSilence is less than configured minimum')
+			prompt_msg('Skipping Cancelled\nSilence less than minimum')
 			return true
 		end
 		if o.max_skip_duration > 0 and skip_duration >= o.max_skip_duration then
 			restoreProp(initial_skip_time)
-			if o.osd_msg then mp.osd_message('Skipping Cancelled\nSilence more than maximum') end
-			msg.info('Skipping Cancelled\nSilence is more than configured maximum')
+			prompt_msg('Skipping Cancelled\nSilence is more than configured maximum')
 			return true
 		end
 		return false
-end
-
-function skippedMessage()
-	if o.osd_msg then mp.osd_message("Skipped to silence 🕒 " .. mp.get_property_osd("time-pos")) end --0.19# changed icon 
-	msg.info("Skipped to silence at " .. mp.get_property_osd("time-pos"))
 end
 
 function setKeepOpenState()
@@ -184,19 +187,16 @@ function eofHandler(name, val)
 		if o.skip_to_end_behavior == 'playlist-next' then
 			restoreProp((mp.get_property_native('duration') or 0))
 			if mp.get_property_native('playlist-playing-pos')+1 == mp.get_property_native('playlist-count') then
-				if o.osd_msg then mp.osd_message("Skipped to end at " .. mp.get_property_osd("duration")) end
-				msg.info("Skipped to end at " .. mp.get_property_osd("duration"))
+				prompt_msg('Skipped to end at ' .. mp.get_property_osd('duration'))
 			else
 				mp.commandv("playlist-next") --1.08# added playlist-next here instead of on_unload to solve issue of playlist moving twice
 			end
 		elseif o.skip_to_end_behavior == 'cancel' then	
+			prompt_msg('Skipping Cancelled\nSilence not detected')
 			restoreProp(initial_skip_time)
-			if o.osd_msg then mp.osd_message('Skipping Cancelled\nSilence not detected') end
-			msg.info('Skipping Cancelled\nSilence was not detected and playback reached end')
-		elseif o.skip_to_end_behavior == 'pause' then	
+		elseif o.skip_to_end_behavior == 'pause' then
+			prompt_msg('Skipped to end at ' .. mp.get_property_osd('duration'))
 			restoreProp((mp.get_property_native('duration') or 0), true)
-			if o.osd_msg then mp.osd_message("Skipped to end at " .. mp.get_property_osd("duration")) end
-			msg.info("Skipped to end at " .. mp.get_property_osd("duration"))
 		end
 	end
 end
@@ -231,7 +231,9 @@ function smartNext() --1.09# change smartNext behavior
 		silenceSkip()
 	end
 	if next_action == 'chapter-next' then
+		mp.set_property('osd-duration', o.osd_duration) --1.05# change osd bar duration (needs to change the universal osd-duration)
 		mp.commandv(o.chapter_osd, 'add', 'chapter', 1)
+		mp.add_timeout(0.07, function () mp.set_property('osd-duration', osd_duration_default) end) --1.05# revert the change to osd, required mp.add_timeout to give show-progress time to execute (at least requires 0.058 here) - putting it at 0.07 just to be safe
 	end
 	if next_action == 'playlist-next' then
 		mp.command('playlist_next')
@@ -246,11 +248,16 @@ function smartPrev() --1.10# changed to smartPrev to only handle cases where pre
 
 	if chapter-1 < 0 and timepos > 1 and chapters_count == 0 then --1.11# made the if statement more clear
 		mp.commandv('seek', 0, 'absolute', 'exact')
+		
+		mp.set_property('osd-duration', o.osd_duration) --1.05# change osd bar duration (needs to change the universal osd-duration)
 		mp.commandv(o.seek_osd, "show-progress")
+		mp.add_timeout(0.07, function () mp.set_property('osd-duration', osd_duration_default) end) --1.05# revert the change to osd, required mp.add_timeout to give show-progress time to execute (at least requires 0.058 here) - putting it at 0.07 just to be safe
 	elseif chapter-1 < 0 and timepos < 1 then --1.10# only go to previous playlist if its less than 1 second, otherwise chapter will trigger (perhaps add a check to exit function doing nothing when in first playlist entry)
         mp.command('playlist_prev')
     elseif chapter-1 <= chapters_count then --1.10# if there is previous chapter then go to it
+		mp.set_property('osd-duration', o.osd_duration) --1.05# change osd bar duration (needs to change the universal osd-duration)
         mp.commandv(o.chapter_osd, 'add', 'chapter', -1) --added OSD bar in addition to msg
+		mp.add_timeout(0.07, function () mp.set_property('osd-duration', osd_duration_default) end) --1.05# revert the change to osd, required mp.add_timeout to give show-progress time to execute (at least requires 0.058 here) - putting it at 0.07 just to be safe
     end
 end
 
@@ -264,13 +271,19 @@ function chapterSeek(direction) --0.14# change variables to be same as smartPrev
 
     if chapter+direction < 0 and timepos > 1 and chapters_count == 0 then --1.11# allows chapterSeek to go to begining of file even if no chapter and before first chapter
 		mp.commandv('seek', 0, 'absolute', 'exact')
-		mp.commandv(o.seek_osd, "show-progress")	
+		
+		mp.set_property('osd-duration', o.osd_duration) --1.05# change osd bar duration (needs to change the universal osd-duration)
+		mp.commandv(o.seek_osd, "show-progress")
+		mp.add_timeout(0.07, function () mp.set_property('osd-duration', osd_duration_default) end) --1.05# revert the change to osd, required mp.add_timeout to give show-progress time to execute (at least requires 0.058 here) - putting it at 0.07 just to be safe
 	elseif chapter+direction < 0 and timepos < 1 then --1.11# only if at the begining of the file then go back to previous playlist
 	    mp.command('playlist_prev')
     elseif chapter+direction >= chapters_count then
 		mp.command('playlist_next')
     else
-        mp.commandv(o.seek_osd, 'add', 'chapter', direction) --added OSD bar in addition to msg --0.16 changed to o.seek_osd
+        mp.set_property('osd-duration', o.osd_duration) --1.05# change osd bar duration (needs to change the universal osd-duration)
+        mp.commandv(o.chapter_osd, 'add', 'chapter', direction) --1.05# changed to chapter_osd msg
+		mp.add_timeout(0.07, function () mp.set_property('osd-duration', osd_duration_default) end) --1.05# revert the change to osd, required mp.add_timeout to give show-progress time to execute (at least requires 0.058 here) - putting it at 0.07 just to be safe
+
     end
 end
 
@@ -331,7 +344,7 @@ function foundSilence(name, value)
 	
 	restoreProp(timecode)
 
-	mp.add_timeout(0.05, skippedMessage)
+	mp.add_timeout(0.05, function() prompt_msg('Skipped to silence 🕒 ' .. mp.get_property_osd("time-pos")) end) --1.05# no need for custom function anymore, just ust prompt_msg
 	if o.add_chapter_on_skip == true or has_value(o.add_chapter_on_skip, chapter_state) then --1.07# if the chapter_on_skip is the same as chapter_state (using array) or if its enabled then add chapter
 		mp.add_timeout(0.05, add_chapter) --0.15# fix: timepos is wrong when found_silence triggers add_chapter, timecode sometimes is wrong so I need to wait at least 0.05 and run the add_chapter function which will also get timepos
 	end --1.06# utilize the add_chapter function --1.07# fix bug wrong place adding chapter by using timecode
@@ -690,7 +703,7 @@ function write_chapters(...)
 
     if success then
         if osd then
-            mp.osd_message("Chapters written to:" .. chapters_file_path, 3)
+            prompt_msg('Chapters written to:' .. chapters_file_path)
         end
         return chapters_file_path
     else
@@ -800,7 +813,7 @@ function bake_chapters()
     })
 
     if process.status == 0 then
-        mp.osd_message("file written to " .. output_path, 3)
+		prompt_msg('file written to ' .. output_path)
     else
         msg.error("failed to write file:\n", process.stderr)
     end
@@ -909,13 +922,11 @@ end
 
 function toggle_autoload() --0.19# add option to toggle autoload for enable / disabled
 	if autoload_playlist == true then
+		prompt_msg('○ Auto-Load Disabled')
 		autoload_playlist = false
-		if o.osd_msg then mp.osd_message('○ Auto-Load Disabled') end --1.02# change osd message
-		msg.info('○ Auto-Load Disabled')
 	elseif autoload_playlist == false then 
+		prompt_msg('● Auto-Load Enabled')
 		autoload_playlist = true
-		if o.osd_msg then mp.osd_message('● Auto-Load Enabled') end
-		msg.info('● Auto-Load Enabled')
 	end
 	if autoload_playlist then find_and_add_entries() end
 end
@@ -1077,21 +1088,27 @@ end
 local skipped = {}
 local parsed = {}
 
-function chapterskip(_, current)
-	if chapter_state == 'no-chapters' then return end --0.17#FINALLY: solve crash because of the table, basically only proceed with this function to skip_chapters if its not defined as no-chapters.
-    if not autoskip_chapter then return end --1.0# changed to global variable for toggle-able
+function prep_chapterskip_var() --1.05# to identify the chapter category of autoskip only once
+	if chapter_state == 'no-chapters' then return end
+	g_opt_categories = o.categories --1.05# update every time on load to reset into originally defined categories
 	
-	local opt_categories = o.categories --0.17 initiate as opt_categories
+	g_opt_skip_once = false --0.18# initiate as false to be default state --1.05 after every file load 
+	if o.skip_once == true or o.skip_once == false then --0.18# if its enabled or disabled then set it as that
+		g_opt_skip_once = o.skip_once
+	elseif has_value(o.skip_once, chapter_state) then --0.18# if it is found for a specific chapter then enable it for only the specific chapter
+		g_opt_skip_once = true;
+	end
+	
 	if type(o.categories) == 'table' then --0.17# if it is table then find the appropriate value based on chapter
 		for i=1, #o.categories do
 			if o.categories[i] and o.categories[i][1] == chapter_state then --0.17# set the value for the defined chapter, causes crash because this function could run before chapter_state is set to internal or external (look at FINALLY: for the fix)
-				opt_categories = o.categories[i][2]
+				g_opt_categories = o.categories[i][2]
 				break
 			end
 		end
 	end
 	
-    for category in string.gmatch(opt_categories, "([^;]+)") do
+	for category in string.gmatch(g_opt_categories, "([^;]+)") do
         name, patterns = string.match(category, " *([^+>]*[^+> ]) *[+>](.*)")
         if name then
             categories[name:lower()] = patterns
@@ -1100,23 +1117,25 @@ function chapterskip(_, current)
         end
         parsed[category] = true
     end
+	return g_opt_categories
+end
+
+function chapterskip(_, current)
+	if chapter_state == 'no-chapters' then return end --0.17#FINALLY: solve crash because of the table, basically only proceed with this function to skip_chapters if its not defined as no-chapters.
+    if not autoskip_chapter then return end --1.0# changed to global variable for toggle-able
+	
     local chapters = mp.get_property_native("chapter-list")
     local skip = false
-	local opt_skip_once = false --0.18# initiate as false to be default state
-	if o.skip_once == true or o.skip_once == false then --0.18# if its enabled or disabled then set it as that
-		opt_skip_once = o.skip_once
-	elseif has_value(o.skip_once, chapter_state) then --0.18# if it is found for a specific chapter then enable it for only the specific chapter
-		opt_skip_once = true;
-	end
+
     for i=0, #chapters do --0.16 convert to standard for loop
-		if (not opt_skip_once or not skipped[i]) and i == 0 and chapters[i+1] and matches(i, chapters[i+1].title) then --0.16 handle index = 0 (idx->0), this will only run if index is 0 and then it will proceed like it was originally. ALSO (chaptersi+1) will also handle it so this works only if there chapter-next detected.
+		if (not g_opt_skip_once or not skipped[i]) and i == 0 and chapters[i+1] and matches(i, chapters[i+1].title) then --0.16 handle index = 0 (idx->0), this will only run if index is 0 and then it will proceed like it was originally. ALSO (chaptersi+1) will also handle it so this works only if there chapter-next detected.
 		    if i == current + 1 or skip == i - 1 then
                 if skip then
                     skipped[skip] = true
                 end
                 skip = i
             end
-        elseif (not opt_skip_once or not skipped[i]) and chapters[i] and matches(i, chapters[i].title) then --0.16 check if chapter iternation exists first to not crash
+        elseif (not g_opt_skip_once or not skipped[i]) and chapters[i] and matches(i, chapters[i].title) then --0.16 check if chapter iternation exists first to not crash
             if i == current + 1 or skip == i - 1 then
                 if skip then
                     skipped[skip] = true
@@ -1127,9 +1146,13 @@ function chapterskip(_, current)
 			local autoskip_osd = o.autoskip_osd --1.01# show custom osd-msg-bar instead of default
 			if o.autoskip_osd == 'osd-msg-bar' then autoskip_osd = 'osd-bar' end --1.01# change it only to bar and show the custom osd message
 			if o.autoskip_osd == 'osd-msg' then autoskip_osd = 'no-osd' end --1.01# change it to no-osd for osd-msg so it shows the custom message
+			
+			mp.set_property('osd-duration', o.osd_duration) --1.05# change osd bar duration (needs to change the universal osd-duration)
 			mp.commandv(autoskip_osd, "show-progress") --1.04# use it only for osd, for the text I am using custom show-text 
+			mp.add_timeout(0.07, function () mp.set_property('osd-duration', osd_duration_default) end) --1.05# revert the change to osd, required mp.add_timeout to give show-progress time to execute -- at least requires 0 here putting it at 0.07 just to be safe
+			
 			if o.autoskip_osd == 'osd-msg-bar' or o.autoskip_osd == 'osd-msg' then
-				mp.command('show-text "➤ Auto-Skip: Chapter ${chapter}"') --1.01# this has to be above skipping chapter because I want to show the name of the chapter before skipping
+				prompt_msg('➤ Auto-Skip: Chapter '.. mp.command_native({'expand-text', '${chapter}'})) --1.01# this has to be above skipping chapter because I want to show the name of the chapter before skipping
 			end
 			mp.set_property("time-pos", chapters[i].time) --1.04# Fixes bug of not skipping consecutive chapters
             skipped[skip] = true
@@ -1147,13 +1170,11 @@ end
 
 function toggle_autoskip() --1.0# add option to toggle autoskip
 	if autoskip_chapter == true then
+		prompt_msg('○ Auto-Skip Disabled')
 		autoskip_chapter = false
-		if o.osd_msg then mp.osd_message('○ Auto-Skip Disabled') end --1.02# change osd message
-		msg.info('○ Auto-Skip Disabled')
-	elseif autoskip_chapter == false then 
+	elseif autoskip_chapter == false then
+		prompt_msg('● Auto-Skip Enabled')
 		autoskip_chapter = true
-		if o.osd_msg then mp.osd_message('● Auto-Skip Enabled') end
-		msg.info('● Auto-Skip Enabled')
 	end
 end
 
@@ -1161,15 +1182,14 @@ function toggle_category_autoskip() --1.02# option to add / remove categories fr
 	if chapter_state == 'no-chapters' then return end --1.02# exit if there are no chapters
 	if not mp.get_property_number("chapter") then return end --1.02# if unable to get any chapter index then return
 	local chapters = mp.get_property_native("chapter-list")
-	local current_chapter = mp.get_property_number("chapter") + 1
+	local current_chapter = (mp.get_property_number("chapter") + 1 or -1) --1.05# to not cause crash when looking for chapters_index
+	if not chapters[current_chapter] or not chapters[current_chapter].title then return end --1.05# exit the function if there is no chapter / chapter title, since having title is currently requirement
 	
 	if string.match(categories.toggle, chapters[current_chapter].title) then --1.03# removed checking of chapters from different categories
-		if o.osd_msg then mp.osd_message('○ Removed from Auto-Skip\nChapter: '..chapters[current_chapter].title) end
-		msg.info('○ Removed from Auto-Skip\nChapter: '..chapters[current_chapter].title)
+		prompt_msg('○ Removed from Auto-Skip\n  ▷ Chapter: '..chapters[current_chapter].title)
 		categories.toggle = categories.toggle:gsub(esc_string("^"..chapters[current_chapter].title.."/"), "") --1.02# if category is within toggle then remove it
 	else
-		if o.osd_msg then mp.osd_message('● Added to Auto-Skip\nChapter: '..chapters[current_chapter].title) end
-		msg.info('● Added to Auto-Skip\nChapter: '..chapters[current_chapter].title)
+		prompt_msg('● Added to Auto-Skip\n  ➔ Chapter: '..chapters[current_chapter].title)
 		categories.toggle = categories.toggle.."^"..chapters[current_chapter].title.."/" --1.02# if not within toggle then add chapter to toggle category
     end
 end
@@ -1184,14 +1204,21 @@ mp.observe_property("chapter", "number", chapterskip) -- chapterskip.lua
 mp.register_event('file-loaded', function()
 	file_length = (mp.get_property_native('duration') or 0)
 	if o.playlist_osd and g_playlist_pos > 0 then playlist_osd = true end
-	if playlist_osd and not autoskip_playlist_osd then mp.command("show-text '[${playlist-pos-1}/${playlist-count}] ${filename}'") end --1.10# adds playlist_osd
-	if autoskip_playlist_osd then mp.command("show-text '➤ Auto-Skip\n[${playlist-pos-1}/${playlist-count}] ${filename}'") end
+	-- 	if playlist_osd and not autoskip_playlist_osd then mp.command("show-text '[${playlist-pos-1}/${playlist-count}] ${filename}'"..o.osd_duration) end --1.05# this can also be used for osd duration however it will not show msg.info
+	-- if autoskip_playlist_osd then mp.command("show-text '➤ Auto-Skip\n[${playlist-pos-1}/${playlist-count}] ${filename}'"..o.osd_duration) end --1.05# this can also be used for osd duration however it will not show msg.info
+	if playlist_osd and not autoskip_playlist_osd then --1.05# utilize prompt_msg
+		prompt_msg('['..mp.command_native({'expand-text', '${playlist-pos-1}'})..'/'..mp.command_native({'expand-text', '${playlist-count}'})..'] '..mp.command_native({'expand-text', '${filename}'}))
+	end
+	if autoskip_playlist_osd then --1.05# utilize prompt_msg
+		prompt_msg('➤ Auto-Skip\n['..mp.command_native({'expand-text', '${playlist-pos-1}'})..'/'..mp.command_native({'expand-text', '${playlist-count}'})..'] '..mp.command_native({'expand-text', '${filename}'}))
+	end
 	playlist_osd = false --1.01# reset playlist osd
 	autoskip_playlist_osd = false --1.01# reset autoskip playlist osd
 	force_silence_skip = false --1.10# reset force silence skip
 	skipped = {} --1.04# reset skipped autoskip flag
 	initial_chapter_count = mp.get_property_number("chapter-list/count")
 	if initial_chapter_count > 0 and chapter_state ~= 'external-chapters' then chapter_state = 'internal-chapters' end --1.07# only set internal chapters if external-chapters were not loaded and the chapters count is more than 0
+	prep_chapterskip_var() --1.05# change it as global variable
 end)
 
 mp.add_hook("on_load", 50, function()
