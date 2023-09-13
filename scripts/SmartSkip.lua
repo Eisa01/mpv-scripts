@@ -2,8 +2,8 @@
 -- License: BSD 2-Clause License
 -- Creator: Eisa AlAwadhi
 -- Project: SmartSkip
--- Version: 1.05
--- Date: 12-09-2023
+-- Version: 1.06
+-- Date: 13-09-2023
 
 -- Related forked projects: 
 --  https://github.com/detuur/mpv-scripts/blob/master/skiptosilence.lua
@@ -55,7 +55,7 @@ local o = {
 	autoskip_osd = "osd-msg-bar", --Choose between (no-osd/osd-bar/osd-msg/osd-msg-bar)
 	playlist_osd = true, --1.07# true false to show osd when playlist entry changes --0.19# made it universal
 	osd_msg = true, -- all other osd messages
-	osd_duration = 2000, --duration for the osd message in milliseconds, applies to all osd_messages, -1 reverts to --osd-duration
+	osd_duration = 2500, --duration for the osd message in milliseconds, applies to all osd_messages, -1 reverts to --osd-duration
 }
 
 local mp = require 'mp'
@@ -1117,16 +1117,16 @@ function prep_chapterskip_var() --1.05# to identify the chapter category of auto
         end
         parsed[category] = true
     end
-	return g_opt_categories
+	--1.06# no need for return
 end
 
 function chapterskip(_, current)
 	if chapter_state == 'no-chapters' then return end --0.17#FINALLY: solve crash because of the table, basically only proceed with this function to skip_chapters if its not defined as no-chapters.
     if not autoskip_chapter then return end --1.0# changed to global variable for toggle-able
-	
     local chapters = mp.get_property_native("chapter-list")
     local skip = false
-
+	local consecutive_i = 0 --1.06# initiate to track consecutive chapters
+	
     for i=0, #chapters do --0.16 convert to standard for loop
 		if (not g_opt_skip_once or not skipped[i]) and i == 0 and chapters[i+1] and matches(i, chapters[i+1].title) then --0.16 handle index = 0 (idx->0), this will only run if index is 0 and then it will proceed like it was originally. ALSO (chaptersi+1) will also handle it so this works only if there chapter-next detected.
 		    if i == current + 1 or skip == i - 1 then
@@ -1134,6 +1134,7 @@ function chapterskip(_, current)
                     skipped[skip] = true
                 end
                 skip = i
+				consecutive_i = consecutive_i+1 --1.06# track consecutive chapters
             end
         elseif (not g_opt_skip_once or not skipped[i]) and chapters[i] and matches(i, chapters[i].title) then --0.16 check if chapter iternation exists first to not crash
             if i == current + 1 or skip == i - 1 then
@@ -1141,6 +1142,7 @@ function chapterskip(_, current)
                     skipped[skip] = true
                 end
                 skip = i
+				consecutive_i = consecutive_i+1 --1.06# track consecutive chapters
             end
         elseif skip then
 			local autoskip_osd = o.autoskip_osd --1.01# show custom osd-msg-bar instead of default
@@ -1152,7 +1154,15 @@ function chapterskip(_, current)
 			mp.add_timeout(0.07, function () mp.set_property('osd-duration', osd_duration_default) end) --1.05# revert the change to osd, required mp.add_timeout to give show-progress time to execute -- at least requires 0 here putting it at 0.07 just to be safe
 			
 			if o.autoskip_osd == 'osd-msg-bar' or o.autoskip_osd == 'osd-msg' then
-				prompt_msg('➤ Auto-Skip: Chapter '.. mp.command_native({'expand-text', '${chapter}'})) --1.01# this has to be above skipping chapter because I want to show the name of the chapter before skipping
+				if consecutive_i > 1 then
+					local autoskip_osd_string = '' --1.06# initiate autoskip chapter osd as empty string
+					for j=consecutive_i, 1, -1  do --1.06# do a reverse loop to get the index from smallest to biggest
+						autoskip_osd_string=(autoskip_osd_string..'\n  ➤ Chapter ('..i-j..') '..chapters[i-j].title) --1.06# print the index of chapter along with title and put it into autoskip osd string
+					end
+					prompt_msg('● Auto-Skip'..autoskip_osd_string)
+				else
+					prompt_msg('➤ Auto-Skip: Chapter '.. mp.command_native({'expand-text', '${chapter}'})) --1.01# this has to be above skipping chapter because I want to show the name of the chapter before skipping
+				end
 			end
 			mp.set_property("time-pos", chapters[i].time) --1.04# Fixes bug of not skipping consecutive chapters
             skipped[skip] = true
