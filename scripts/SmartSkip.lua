@@ -2,7 +2,7 @@
 -- License: BSD 2-Clause License
 -- Creator: Eisa AlAwadhi
 -- Project: SmartSkip
--- Version: 1.07
+-- Version: 1.08
 -- Date: 13-09-2023
 
 -- Related forked projects: 
@@ -34,12 +34,12 @@ local o = {
 	add_chapter_pause_for_input = false, -- pause the playback when asking for chapter title
     add_chapter_placeholder_title = "Chapter ", -- placeholder when asking for title of a new chapter
 	--chapters auto skip user config--
-    autoskip_chapter = true, --(yes/no) -- removed option for based on chapters
+    autoskip_chapter = false, --(yes/no) -- removed option for based on chapters
 	autoskip_countdown = 0, --(number) countdown before initiating autoskip
 	autoskip_countdown_bulk = true, --(yes/no) coundown seperately for each consecutive chapter or bulk them together in 1 countdown
-    skip_once = false, --(yes/no) or specify types e.g.: [[ ["internal-chapters", "external-chapters"] ]])
-	categories = [[ [ ["internal-chapters", "prologue>Prologue/^Intro; opening>^OP/ OP$/^Opening; ending>^ED/ ED$/^Ending; preview>Preview$"], ["external-chapters", "idx->0/2"] ] ]], --0.16# write the string for any chapter type, e.g.: categories = "prologue>Prologue/^Intro; opening>OP/ OP$/^Opening; ending>^ED/ ED$/^Ending; preview>Preview$; idx->0/2", or specify categories for each chapter.
-	skip = [[ [ ["internal-chapters", "opening;ending;preview;toggle"], ["external-chapters", "idx-;toggle"] ] ]], -- write the string .e.g: skip = "opening;ending", OR define the skip category for each chapter type: [[ [ ["internal-chapters", "prologue;ending"], ["external-chapters", "idx-"] ] ]]. idx- followed by the chapter index to autoskip based on index. toggle is for categories toggled during playback.
+    skip_once = true, --(yes/no) or specify types e.g.: [[ ["internal-chapters", "external-chapters"] ]])
+	categories = [[ [ ["internal-chapters", "prologue>Prologue/^Intro; opening>^OP/ OP$/^Opening; ending>^ED/ ED$/^Ending; preview>Preview$"], ["external-chapters", "idx->0/1"] ] ]], --0.16# write the string for any chapter type, e.g.: categories = "prologue>Prologue/^Intro; opening>OP/ OP$/^Opening; ending>^ED/ ED$/^Ending; preview>Preview$; idx->0/2", or specify categories for each chapter.
+	skip = [[ [ ["internal-chapters", "opening;ending;preview;toggle"], ["external-chapters", "idx-;toggle;opening"] ] ]], -- write the string .e.g: skip = "opening;ending", OR define the skip category for each chapter type: [[ [ ["internal-chapters", "prologue;ending"], ["external-chapters", "idx-"] ] ]]. idx- followed by the chapter index to autoskip based on index. toggle is for categories toggled during playback.
 	--autoload user config--
 	autoload_playlist = true,
     autoload_max_entries = 5000,
@@ -193,7 +193,7 @@ function eofHandler(name, val)
 			if mp.get_property_native('playlist-playing-pos')+1 == mp.get_property_native('playlist-count') then
 				prompt_msg('Skipped to end at ' .. mp.get_property_osd('duration'))
 			else
-				mp.commandv("playlist-next") --1.08# added playlist-next here instead of on_unload to solve issue of playlist moving twice
+				mp.commandv("playlist-next")
 			end
 		elseif o.skip_to_end_behavior == 'cancel' then	
 			prompt_msg('Skipping Cancelled\nSilence not detected')
@@ -308,7 +308,7 @@ function silenceSkip(action)
 	
 	mp.observe_property("af-metadata/skiptosilence", "string", foundSilence)
 	
-	sub_state = mp.get_property("sub-visibility") --1.08# change with sub-visibility instead of sid, fixes subtitle causes crash if autoload script is there
+	sub_state = mp.get_property("sub-visibility")
 	mp.set_property("sub-visibility", "no")
 	secondary_sub_state = mp.get_property("secondary-sub-visibility")
 	mp.set_property("secondary-sub-visibility", "no")
@@ -1189,7 +1189,9 @@ function chapterskip(_, current)
 				if consecutive_i > 1 then
 					local autoskip_osd_string = '' --1.06# initiate autoskip chapter osd as empty string
 					for j=consecutive_i, 1, -1  do --1.06# do a reverse loop to get the index from smallest to biggest
-						autoskip_osd_string=(autoskip_osd_string..'\n  ➤ Chapter ('..i-j..') '..chapters[i-j].title) --1.06# print the index of chapter along with title and put it into autoskip osd string
+						local chapter_title = '' --1.08# handle if chapter title is not available
+						if chapters[i-j] then chapter_title = chapters[i-j].title end --1.08# if chapter exists then get chapter_title
+						autoskip_osd_string=(autoskip_osd_string..'\n  ➤ Chapter ('..i-j..') '..chapter_title) --1.06# print the index of chapter along with title and put it into autoskip osd string
 					end
 					prompt_msg('● Auto-Skip'..autoskip_osd_string)
 				else
@@ -1205,7 +1207,9 @@ function chapterskip(_, current)
 				if consecutive_i > 1 and o.autoskip_countdown_bulk then
 					local autoskip_osd_string = '' --1.06# initiate autoskip chapter osd as empty string
 					for j=consecutive_i, 1, -1  do --1.06# do a reverse loop to get the index from smallest to biggest
-						autoskip_osd_string=(autoskip_osd_string..'\n  ▷ Chapter ('..i-j..') '..chapters[i-j].title) --1.06# print the index of chapter along with title and put it into autoskip osd string
+						local chapter_title = '' --1.08# handle if chapter title is not available
+						if chapters[i-j] then chapter_title = chapters[i-j].title end --1.08# if chapter exists then get chapter_title
+						autoskip_osd_string=(autoskip_osd_string..'\n  ▷ Chapter ('..i-j..') '..chapter_title) --1.06# print the index of chapter along with title and put it into autoskip osd string
 					end
 					prompt_msg('○ Auto-Skip'..' in "'..o.autoskip_countdown..'"'..autoskip_osd_string, 1000)
 					g_autoskip_timer = mp.add_periodic_timer(1, function () 
@@ -1230,7 +1234,9 @@ function chapterskip(_, current)
 					if consecutive_i > 1 and o.autoskip_countdown_bulk then
 						local autoskip_osd_string = ''
 						for j=consecutive_i, 1, -1  do
-							autoskip_osd_string=(autoskip_osd_string..'\n  ➤ Chapter ('..i-j..') '..chapters[i-j].title) --1.07# needed again since this uses a filled arrow for better osd
+							local chapter_title = '' --1.08# handle if chapter title is not available
+							if chapters[i-j] then chapter_title = chapters[i-j].title end --1.08# if chapter exists then get chapter_title
+							autoskip_osd_string=(autoskip_osd_string..'\n  ➤ Chapter ('..i-j..') '..chapter_title) --1.07# needed again since this uses a filled arrow for better osd
 						end
 						prompt_msg('● Auto-Skip'..autoskip_osd_string)
 					else
@@ -1286,15 +1292,20 @@ function toggle_category_autoskip() --1.02# option to add / remove categories fr
 	if chapter_state == 'no-chapters' then return end --1.02# exit if there are no chapters
 	if not mp.get_property_number("chapter") then return end --1.02# if unable to get any chapter index then return
 	local chapters = mp.get_property_native("chapter-list")
-	local current_chapter = (mp.get_property_number("chapter") + 1 or -1) --1.05# to not cause crash when looking for chapters_index
-	if not chapters[current_chapter] or not chapters[current_chapter].title then return end --1.05# exit the function if there is no chapter / chapter title, since having title is currently requirement
+	local current_chapter = (mp.get_property_number("chapter") + 1 or 0) --1.05# to not cause crash when looking for chapters_index
 	
-	if string.match(categories.toggle, chapters[current_chapter].title) then --1.03# removed checking of chapters from different categories
-		prompt_msg('○ Removed from Auto-Skip\n  ▷ Chapter: '..chapters[current_chapter].title)
-		categories.toggle = categories.toggle:gsub(esc_string("^"..chapters[current_chapter].title.."/"), "") --1.02# if category is within toggle then remove it
+	--1.08# handle if no chapter title is available by using index
+	local chapter_title = current_chapter --1.08# initiate chapter_title as the index of current_title
+	if current_chapter > 0 and chapters[current_chapter].title and chapters[current_chapter].title ~= '' then --1.08# replace the chapter_title with title if it is found and not empty
+		chapter_title = chapters[current_chapter].title
+	end
+	
+	if string.match(categories.toggle, chapter_title) then --1.03# removed checking of chapters from different categories
+		prompt_msg('○ Removed from Auto-Skip\n  ▷ Chapter: '..chapter_title)
+		categories.toggle = categories.toggle:gsub(esc_string("^"..chapter_title.."/"), "") --1.02# if category is within toggle then remove it
 	else
-		prompt_msg('● Added to Auto-Skip\n  ➔ Chapter: '..chapters[current_chapter].title)
-		categories.toggle = categories.toggle.."^"..chapters[current_chapter].title.."/" --1.02# if not within toggle then add chapter to toggle category
+		prompt_msg('● Added to Auto-Skip\n  ➔ Chapter: '..chapter_title)
+		categories.toggle = categories.toggle.."^"..chapter_title.."/" --1.02# if not within toggle then add chapter to toggle category
     end
 end
 
