@@ -2,8 +2,8 @@
 -- License: BSD 2-Clause License
 -- Creator: Eisa AlAwadhi
 -- Project: SmartSkip
--- Version: 1.08
--- Date: 13-09-2023
+-- Version: 1.09
+-- Date: 14-09-2023
 
 -- Related forked projects: 
 --  https://github.com/detuur/mpv-scripts/blob/master/skiptosilence.lua
@@ -25,7 +25,7 @@ local o = {
 	--SmartSkip user config--
 	last_chapter_skip_behavior = [[ [ ["no-chapters", "silence-skip"], ["internal-chapters", "playlist-next"], ["external-chapters", "silence-skip"] ] ]],--1.09# Available options [[ [ ["no-chapters", "silence-skip"], ["internal-chapters", "playlist-next"], ["external-chapters", "chapter-next"] ] ]] -- it defaults to silence-skip so if dont define external-chapters it will be silence-skip
 	--chapters user config--
-    external_chapters_autoload = true, --0.15# rename 
+    external_chapters_autoload = true, --0.15# rename
     modified_chapters_autosave = [[ ["no-chapters", "external-chapters"] ]], --1.06# add the following options --- (yes/no) or specify types ["no-chapters", "internal-chapters", "external-chapters"])
     global_chapters = true, -- save all chapter files in a single global directory or next to the playback file
     chapters_dir = mp.command_native({"expand-path", "~~home/chapters"}),
@@ -34,10 +34,10 @@ local o = {
 	add_chapter_pause_for_input = false, -- pause the playback when asking for chapter title
     add_chapter_placeholder_title = "Chapter ", -- placeholder when asking for title of a new chapter
 	--chapters auto skip user config--
-    autoskip_chapter = false, --(yes/no) -- removed option for based on chapters
-	autoskip_countdown = 0, --(number) countdown before initiating autoskip
+    autoskip_chapter = true, --(yes/no) -- removed option for based on chapters
+	autoskip_countdown = 3, --(number) countdown before initiating autoskip
 	autoskip_countdown_bulk = true, --(yes/no) coundown seperately for each consecutive chapter or bulk them together in 1 countdown
-    skip_once = true, --(yes/no) or specify types e.g.: [[ ["internal-chapters", "external-chapters"] ]])
+    skip_once = false, --(yes/no) or specify types e.g.: [[ ["internal-chapters", "external-chapters"] ]])
 	categories = [[ [ ["internal-chapters", "prologue>Prologue/^Intro; opening>^OP/ OP$/^Opening; ending>^ED/ ED$/^Ending; preview>Preview$"], ["external-chapters", "idx->0/1"] ] ]], --0.16# write the string for any chapter type, e.g.: categories = "prologue>Prologue/^Intro; opening>OP/ OP$/^Opening; ending>^ED/ ED$/^Ending; preview>Preview$; idx->0/2", or specify categories for each chapter.
 	skip = [[ [ ["internal-chapters", "opening;ending;preview;toggle"], ["external-chapters", "idx-;toggle;opening"] ] ]], -- write the string .e.g: skip = "opening;ending", OR define the skip category for each chapter type: [[ [ ["internal-chapters", "prologue;ending"], ["external-chapters", "idx-"] ] ]]. idx- followed by the chapter index to autoskip based on index. toggle is for categories toggled during playback.
 	--autoload user config--
@@ -107,6 +107,7 @@ local g_playlist_pos = 0 --1.01# detect change in playlist to show osd
 local g_opt_categories = o.categories --1.05 change to global variable initiate as opt_categories
 local g_opt_skip_once = false --1.05# change to global variable and call once only on file load
 local g_autoskip_countdown = o.autoskip_countdown --1.07# initiate as the user configured 
+local g_autoskip_countdown_flag = false --1.09# initiate the flag as false
 
 -- utility functions --
 function has_value(tab, val, array2d) --1.07# needed when using arrays for user config
@@ -1123,32 +1124,26 @@ function prep_chapterskip_var() --1.05# to identify the chapter category of auto
     end
 	--1.06# no need for return
 end
-local g_autoskip_countdown_flag = false
+
 function start_chapterskip_countdown(text, duration)
 	g_autoskip_countdown_flag = true
     g_autoskip_countdown = g_autoskip_countdown - 1
 	
-	text = text:gsub("%%countdown%%", g_autoskip_countdown)
 	
-    -- count down only at the beginning
-    --[[if (timeout < 1) then
-        M.unbind_key()
-        return
-    end
-
-    local jump_file = M.playlist:restore()
-    if not jump_file or jump_file == mp.get_property('filename') then
-        M.unbind_key()
-        return
-    end--]]
+	if (g_autoskip_countdown < 0) then kill_chapterskip_countdown(); mp.osd_message('',0) return end --1.0# if countdown reaches 0 then force kill it and clear osd message
+	
+	text = text:gsub("%%countdown%%", g_autoskip_countdown)
 	prompt_msg(text, 1000)
 end
 
-function kill_chapterskip_countdown()
-	g_autoskip_countdown_flag = false --1.07# reset flag
+function kill_chapterskip_countdown(action)
 	g_autoskip_countdown = o.autoskip_countdown --1.07# reset countdown
+	g_autoskip_countdown_flag = false --1.07# reset flag
 	if g_autoskip_timer ~= nil then --1.07# reset 
 		g_autoskip_timer:kill()
+	end
+	if action == 'osd' and o.autoskip_osd ~= 'no-osd' then
+		mp.osd_message('○ Auto-Skip Cancelled')
 	end
 end
 
@@ -1189,8 +1184,8 @@ function chapterskip(_, current)
 				if consecutive_i > 1 then
 					local autoskip_osd_string = '' --1.06# initiate autoskip chapter osd as empty string
 					for j=consecutive_i, 1, -1  do --1.06# do a reverse loop to get the index from smallest to biggest
-						local chapter_title = '' --1.08# handle if chapter title is not available
-						if chapters[i-j] then chapter_title = chapters[i-j].title end --1.08# if chapter exists then get chapter_title
+						local chapter_title = '' --1.09# handle if chapter title is not available
+						if chapters[i-j] then chapter_title = chapters[i-j].title end --1.09# if chapter exists then get chapter_title
 						autoskip_osd_string=(autoskip_osd_string..'\n  ➤ Chapter ('..i-j..') '..chapter_title) --1.06# print the index of chapter along with title and put it into autoskip osd string
 					end
 					prompt_msg('● Auto-Skip'..autoskip_osd_string)
@@ -1202,40 +1197,44 @@ function chapterskip(_, current)
             skipped[skip] = true
             return
         elseif skip and o.autoskip_countdown > 0 then
+			g_autoskip_countdown_flag = true --1.09# immediately initiate it as true
 			local autoskip_osd_string = ''
 			if o.autoskip_osd == 'osd-msg-bar' or o.autoskip_osd == 'osd-msg' then --1.07# show osd message before timer
 				if consecutive_i > 1 and o.autoskip_countdown_bulk then
 					local autoskip_osd_string = '' --1.06# initiate autoskip chapter osd as empty string
 					for j=consecutive_i, 1, -1  do --1.06# do a reverse loop to get the index from smallest to biggest
-						local chapter_title = '' --1.08# handle if chapter title is not available
-						if chapters[i-j] then chapter_title = chapters[i-j].title end --1.08# if chapter exists then get chapter_title
+						local chapter_title = '' --1.09# handle if chapter title is not available
+						if chapters[i-j] then chapter_title = chapters[i-j].title end --1.09# if chapter exists then get chapter_title
 						autoskip_osd_string=(autoskip_osd_string..'\n  ▷ Chapter ('..i-j..') '..chapter_title) --1.06# print the index of chapter along with title and put it into autoskip osd string
 					end
-					prompt_msg('○ Auto-Skip'..' in "'..o.autoskip_countdown..'"'..autoskip_osd_string, 1000)
+					prompt_msg('○ Auto-Skip'..' in "'..o.autoskip_countdown..'"'..autoskip_osd_string, 2000) --1.09# increase to 2000ms since it will be replaced anyway
 					g_autoskip_timer = mp.add_periodic_timer(1, function () 
-						start_chapterskip_countdown('○ Auto-Skip'..' in "%countdown%"'..autoskip_osd_string, 1000) --1.07# custom osd for countdown
+						start_chapterskip_countdown('○ Auto-Skip'..' in "%countdown%"'..autoskip_osd_string, 2000) --1.09# increase to 2000ms since it will be replaced anyway
 					end)
 				else
-					prompt_msg('▷ Auto-Skip in "'..o.autoskip_countdown..'": Chapter '.. mp.command_native({'expand-text', '${chapter}'}), 1000)
+					prompt_msg('▷ Auto-Skip in "'..o.autoskip_countdown..'": Chapter '.. mp.command_native({'expand-text', '${chapter}'}), 2000) --1.09# increase to 2000ms since it will be replaced anyway
 					g_autoskip_timer = mp.add_periodic_timer(1, function () 
-						start_chapterskip_countdown('▷ Auto-Skip in "%countdown%": Chapter '.. mp.command_native({'expand-text', '${chapter}'}), 1000) --1.07# custom osd for countdown
+						start_chapterskip_countdown('▷ Auto-Skip in "%countdown%": Chapter '.. mp.command_native({'expand-text', '${chapter}'}), 2000) --1.09# increase to 2000ms since it will be replaced anyway
 					end)
 				end
 			end
-			mp.add_timeout(o.autoskip_countdown, function()
+			mp.add_timeout(o.autoskip_countdown, function() --1.09# start of countdown function
+				if not g_autoskip_countdown_flag then kill_chapterskip_countdown() return end --1.09# only proceed if autoskip is there
+				if g_autoskip_countdown > 1 then return end --1.09# if it is more than 1 then exit the function
+				
 				local autoskip_osd = o.autoskip_osd
 				if o.autoskip_osd == 'osd-msg-bar' then autoskip_osd = 'osd-bar' end
 				if o.autoskip_osd == 'osd-msg' then autoskip_osd = 'no-osd' end
 				
 				mp.set_property('osd-duration', o.osd_duration)
 				mp.commandv(autoskip_osd, "show-progress")
-				mp.add_timeout(0.07, function () mp.set_property('osd-duration', osd_duration_default) end)		
+				mp.add_timeout(0.07, function () mp.set_property('osd-duration', osd_duration_default) end)
 				if o.autoskip_osd == 'osd-msg-bar' or o.autoskip_osd == 'osd-msg' then
 					if consecutive_i > 1 and o.autoskip_countdown_bulk then
 						local autoskip_osd_string = ''
 						for j=consecutive_i, 1, -1  do
-							local chapter_title = '' --1.08# handle if chapter title is not available
-							if chapters[i-j] then chapter_title = chapters[i-j].title end --1.08# if chapter exists then get chapter_title
+							local chapter_title = '' --1.09# handle if chapter title is not available
+							if chapters[i-j] then chapter_title = chapters[i-j].title end --1.09# if chapter exists then get chapter_title
 							autoskip_osd_string=(autoskip_osd_string..'\n  ➤ Chapter ('..i-j..') '..chapter_title) --1.07# needed again since this uses a filled arrow for better osd
 						end
 						prompt_msg('● Auto-Skip'..autoskip_osd_string)
@@ -1261,13 +1260,17 @@ function chapterskip(_, current)
         mp.commandv("playlist-next")
 		if o.autoskip_osd ~= 'no-osd' then autoskip_playlist_osd = true end
     elseif skip and o.autoskip_countdown > 0 then
+		g_autoskip_countdown_flag = true --1.09# immediately initiate it as true
 		if o.autoskip_osd == 'osd-msg-bar' or o.autoskip_osd == 'osd-msg' then 
-			prompt_msg('▷ Auto-Skip in "'..o.autoskip_countdown..'": Chapter '.. mp.command_native({'expand-text', '${chapter}'}), 1000)
+			prompt_msg('▷ Auto-Skip in "'..o.autoskip_countdown..'": Chapter '.. mp.command_native({'expand-text', '${chapter}'}), 2000) --1.09# increase to 2000ms since it will be replaced anyway
 			g_autoskip_timer = mp.add_periodic_timer(1, function()
-				start_chapterskip_countdown('▷ Auto-Skip in "%countdown%": Chapter '.. mp.command_native({'expand-text', '${chapter}'}), 1000)
+				start_chapterskip_countdown('▷ Auto-Skip in "%countdown%": Chapter '.. mp.command_native({'expand-text', '${chapter}'}), 2000) --1.09# increase to 2000ms since it will be replaced anyway
 			end)
 		end
-		mp.add_timeout(o.autoskip_countdown, function()
+		mp.add_timeout(o.autoskip_countdown, function() --1.09# start of countdown function
+			if not g_autoskip_countdown_flag then return end --1.09# only proceed if autoskip is there
+			if g_autoskip_countdown > 1 then return end --1.09# if it is more than 1 then exit the function
+			
 			if mp.get_property_native("playlist-count") == mp.get_property_native("playlist-pos-1") then
 				return mp.set_property("time-pos", mp.get_property_native("duration"))
 			end
@@ -1294,9 +1297,9 @@ function toggle_category_autoskip() --1.02# option to add / remove categories fr
 	local chapters = mp.get_property_native("chapter-list")
 	local current_chapter = (mp.get_property_number("chapter") + 1 or 0) --1.05# to not cause crash when looking for chapters_index
 	
-	--1.08# handle if no chapter title is available by using index
-	local chapter_title = current_chapter --1.08# initiate chapter_title as the index of current_title
-	if current_chapter > 0 and chapters[current_chapter].title and chapters[current_chapter].title ~= '' then --1.08# replace the chapter_title with title if it is found and not empty
+	--1.09# handle if no chapter title is available by using index
+	local chapter_title = current_chapter --1.09# initiate chapter_title as the index of current_title
+	if current_chapter > 0 and chapters[current_chapter].title and chapters[current_chapter].title ~= '' then --1.09# replace the chapter_title with title if it is found and not empty
 		chapter_title = chapters[current_chapter].title
 	end
 	
@@ -1344,6 +1347,7 @@ mp.observe_property('pause', 'bool', function(name, value)
 	if value and skip_flag then
 		restoreProp(initial_skip_time, true)
 	end
+	if g_autoskip_countdown_flag then kill_chapterskip_countdown('osd') end --1.09# kill countdown if it exists
 end)
 
 mp.add_hook('on_unload', 9, function()
@@ -1352,6 +1356,10 @@ mp.add_hook('on_unload', 9, function()
 	chapter_state = 'no-chapters' --1.07# revert chapter state
 	g_playlist_pos = (mp.get_property_native('playlist-playing-pos')+1 or 0)
 	kill_chapterskip_countdown() --1.07# revert countdown when playlist loads
+end)
+
+mp.register_event('seek', function()
+	if g_autoskip_countdown_flag then kill_chapterskip_countdown('osd') end --1.09# kill countdown if it exists
 end)
 
 mp.observe_property('eof-reached', 'bool', eofHandler)
