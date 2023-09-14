@@ -2,7 +2,7 @@
 -- License: BSD 2-Clause License
 -- Creator: Eisa AlAwadhi
 -- Project: SmartSkip
--- Version: 1.09
+-- Version: 1.10
 -- Date: 14-09-2023
 
 -- Related forked projects: 
@@ -1150,6 +1150,8 @@ end
 function chapterskip(_, current)
 	if chapter_state == 'no-chapters' then return end --0.17#FINALLY: solve crash because of the table, basically only proceed with this function to skip_chapters if its not defined as no-chapters.
     if not autoskip_chapter then return end --1.0# changed to global variable for toggle-able
+	if g_autoskip_countdown_flag then kill_chapterskip_countdown('osd') end --1.10# kill countdown if it exists when entering new chapter (no need to return which fixes issue for consecutive chapters)
+
 	local chapters = mp.get_property_native("chapter-list")
     local skip = false
 	local consecutive_i = 0 --1.06# initiate to track consecutive chapters
