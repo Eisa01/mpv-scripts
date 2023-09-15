@@ -2,7 +2,7 @@
 -- License: BSD 2-Clause License
 -- Creator: Eisa AlAwadhi
 -- Project: SmartSkip
--- Version: 1.10
+-- Version: 1.11
 -- Date: 14-09-2023
 
 -- Related forked projects: 
@@ -23,10 +23,10 @@ local o = {
 	add_chapter_on_skip = true, --1.07# add the following options --- (yes/no) or specify types ["no-chapters", "internal-chapters", "external-chapters"]. e.g.: [[ ["no-chapters", "external-chapters"] ]])
 	force_mute_on_skip = false,
 	--SmartSkip user config--
-	last_chapter_skip_behavior = [[ [ ["no-chapters", "silence-skip"], ["internal-chapters", "playlist-next"], ["external-chapters", "silence-skip"] ] ]],--1.09# Available options [[ [ ["no-chapters", "silence-skip"], ["internal-chapters", "playlist-next"], ["external-chapters", "chapter-next"] ] ]] -- it defaults to silence-skip so if dont define external-chapters it will be silence-skip
+	last_chapter_skip_behavior=[[ [ ["no-chapters", "silence-skip"], ["internal-chapters", "playlist-next"], ["external-chapters", "silence-skip"] ] ]],--1.09# Available options [[ [ ["no-chapters", "silence-skip"], ["internal-chapters", "playlist-next"], ["external-chapters", "chapter-next"] ] ]] -- it defaults to silence-skip so if dont define external-chapters it will be silence-skip
 	--chapters user config--
     external_chapters_autoload = true, --0.15# rename
-    modified_chapters_autosave = [[ ["no-chapters", "external-chapters"] ]], --1.06# add the following options --- (yes/no) or specify types ["no-chapters", "internal-chapters", "external-chapters"])
+    modified_chapters_autosave=[[ ["no-chapters", "external-chapters"] ]], --1.06# add the following options --- (yes/no) or specify types ["no-chapters", "internal-chapters", "external-chapters"])
     global_chapters = true, -- save all chapter files in a single global directory or next to the playback file
     chapters_dir = mp.command_native({"expand-path", "~~home/chapters"}),
     hash = true, -- hash works only with global_chapters enabled
@@ -38,8 +38,8 @@ local o = {
 	autoskip_countdown = 3, --(number) countdown before initiating autoskip
 	autoskip_countdown_bulk = true, --(yes/no) coundown seperately for each consecutive chapter or bulk them together in 1 countdown
     skip_once = false, --(yes/no) or specify types e.g.: [[ ["internal-chapters", "external-chapters"] ]])
-	categories = [[ [ ["internal-chapters", "prologue>Prologue/^Intro; opening>^OP/ OP$/^Opening; ending>^ED/ ED$/^Ending; preview>Preview$"], ["external-chapters", "idx->0/1"] ] ]], --0.16# write the string for any chapter type, e.g.: categories = "prologue>Prologue/^Intro; opening>OP/ OP$/^Opening; ending>^ED/ ED$/^Ending; preview>Preview$; idx->0/2", or specify categories for each chapter.
-	skip = [[ [ ["internal-chapters", "opening;ending;preview;toggle"], ["external-chapters", "idx-;toggle;opening"] ] ]], -- write the string .e.g: skip = "opening;ending", OR define the skip category for each chapter type: [[ [ ["internal-chapters", "prologue;ending"], ["external-chapters", "idx-"] ] ]]. idx- followed by the chapter index to autoskip based on index. toggle is for categories toggled during playback.
+	categories=[[ [ ["internal-chapters", "prologue>Prologue/^Intro; opening>^OP/ OP$/^Opening; ending>^ED/ ED$/^Ending; preview>Preview$"], ["external-chapters", "idx->0/1"] ] ]], --0.16# write the string for any chapter type, e.g.: categories = "prologue>Prologue/^Intro; opening>OP/ OP$/^Opening; ending>^ED/ ED$/^Ending; preview>Preview$; idx->0/2", or specify categories for each chapter.
+	skip=[[ [ ["internal-chapters", "opening;ending;preview;toggle"], ["external-chapters", "idx-;toggle;opening"] ] ]], -- write the string .e.g: skip = "opening;ending", OR define the skip category for each chapter type: [[ [ ["internal-chapters", "prologue;ending"], ["external-chapters", "idx-"] ] ]]. idx- followed by the chapter index to autoskip based on index. toggle is for categories toggled during playback.
 	--autoload user config--
 	autoload_playlist = true,
     autoload_max_entries = 5000,
@@ -58,6 +58,20 @@ local o = {
 	playlist_osd = true, --1.07# true false to show osd when playlist entry changes --0.19# made it universal
 	osd_msg = true, -- all other osd messages
 	osd_duration = 2500, --duration for the osd message in milliseconds, applies to all osd_messages, -1 reverts to --osd-duration
+	--keybinds--
+	toggle_autoload_keybind=[[ [""] ]],
+	toggle_autoskip_keybind=[[ ["ctrl+."] ]],
+	cancel_autoskip_countdown_keybind=[[ ["esc", "n"] ]],
+	toggle_category_autoskip_keybind=[[ ["alt+."] ]],
+	add_chapter_keybind=[[ ["n"] ]],
+	write_chapters_keybind=[[ ["alt+n"] ]],
+	edit_chapter_keybind=[[ ["ctrl+n"] ]],
+	bake_chapters_keybind=[[ [""] ]],
+	chapter_prev_keybind=[[ ["ctrl+left"] ]],
+	chapter_next_keybind=[[ ["ctrl+right"] ]],
+	smart_prev_keybind=[[ ["<"] ]],
+	smart_next_keybind=[[ [">"] ]],
+	silence_skip_keybind=[[ ["?"] ]],
 }
 
 local mp = require 'mp'
@@ -79,6 +93,21 @@ o.last_chapter_skip_behavior = utils.parse_json(o.last_chapter_skip_behavior)
 if utils.parse_json(o.skip) ~= nil then o.skip = utils.parse_json(o.skip) end --0.17# only if it is an appropriate json string then convert it into table
 if utils.parse_json(o.categories) ~= nil then o.categories = utils.parse_json(o.categories) end --0.17# only if it is an appropriate json string then convert it into table
 if o.skip_once ~= false and o.skip_once ~= true then o.skip_once = utils.parse_json(o.skip_once) end --0.18 yes/no + json for skip_once
+
+o.toggle_autoload_keybind = utils.parse_json(o.toggle_autoload_keybind)
+o.toggle_autoskip_keybind = utils.parse_json(o.toggle_autoskip_keybind)
+o.cancel_autoskip_countdown_keybind = utils.parse_json(o.cancel_autoskip_countdown_keybind)
+o.toggle_category_autoskip_keybind = utils.parse_json(o.toggle_category_autoskip_keybind)
+o.add_chapter_keybind = utils.parse_json(o.add_chapter_keybind)
+o.write_chapters_keybind = utils.parse_json(o.write_chapters_keybind)
+o.edit_chapter_keybind = utils.parse_json(o.edit_chapter_keybind)
+o.bake_chapters_keybind = utils.parse_json(o.bake_chapters_keybind)
+o.chapter_prev_keybind = utils.parse_json(o.chapter_prev_keybind)
+o.chapter_next_keybind = utils.parse_json(o.chapter_next_keybind)
+o.smart_prev_keybind = utils.parse_json(o.smart_prev_keybind)
+o.smart_next_keybind = utils.parse_json(o.smart_next_keybind)
+o.silence_skip_keybind = utils.parse_json(o.silence_skip_keybind)
+
 package.path = mp.command_native({"expand-path", "~~/script-modules/?.lua;"}) .. package.path
 local user_input_module, input = pcall(require, "user-input-module")
 
@@ -140,6 +169,36 @@ function prompt_msg(text, duration) --1.05# convert osd_messages into function
 	if not duration then duration = o.osd_duration end --1.05# initiate with osd_duration as default
     if o.osd_msg then mp.commandv("show-text", text, duration) end
 	msg.info(text)
+end
+
+function bind_keys(keys, name, func, opts) --1.11# for bind keys in user settings
+	if not keys then
+		mp.add_forced_key_binding(keys, name, func, opts)
+		return
+	end
+	
+	for i = 1, #keys do
+		if i == 1 then 
+			mp.add_forced_key_binding(keys[i], name, func, opts)
+		else
+			mp.add_forced_key_binding(keys[i], name .. i, func, opts)
+		end
+	end
+end
+
+function unbind_keys(keys, name) --1.11# for unbind keys that are defined in user settings
+	if not keys then
+		mp.remove_key_binding(name)
+		return
+	end
+	
+	for i = 1, #keys do
+		if i == 1 then
+			mp.remove_key_binding(name)
+		else
+			mp.remove_key_binding(name .. i)
+		end
+	end
 end
 
 -- skip-silence utility functions --
@@ -246,12 +305,12 @@ function smartNext() --1.09# change smartNext behavior
 end
 
 function smartPrev() --1.10# changed to smartPrev to only handle cases where previous chapter / playlist is needed
-	if skip_flag then restoreProp(initial_skip_time) return end --1.11# cancel skip to silence if its on-going
+	if skip_flag then restoreProp(initial_skip_time) return end --0.11# cancel skip to silence if its on-going
 	local chapters_count = (mp.get_property_number('chapters') or 0)
     local chapter  = (mp.get_property_number('chapter') or 0)
 	local timepos = (mp.get_property_native("time-pos") or 0)
 
-	if chapter-1 < 0 and timepos > 1 and chapters_count == 0 then --1.11# made the if statement more clear
+	if chapter-1 < 0 and timepos > 1 and chapters_count == 0 then --0.11# made the if statement more clear
 		mp.commandv('seek', 0, 'absolute', 'exact')
 		
 		mp.set_property('osd-duration', o.osd_duration) --1.05# change osd bar duration (needs to change the universal osd-duration)
@@ -274,13 +333,13 @@ function chapterSeek(direction) --0.14# change variables to be same as smartPrev
     local chapter  = (mp.get_property_number('chapter') or 0)
 	local timepos = (mp.get_property_native("time-pos") or 0)
 
-    if chapter+direction < 0 and timepos > 1 and chapters_count == 0 then --1.11# allows chapterSeek to go to begining of file even if no chapter and before first chapter
+    if chapter+direction < 0 and timepos > 1 and chapters_count == 0 then --0.11# allows chapterSeek to go to begining of file even if no chapter and before first chapter
 		mp.commandv('seek', 0, 'absolute', 'exact')
 		
 		mp.set_property('osd-duration', o.osd_duration) --1.05# change osd bar duration (needs to change the universal osd-duration)
 		mp.commandv(o.seek_osd, "show-progress")
 		mp.add_timeout(0.07, function () mp.set_property('osd-duration', osd_duration_default) end) --1.05# revert the change to osd, required mp.add_timeout to give show-progress time to execute (at least requires 0.058 here) - putting it at 0.07 just to be safe
-	elseif chapter+direction < 0 and timepos < 1 then --1.11# only if at the begining of the file then go back to previous playlist
+	elseif chapter+direction < 0 and timepos < 1 then --0.11# only if at the begining of the file then go back to previous playlist
 	    mp.command('playlist_prev')
     elseif chapter+direction >= chapters_count then
 		mp.command('playlist_next')
@@ -1137,14 +1196,16 @@ function start_chapterskip_countdown(text, duration)
 end
 
 function kill_chapterskip_countdown(action)
-	g_autoskip_countdown = o.autoskip_countdown --1.07# reset countdown
-	g_autoskip_countdown_flag = false --1.07# reset flag
+	if not g_autoskip_countdown_flag then return end --1.11# only execute if autoskip is ongoing
+	if action == 'osd' and o.autoskip_osd ~= 'no-osd' then
+		prompt_msg('○ Auto-Skip Cancelled') --1.10# replace with prompt message function
+	end
 	if g_autoskip_timer ~= nil then --1.07# reset 
 		g_autoskip_timer:kill()
 	end
-	if action == 'osd' and o.autoskip_osd ~= 'no-osd' then
-		mp.osd_message('○ Auto-Skip Cancelled')
-	end
+	unbind_keys(o.cancel_autoskip_countdown_keybind, 'cancel-autoskip-countdown')
+	g_autoskip_countdown = o.autoskip_countdown --1.07# reset countdown
+	g_autoskip_countdown_flag = false --1.07# reset flag
 end
 
 function chapterskip(_, current)
@@ -1200,6 +1261,8 @@ function chapterskip(_, current)
             return
         elseif skip and o.autoskip_countdown > 0 then
 			g_autoskip_countdown_flag = true --1.09# immediately initiate it as true
+			bind_keys(o.cancel_autoskip_countdown_keybind, "cancel-autoskip-countdown", function() kill_chapterskip_countdown('osd') end) --1.11# immediately bind keys
+			
 			local autoskip_osd_string = ''
 			if o.autoskip_osd == 'osd-msg-bar' or o.autoskip_osd == 'osd-msg' then --1.07# show osd message before timer
 				if consecutive_i > 1 and o.autoskip_countdown_bulk then
@@ -1263,6 +1326,8 @@ function chapterskip(_, current)
 		if o.autoskip_osd ~= 'no-osd' then autoskip_playlist_osd = true end
     elseif skip and o.autoskip_countdown > 0 then
 		g_autoskip_countdown_flag = true --1.09# immediately initiate it as true
+		bind_keys(o.cancel_autoskip_countdown_keybind, "cancel-autoskip-countdown", function() kill_chapterskip_countdown('osd') end) --1.11# immediately bind keys
+		
 		if o.autoskip_osd == 'osd-msg-bar' or o.autoskip_osd == 'osd-msg' then 
 			prompt_msg('▷ Auto-Skip in "'..o.autoskip_countdown..'": Chapter '.. mp.command_native({'expand-text', '${chapter}'}), 2000) --1.09# increase to 2000ms since it will be replaced anyway
 			g_autoskip_timer = mp.add_periodic_timer(1, function()
@@ -1368,16 +1433,15 @@ mp.observe_property('eof-reached', 'bool', eofHandler)
 
 -- BINDINGS --------------------------------------------------------------------
 
-mp.add_key_binding("", "toggle-autoload", toggle_autoload)
-mp.add_key_binding("ctrl+.", "toggle-autoskip", toggle_autoskip)
-mp.add_key_binding("alt+.", "toggle-category-autoskip", toggle_category_autoskip)
-mp.add_key_binding("n", "add-chapter", add_chapter)
-mp.add_key_binding("alt+n", "remove-chapter", remove_chapter)
-mp.add_key_binding("ctrl+n", "write-chapters", function () write_chapters(true) end)
-mp.add_key_binding("", "edit-chapter", edit_chapter)
-mp.add_key_binding("", "bake-chapters", bake_chapters)
-mp.add_key_binding("ctrl+left", "chapter-prev", function() chapterSeek(-1) end)
-mp.add_key_binding("ctrl+right", "chapter-next", function() chapterSeek(1) end)
-mp.add_key_binding("<", "smart-prev", smartPrev)
-mp.add_key_binding(">", "smart-next", smartNext)
-mp.add_key_binding("?", "silence-skip", silenceSkip)
+bind_keys(o.toggle_autoload_keybind, 'toggle-autoload', toggle_autoload)
+bind_keys(o.toggle_autoskip_keybind, "toggle-autoskip", toggle_autoskip)
+bind_keys(o.toggle_category_autoskip_keybind, "toggle-category-autoskip", toggle_category_autoskip)
+bind_keys(o.add_chapter_keybind, "add-chapter", add_chapter)
+bind_keys(o.write_chapters_keybind, "write-chapters", function () write_chapters(true) end)
+bind_keys(o.edit_chapter_keybind, "edit-chapter", edit_chapter)
+bind_keys(o.bake_chapters_keybind, "bake-chapters", bake_chapters)
+bind_keys(o.chapter_prev_keybind, "chapter-prev", function() chapterSeek(-1) end)
+bind_keys(o.chapter_next_keybind, "chapter-next", function() chapterSeek(1) end)
+bind_keys(o.smart_prev_keybind, "smart-prev", smartPrev)
+bind_keys(o.smart_next_keybind, "smart-next", smartNext)
+bind_keys(o.silence_skip_keybind, "silence-skip", silenceSkip)
