@@ -2,8 +2,8 @@
 -- License: BSD 2-Clause License
 -- Creator: Eisa AlAwadhi
 -- Project: SmartSkip
--- Version: 1.11
--- Date: 14-09-2023
+-- Version: 1.12
+-- Date: 15-09-2023
 
 -- Related forked projects: 
 --  https://github.com/detuur/mpv-scripts/blob/master/skiptosilence.lua
@@ -62,6 +62,7 @@ local o = {
 	toggle_autoload_keybind=[[ [""] ]],
 	toggle_autoskip_keybind=[[ ["ctrl+."] ]],
 	cancel_autoskip_countdown_keybind=[[ ["esc", "n"] ]],
+	proceed_autoskip_countdown_keybind=[[ ["enter", "y"] ]],
 	toggle_category_autoskip_keybind=[[ ["alt+."] ]],
 	add_chapter_keybind=[[ ["n"] ]],
 	write_chapters_keybind=[[ ["alt+n"] ]],
@@ -97,6 +98,7 @@ if o.skip_once ~= false and o.skip_once ~= true then o.skip_once = utils.parse_j
 o.toggle_autoload_keybind = utils.parse_json(o.toggle_autoload_keybind)
 o.toggle_autoskip_keybind = utils.parse_json(o.toggle_autoskip_keybind)
 o.cancel_autoskip_countdown_keybind = utils.parse_json(o.cancel_autoskip_countdown_keybind)
+o.proceed_autoskip_countdown_keybind = utils.parse_json(o.proceed_autoskip_countdown_keybind)
 o.toggle_category_autoskip_keybind = utils.parse_json(o.toggle_category_autoskip_keybind)
 o.add_chapter_keybind = utils.parse_json(o.add_chapter_keybind)
 o.write_chapters_keybind = utils.parse_json(o.write_chapters_keybind)
@@ -1204,14 +1206,16 @@ function kill_chapterskip_countdown(action)
 		g_autoskip_timer:kill()
 	end
 	unbind_keys(o.cancel_autoskip_countdown_keybind, 'cancel-autoskip-countdown')
+	unbind_keys(o.proceed_autoskip_countdown_keybind, 'proceed-autoskip-countdown')
 	g_autoskip_countdown = o.autoskip_countdown --1.07# reset countdown
 	g_autoskip_countdown_flag = false --1.07# reset flag
 end
 
-function chapterskip(_, current)
+function chapterskip(_, current, countdown) --1.12# change countdown to be part of the function
 	if chapter_state == 'no-chapters' then return end --0.17#FINALLY: solve crash because of the table, basically only proceed with this function to skip_chapters if its not defined as no-chapters.
     if not autoskip_chapter then return end --1.0# changed to global variable for toggle-able
 	if g_autoskip_countdown_flag then kill_chapterskip_countdown('osd') end --1.10# kill countdown if it exists when entering new chapter (no need to return which fixes issue for consecutive chapters)
+	if not countdown then countdown = o.autoskip_countdown end --1.12# change countdown to be part of the function
 
 	local chapters = mp.get_property_native("chapter-list")
     local skip = false
@@ -1234,7 +1238,7 @@ function chapterskip(_, current)
                 skip = i
 				consecutive_i = consecutive_i+1 --1.06# track consecutive chapters
             end
-        elseif skip and o.autoskip_countdown <= 0 then --1.07# proceed with normal chapterSkip only if no countdown is defined
+        elseif skip and countdown <= 0 then --1.07# proceed with normal chapterSkip only if no countdown is defined
 			local autoskip_osd = o.autoskip_osd --1.01# show custom osd-msg-bar instead of default
 			if o.autoskip_osd == 'osd-msg-bar' then autoskip_osd = 'osd-bar' end --1.01# change it only to bar and show the custom osd message
 			if o.autoskip_osd == 'osd-msg' then autoskip_osd = 'no-osd' end --1.01# change it to no-osd for osd-msg so it shows the custom message
@@ -1259,9 +1263,21 @@ function chapterskip(_, current)
 			mp.set_property("time-pos", chapters[i].time) --1.04# Fixes bug of not skipping consecutive chapters
             skipped[skip] = true
             return
-        elseif skip and o.autoskip_countdown > 0 then
+        elseif skip and countdown > 0 then
 			g_autoskip_countdown_flag = true --1.09# immediately initiate it as true
-			bind_keys(o.cancel_autoskip_countdown_keybind, "cancel-autoskip-countdown", function() kill_chapterskip_countdown('osd') end) --1.11# immediately bind keys
+			bind_keys(o.cancel_autoskip_countdown_keybind, "cancel-autoskip-countdown", function() kill_chapterskip_countdown('osd') return end) --1.11# immediately bind keys
+			bind_keys(o.proceed_autoskip_countdown_keybind, "proceed-autoskip-countdown", function() --1.12# function to immediately proceed with autoskip
+				kill_chapterskip_countdown()
+				if consecutive_i > 1 and o.autoskip_countdown_bulk then --1.12# if it is bulk then the rerun function of chapterSkip with timer 0
+					chapterskip(_,current,0)
+					return
+				else --1.12# otherwise run the action of skipping successfully
+					prompt_msg('➤ Auto-Skip: Chapter '.. mp.command_native({'expand-text', '${chapter}'}))
+					mp.set_property("time-pos", chapters[i-consecutive_i+1].time)
+					skipped[skip] = true
+					return
+				end
+			end)
 			
 			local autoskip_osd_string = ''
 			if o.autoskip_osd == 'osd-msg-bar' or o.autoskip_osd == 'osd-msg' then --1.07# show osd message before timer
@@ -1283,7 +1299,7 @@ function chapterskip(_, current)
 					end)
 				end
 			end
-			mp.add_timeout(o.autoskip_countdown, function() --1.09# start of countdown function
+			mp.add_timeout(countdown, function() --1.09# start of countdown function
 				if not g_autoskip_countdown_flag then kill_chapterskip_countdown() return end --1.09# only proceed if autoskip is there
 				if g_autoskip_countdown > 1 then return end --1.09# if it is more than 1 then exit the function
 				
@@ -1318,23 +1334,27 @@ function chapterskip(_, current)
             return
         end
     end
-    if skip and o.autoskip_countdown <= 0 then --1.07# proceed with normal chapterSkip only if no countdown is defined
+    if skip and countdown <= 0 then --1.07# proceed with normal chapterSkip only if no countdown is defined
         if mp.get_property_native("playlist-count") == mp.get_property_native("playlist-pos-1") then
             return mp.set_property("time-pos", mp.get_property_native("duration"))
         end
         mp.commandv("playlist-next")
 		if o.autoskip_osd ~= 'no-osd' then autoskip_playlist_osd = true end
-    elseif skip and o.autoskip_countdown > 0 then
+    elseif skip and countdown > 0 then
 		g_autoskip_countdown_flag = true --1.09# immediately initiate it as true
-		bind_keys(o.cancel_autoskip_countdown_keybind, "cancel-autoskip-countdown", function() kill_chapterskip_countdown('osd') end) --1.11# immediately bind keys
-		
+		bind_keys(o.cancel_autoskip_countdown_keybind, "cancel-autoskip-countdown", function() kill_chapterskip_countdown('osd') return end) --1.11# immediately bind keys
+		bind_keys(o.proceed_autoskip_countdown_keybind, "proceed-autoskip-countdown", function() --1.12# function to immediately proceed with autoskip
+			kill_chapterskip_countdown()
+			chapterskip(_,current,0)
+			return
+		end)
 		if o.autoskip_osd == 'osd-msg-bar' or o.autoskip_osd == 'osd-msg' then 
 			prompt_msg('▷ Auto-Skip in "'..o.autoskip_countdown..'": Chapter '.. mp.command_native({'expand-text', '${chapter}'}), 2000) --1.09# increase to 2000ms since it will be replaced anyway
 			g_autoskip_timer = mp.add_periodic_timer(1, function()
 				start_chapterskip_countdown('▷ Auto-Skip in "%countdown%": Chapter '.. mp.command_native({'expand-text', '${chapter}'}), 2000) --1.09# increase to 2000ms since it will be replaced anyway
 			end)
 		end
-		mp.add_timeout(o.autoskip_countdown, function() --1.09# start of countdown function
+		mp.add_timeout(countdown, function() --1.09# start of countdown function
 			if not g_autoskip_countdown_flag then return end --1.09# only proceed if autoskip is there
 			if g_autoskip_countdown > 1 then return end --1.09# if it is more than 1 then exit the function
 			
