@@ -2,7 +2,7 @@
 -- License: BSD 2-Clause License
 -- Creator: Eisa AlAwadhi
 -- Project: SmartSkip
--- Version: 1.12
+-- Version: 1.13
 -- Date: 15-09-2023
 
 -- Related forked projects: 
@@ -1349,10 +1349,24 @@ function chapterskip(_, current, countdown) --1.12# change countdown to be part 
 			return
 		end)
 		if o.autoskip_osd == 'osd-msg-bar' or o.autoskip_osd == 'osd-msg' then 
-			prompt_msg('▷ Auto-Skip in "'..o.autoskip_countdown..'": Chapter '.. mp.command_native({'expand-text', '${chapter}'}), 2000) --1.09# increase to 2000ms since it will be replaced anyway
-			g_autoskip_timer = mp.add_periodic_timer(1, function()
-				start_chapterskip_countdown('▷ Auto-Skip in "%countdown%": Chapter '.. mp.command_native({'expand-text', '${chapter}'}), 2000) --1.09# increase to 2000ms since it will be replaced anyway
-			end)
+			if consecutive_i > 1 and o.autoskip_countdown_bulk then --1.13 fix for notification not showing consecutive if end of playback is detected
+				local i = (mp.get_property_number('chapters')+1 or 0) --1.13# since this is after the loop is completed, instead of the i we will use the chapters_count+1
+				local autoskip_osd_string = '' --1.06# initiate autoskip chapter osd as empty string
+				for j=consecutive_i, 1, -1  do --1.06# do a reverse loop to get the index from smallest to biggest
+					local chapter_title = '' --1.09# handle if chapter title is not available
+					if chapters[i-j] then chapter_title = chapters[i-j].title end --1.09# if chapter exists then get chapter_title
+					autoskip_osd_string=(autoskip_osd_string..'\n  ▷ Chapter ('..i-j..') '..chapter_title) --1.06# print the index of chapter along with title and put it into autoskip osd string
+				end
+				prompt_msg('○ Auto-Skip'..' in "'..o.autoskip_countdown..'"'..autoskip_osd_string, 2000) --1.09# increase to 2000ms since it will be replaced anyway
+				g_autoskip_timer = mp.add_periodic_timer(1, function () 
+					start_chapterskip_countdown('○ Auto-Skip'..' in "%countdown%"'..autoskip_osd_string, 2000) --1.09# increase to 2000ms since it will be replaced anyway
+				end)
+			else
+				prompt_msg('▷ Auto-Skip in "'..o.autoskip_countdown..'": Chapter '.. mp.command_native({'expand-text', '${chapter}'}), 2000) --1.09# increase to 2000ms since it will be replaced anyway
+				g_autoskip_timer = mp.add_periodic_timer(1, function () 
+					start_chapterskip_countdown('▷ Auto-Skip in "%countdown%": Chapter '.. mp.command_native({'expand-text', '${chapter}'}), 2000) --1.09# increase to 2000ms since it will be replaced anyway
+				end)
+			end
 		end
 		mp.add_timeout(countdown, function() --1.09# start of countdown function
 			if not g_autoskip_countdown_flag then return end --1.09# only proceed if autoskip is there
