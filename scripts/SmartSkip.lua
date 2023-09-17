@@ -2,8 +2,8 @@
 -- License: BSD 2-Clause License
 -- Creator: Eisa AlAwadhi
 -- Project: SmartSkip
--- Version: 1.13
--- Date: 15-09-2023
+-- Version: 1.14
+-- Date: 17-09-2023
 
 -- Related forked projects: 
 --  https://github.com/detuur/mpv-scripts/blob/master/skiptosilence.lua
@@ -35,10 +35,11 @@ local o = {
     add_chapter_placeholder_title = "Chapter ", -- placeholder when asking for title of a new chapter
 	--chapters auto skip user config--
     autoskip_chapter = true, --(yes/no) -- removed option for based on chapters
-	autoskip_countdown = 3, --(number) countdown before initiating autoskip
+	autoskip_countdown = 3, --(number) in seconds, countdown before initiating autoskip
 	autoskip_countdown_bulk = true, --(yes/no) coundown seperately for each consecutive chapter or bulk them together in 1 countdown
+	autoskip_countdown_graceful = false, --(yes/no) only sends the notification without forcing autoskip
     skip_once = false, --(yes/no) or specify types e.g.: [[ ["internal-chapters", "external-chapters"] ]])
-	categories=[[ [ ["internal-chapters", "prologue>Prologue/^Intro; opening>^OP/ OP$/^Opening; ending>^ED/ ED$/^Ending; preview>Preview$"], ["external-chapters", "idx->0/1"] ] ]], --0.16# write the string for any chapter type, e.g.: categories = "prologue>Prologue/^Intro; opening>OP/ OP$/^Opening; ending>^ED/ ED$/^Ending; preview>Preview$; idx->0/2", or specify categories for each chapter.
+	categories=[[ [ ["internal-chapters", "prologue>Prologue/^Intro; opening>^OP/ OP$/^Opening; ending>^ED/ ED$/^Ending; preview>Preview$"], ["external-chapters", "idx->0/2"] ] ]], --0.16# write the string for any chapter type, e.g.: categories = "prologue>Prologue/^Intro; opening>OP/ OP$/^Opening; ending>^ED/ ED$/^Ending; preview>Preview$; idx->0/2", or specify categories for each chapter.
 	skip=[[ [ ["internal-chapters", "opening;ending;preview;toggle"], ["external-chapters", "idx-;toggle;opening"] ] ]], -- write the string .e.g: skip = "opening;ending", OR define the skip category for each chapter type: [[ [ ["internal-chapters", "prologue;ending"], ["external-chapters", "idx-"] ] ]]. idx- followed by the chapter index to autoskip based on index. toggle is for categories toggled during playback.
 	--autoload user config--
 	autoload_playlist = true,
@@ -65,8 +66,9 @@ local o = {
 	proceed_autoskip_countdown_keybind=[[ ["enter", "y"] ]],
 	toggle_category_autoskip_keybind=[[ ["alt+."] ]],
 	add_chapter_keybind=[[ ["n"] ]],
-	write_chapters_keybind=[[ ["alt+n"] ]],
-	edit_chapter_keybind=[[ ["ctrl+n"] ]],
+	remove_chapter_keybind=[[ ["alt+n"] ]],
+	write_chapters_keybind=[[ ["ctrl+n"] ]],
+	edit_chapter_keybind=[[ [""] ]],
 	bake_chapters_keybind=[[ [""] ]],
 	chapter_prev_keybind=[[ ["ctrl+left"] ]],
 	chapter_next_keybind=[[ ["ctrl+right"] ]],
@@ -101,6 +103,7 @@ o.cancel_autoskip_countdown_keybind = utils.parse_json(o.cancel_autoskip_countdo
 o.proceed_autoskip_countdown_keybind = utils.parse_json(o.proceed_autoskip_countdown_keybind)
 o.toggle_category_autoskip_keybind = utils.parse_json(o.toggle_category_autoskip_keybind)
 o.add_chapter_keybind = utils.parse_json(o.add_chapter_keybind)
+o.remove_chapter_keybind = utils.parse_json(o.remove_chapter_keybind) --1.14# added remove_chapter again, mistakenly it was removed
 o.write_chapters_keybind = utils.parse_json(o.write_chapters_keybind)
 o.edit_chapter_keybind = utils.parse_json(o.edit_chapter_keybind)
 o.bake_chapters_keybind = utils.parse_json(o.bake_chapters_keybind)
@@ -137,7 +140,8 @@ local autoskip_playlist_osd = false --1.01# for custom autoskip_playlist_osd
 local g_playlist_pos = 0 --1.01# detect change in playlist to show osd
 local g_opt_categories = o.categories --1.05 change to global variable initiate as opt_categories
 local g_opt_skip_once = false --1.05# change to global variable and call once only on file load
-local g_autoskip_countdown = o.autoskip_countdown --1.07# initiate as the user configured 
+o.autoskip_countdown = math.floor(o.autoskip_countdown) --1.14# floor it so that countdown is restricted to be by seconds
+local g_autoskip_countdown = o.autoskip_countdown --1.07# initiate as the user configured
 local g_autoskip_countdown_flag = false --1.09# initiate the flag as false
 
 -- utility functions --
@@ -1190,11 +1194,12 @@ function start_chapterskip_countdown(text, duration)
 	g_autoskip_countdown_flag = true
     g_autoskip_countdown = g_autoskip_countdown - 1
 	
+	if o.autoskip_countdown_graceful and (g_autoskip_countdown <= 0) then kill_chapterskip_countdown(); mp.osd_message('',0) return end --1.14# for graceful kill it when it reaches 0
 	
-	if (g_autoskip_countdown < 0) then kill_chapterskip_countdown(); mp.osd_message('',0) return end --1.0# if countdown reaches 0 then force kill it and clear osd message
+	if (g_autoskip_countdown < 0) then kill_chapterskip_countdown(); mp.osd_message('',0) return end --1.0# if countdown reaches 0 then force kill it and clear osd message --1.14(this has to be < 0 so that when it reaches 0 if we put the countdown as 1 it works)
 	
 	text = text:gsub("%%countdown%%", g_autoskip_countdown)
-	prompt_msg(text, 1000)
+	prompt_msg(text, 2000) --1.14# make it two seconds instead of 1 since it will be replaced anyway
 end
 
 function kill_chapterskip_countdown(action)
@@ -1280,6 +1285,8 @@ function chapterskip(_, current, countdown) --1.12# change countdown to be part 
 			end)
 			
 			local autoskip_osd_string = ''
+			local autoskip_graceful_osd = '' --1.14# graceful osd
+			if o.autoskip_countdown_graceful then autoskip_graceful_osd = 'Press Keybind to:\n' end --1.14# add the graceful osd if its available
 			if o.autoskip_osd == 'osd-msg-bar' or o.autoskip_osd == 'osd-msg' then --1.07# show osd message before timer
 				if consecutive_i > 1 and o.autoskip_countdown_bulk then
 					local autoskip_osd_string = '' --1.06# initiate autoskip chapter osd as empty string
@@ -1288,17 +1295,18 @@ function chapterskip(_, current, countdown) --1.12# change countdown to be part 
 						if chapters[i-j] then chapter_title = chapters[i-j].title end --1.09# if chapter exists then get chapter_title
 						autoskip_osd_string=(autoskip_osd_string..'\n  ▷ Chapter ('..i-j..') '..chapter_title) --1.06# print the index of chapter along with title and put it into autoskip osd string
 					end
-					prompt_msg('○ Auto-Skip'..' in "'..o.autoskip_countdown..'"'..autoskip_osd_string, 2000) --1.09# increase to 2000ms since it will be replaced anyway
+					prompt_msg(autoskip_graceful_osd..'○ Auto-Skip'..' in "'..o.autoskip_countdown..'"'..autoskip_osd_string, 2000) --1.09# increase to 2000ms since it will be replaced anyway
 					g_autoskip_timer = mp.add_periodic_timer(1, function () 
-						start_chapterskip_countdown('○ Auto-Skip'..' in "%countdown%"'..autoskip_osd_string, 2000) --1.09# increase to 2000ms since it will be replaced anyway
+						start_chapterskip_countdown(autoskip_graceful_osd..'○ Auto-Skip'..' in "%countdown%"'..autoskip_osd_string, 2000) --1.09# increase to 2000ms since it will be replaced anyway
 					end)
 				else
-					prompt_msg('▷ Auto-Skip in "'..o.autoskip_countdown..'": Chapter '.. mp.command_native({'expand-text', '${chapter}'}), 2000) --1.09# increase to 2000ms since it will be replaced anyway
+					prompt_msg(autoskip_graceful_osd..'▷ Auto-Skip in "'..o.autoskip_countdown..'": Chapter '.. mp.command_native({'expand-text', '${chapter}'}), 2000) --1.09# increase to 2000ms since it will be replaced anyway
 					g_autoskip_timer = mp.add_periodic_timer(1, function () 
-						start_chapterskip_countdown('▷ Auto-Skip in "%countdown%": Chapter '.. mp.command_native({'expand-text', '${chapter}'}), 2000) --1.09# increase to 2000ms since it will be replaced anyway
+						start_chapterskip_countdown(autoskip_graceful_osd..'▷ Auto-Skip in "%countdown%": Chapter '.. mp.command_native({'expand-text', '${chapter}'}), 2000) --1.09# increase to 2000ms since it will be replaced anyway
 					end)
 				end
 			end
+			if o.autoskip_countdown_graceful then return end --1.14# if it is graceful then return before starting function that will skip
 			mp.add_timeout(countdown, function() --1.09# start of countdown function
 				if not g_autoskip_countdown_flag then kill_chapterskip_countdown() return end --1.09# only proceed if autoskip is there
 				if g_autoskip_countdown > 1 then return end --1.09# if it is more than 1 then exit the function
@@ -1349,6 +1357,8 @@ function chapterskip(_, current, countdown) --1.12# change countdown to be part 
 			return
 		end)
 		if o.autoskip_osd == 'osd-msg-bar' or o.autoskip_osd == 'osd-msg' then 
+			local autoskip_graceful_osd = '' --1.14# graceful osd
+			if o.autoskip_countdown_graceful then autoskip_graceful_osd = 'Press Keybind to:\n' end --1.14# add the graceful osd if its available
 			if consecutive_i > 1 and o.autoskip_countdown_bulk then --1.13 fix for notification not showing consecutive if end of playback is detected
 				local i = (mp.get_property_number('chapters')+1 or 0) --1.13# since this is after the loop is completed, instead of the i we will use the chapters_count+1
 				local autoskip_osd_string = '' --1.06# initiate autoskip chapter osd as empty string
@@ -1357,17 +1367,18 @@ function chapterskip(_, current, countdown) --1.12# change countdown to be part 
 					if chapters[i-j] then chapter_title = chapters[i-j].title end --1.09# if chapter exists then get chapter_title
 					autoskip_osd_string=(autoskip_osd_string..'\n  ▷ Chapter ('..i-j..') '..chapter_title) --1.06# print the index of chapter along with title and put it into autoskip osd string
 				end
-				prompt_msg('○ Auto-Skip'..' in "'..o.autoskip_countdown..'"'..autoskip_osd_string, 2000) --1.09# increase to 2000ms since it will be replaced anyway
-				g_autoskip_timer = mp.add_periodic_timer(1, function () 
-					start_chapterskip_countdown('○ Auto-Skip'..' in "%countdown%"'..autoskip_osd_string, 2000) --1.09# increase to 2000ms since it will be replaced anyway
+				prompt_msg(autoskip_graceful_osd..'○ Auto-Skip'..' in "'..o.autoskip_countdown..'"'..autoskip_osd_string, 2000) --1.09# increase to 2000ms since it will be replaced anyway
+				g_autoskip_timer = mp.add_periodic_timer(1, function ()
+					start_chapterskip_countdown(autoskip_graceful_osd..'○ Auto-Skip'..' in "%countdown%"'..autoskip_osd_string, 2000) --1.09# increase to 2000ms since it will be replaced anyway --1.14# added graceful osd
 				end)
 			else
-				prompt_msg('▷ Auto-Skip in "'..o.autoskip_countdown..'": Chapter '.. mp.command_native({'expand-text', '${chapter}'}), 2000) --1.09# increase to 2000ms since it will be replaced anyway
+				prompt_msg(autoskip_graceful_osd..'▷ Auto-Skip in "'..o.autoskip_countdown..'": Chapter '.. mp.command_native({'expand-text', '${chapter}'}), 2000) --1.09# increase to 2000ms since it will be replaced anyway --1.14# added graceful osd
 				g_autoskip_timer = mp.add_periodic_timer(1, function () 
-					start_chapterskip_countdown('▷ Auto-Skip in "%countdown%": Chapter '.. mp.command_native({'expand-text', '${chapter}'}), 2000) --1.09# increase to 2000ms since it will be replaced anyway
+					start_chapterskip_countdown(autoskip_graceful_osd..'▷ Auto-Skip in "%countdown%": Chapter '.. mp.command_native({'expand-text', '${chapter}'}), 2000) --1.09# increase to 2000ms since it will be replaced anyway
 				end)
 			end
 		end
+		if o.autoskip_countdown_graceful then return end --1.14# if it is graceful then return before starting function that will skip
 		mp.add_timeout(countdown, function() --1.09# start of countdown function
 			if not g_autoskip_countdown_flag then return end --1.09# only proceed if autoskip is there
 			if g_autoskip_countdown > 1 then return end --1.09# if it is more than 1 then exit the function
@@ -1471,6 +1482,7 @@ bind_keys(o.toggle_autoload_keybind, 'toggle-autoload', toggle_autoload)
 bind_keys(o.toggle_autoskip_keybind, "toggle-autoskip", toggle_autoskip)
 bind_keys(o.toggle_category_autoskip_keybind, "toggle-category-autoskip", toggle_category_autoskip)
 bind_keys(o.add_chapter_keybind, "add-chapter", add_chapter)
+bind_keys(o.remove_chapter_keybind, "remove-chapter", remove_chapter) --1.14# added remove_chapter again, mistakenly it was removed
 bind_keys(o.write_chapters_keybind, "write-chapters", function () write_chapters(true) end)
 bind_keys(o.edit_chapter_keybind, "edit-chapter", edit_chapter)
 bind_keys(o.bake_chapters_keybind, "bake-chapters", bake_chapters)
