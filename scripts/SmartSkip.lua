@@ -2,8 +2,8 @@
 -- License: BSD 2-Clause License
 -- Creator: Eisa AlAwadhi
 -- Project: SmartSkip
--- Version: 1.14
--- Date: 17-09-2023
+-- Version: 1.16
+-- Date: 19-09-2023
 
 -- Related forked projects: 
 --  https://github.com/detuur/mpv-scripts/blob/master/skiptosilence.lua
@@ -40,7 +40,7 @@ local o = {
 	autoskip_countdown_graceful = false, --(yes/no) only sends the notification without forcing autoskip
     skip_once = false, --(yes/no) or specify types e.g.: [[ ["internal-chapters", "external-chapters"] ]])
 	categories=[[ [ ["internal-chapters", "prologue>Prologue/^Intro; opening>^OP/ OP$/^Opening; ending>^ED/ ED$/^Ending; preview>Preview$"], ["external-chapters", "idx->0/2"] ] ]], --0.16# write the string for any chapter type, e.g.: categories = "prologue>Prologue/^Intro; opening>OP/ OP$/^Opening; ending>^ED/ ED$/^Ending; preview>Preview$; idx->0/2", or specify categories for each chapter.
-	skip=[[ [ ["internal-chapters", "opening;ending;preview;toggle"], ["external-chapters", "idx-;toggle;opening"] ] ]], -- write the string .e.g: skip = "opening;ending", OR define the skip category for each chapter type: [[ [ ["internal-chapters", "prologue;ending"], ["external-chapters", "idx-"] ] ]]. idx- followed by the chapter index to autoskip based on index. toggle is for categories toggled during playback.
+	skip=[[ [ ["internal-chapters", "opening;ending;preview;toggle;toggle_idx"], ["external-chapters", "toggle;toggle_idx;opening;idx-"] ] ]], -- write the string .e.g: skip = "opening;ending", OR define the skip category for each chapter type: [[ [ ["internal-chapters", "prologue;ending"], ["external-chapters", "idx-"] ] ]]. idx- followed by the chapter index to autoskip based on index. toggle is for categories toggled during playback.
 	--autoload user config--
 	autoload_playlist = true,
     autoload_max_entries = 5000,
@@ -143,6 +143,10 @@ local g_opt_skip_once = false --1.05# change to global variable and call once on
 o.autoskip_countdown = math.floor(o.autoskip_countdown) --1.14# floor it so that countdown is restricted to be by seconds
 local g_autoskip_countdown = o.autoskip_countdown --1.07# initiate as the user configured
 local g_autoskip_countdown_flag = false --1.09# initiate the flag as false
+local categories = { --1.02# added default as a pre-defined category
+	toggle = "",
+	toggle_idx = "",
+}
 
 -- utility functions --
 function has_value(tab, val, array2d) --1.07# needed when using arrays for user config
@@ -1119,10 +1123,6 @@ end
 
 --modified fork of chapterskip.lua--
 
-local categories = { --1.02# added default as a pre-defined category
-	toggle = "",
-}
-
 function matches(i, title)
 	local opt_skip = o.skip --0.17# initiate opt_skip as o.skip, however if it was table then find the appropriate value based on chapter
 	if type(o.skip) == 'table' then --0.17# if it is table then find the appropriate value based on chapter
@@ -1135,8 +1135,14 @@ function matches(i, title)
 	end
 
     for category in string.gmatch(opt_skip, " *([^;]*[^; ]) *") do
-        if categories[category:lower()] then
-            if string.find(category:lower(), "^idx%-") == nil then
+		if categories[category:lower()] then --1.16# made it the opposite to handle index first, and used == instead of find
+            if category:lower() == "idx-" or category:lower() == "toggle_idx" then
+			   for pattern in string.gmatch(categories[category:lower()], "([^/]+)") do
+                    if tonumber(pattern) == i then
+                        return true
+                    end
+                end
+			else
                 if title then
                     for pattern in string.gmatch(categories[category:lower()], "([^/]+)") do
                         if string.match(title, pattern) then
@@ -1144,14 +1150,8 @@ function matches(i, title)
                         end
                     end
                 end
-            else
-                for pattern in string.gmatch(categories[category:lower()], "([^/]+)") do
-                    if tonumber(pattern) == i then
-                        return true
-                    end
-                end
             end
-        end
+		end
     end
 end
 
@@ -1179,7 +1179,7 @@ function prep_chapterskip_var() --1.05# to identify the chapter category of auto
 	end
 	
 	for category in string.gmatch(g_opt_categories, "([^;]+)") do
-        name, patterns = string.match(category, " *([^+>]*[^+> ]) *[+>](.*)")
+        local name, patterns = string.match(category, " *([^+>]*[^+> ]) *[+>](.*)") --1.15# added local
         if name then
             categories[name:lower()] = patterns
         elseif not parsed[category] then
@@ -1397,6 +1397,7 @@ function toggle_autoskip() --1.0# add option to toggle autoskip
 	if autoskip_chapter == true then
 		prompt_msg('○ Auto-Skip Disabled')
 		autoskip_chapter = false
+		if g_autoskip_countdown_flag then kill_chapterskip_countdown() end --1.15# kill countdown if its on-going while disabling
 	elseif autoskip_chapter == false then
 		prompt_msg('● Auto-Skip Enabled')
 		autoskip_chapter = true
@@ -1410,18 +1411,65 @@ function toggle_category_autoskip() --1.02# option to add / remove categories fr
 	local current_chapter = (mp.get_property_number("chapter") + 1 or 0) --1.05# to not cause crash when looking for chapters_index
 	
 	--1.09# handle if no chapter title is available by using index
-	local chapter_title = current_chapter --1.09# initiate chapter_title as the index of current_title
+	local chapter_title = tostring(current_chapter) --1.09# initiate chapter_title as the index of current_title
 	if current_chapter > 0 and chapters[current_chapter].title and chapters[current_chapter].title ~= '' then --1.09# replace the chapter_title with title if it is found and not empty
 		chapter_title = chapters[current_chapter].title
 	end
-	
-	if string.match(categories.toggle, chapter_title) then --1.03# removed checking of chapters from different categories
-		prompt_msg('○ Removed from Auto-Skip\n  ▷ Chapter: '..chapter_title)
-		categories.toggle = categories.toggle:gsub(esc_string("^"..chapter_title.."/"), "") --1.02# if category is within toggle then remove it
+
+	local found_i = 0 --1.15# init the variable
+	if matches(current_chapter, chapter_title) then --1.15# only if it is triggered for skip using user config do the following
+		for category in string.gmatch(g_opt_categories, "([^;]+)") do --1.15# check user config and remove when toggling
+			local name, patterns = string.match(category, " *([^+>]*[^+> ]) *[+>](.*)")
+
+			for pattern in string.gmatch(patterns, "([^/]+)") do --1.15# loop through each pattern in found patterns
+				if string.match(chapter_title:lower(), pattern:lower()) then --1.15# if pattern matches title, then remove it
+					g_opt_categories = g_opt_categories:gsub(esc_string(pattern)..'/?', "")
+					found_i = found_i + 1
+				end
+			end
+		end
+		
+		for category in string.gmatch(g_opt_categories, "([^;]+)") do --1.15# write the changes
+			local name, patterns = string.match(category, " *([^+>]*[^+> ]) *[+>](.*)") --1.15# added local
+			if name then
+				categories[name:lower()] = patterns
+			elseif not parsed[category] then
+				mp.msg.warn("Improper category definition: " .. category)
+			end
+			parsed[category] = true
+		end
+		
+		--1.16# update user config variables (so it keeps the same toggled chapters for the whole session)
+		if type(o.categories) == 'table' then --0.17# if it is table then find the appropriate value based on chapter
+			for i=1, #o.categories do
+				if o.categories[i] and o.categories[i][1] == chapter_state then --0.17# set the value for the defined chapter, causes crash because this function could run before chapter_state is set to internal or external (look at FINALLY: for the fix)
+					o.categories[i][2] = g_opt_categories
+					break
+				end
+			end
+		else
+			o.categories = g_opt_categories
+		end
+	end
+	if current_chapter > 0 and chapters[current_chapter].title and chapters[current_chapter].title ~= '' then
+		if found_i > 0 or string.match(categories.toggle, esc_string(chapter_title)) then --1.15# if found either in toggle or user then add it
+			prompt_msg('○ Removed from Auto-Skip\n  ▷ Chapter: '..chapter_title)
+			categories.toggle = categories.toggle:gsub(esc_string("^"..chapter_title.."/"), "") --1.02# if category is within toggle then remove it --1.02# if category is within toggle then remove it
+			if g_autoskip_countdown_flag then kill_chapterskip_countdown() end --1.15# kill countdown if its on-going while disabling
+		else
+			prompt_msg('● Added to Auto-Skip\n  ➔ Chapter: '..chapter_title)
+			categories.toggle = categories.toggle.."^"..chapter_title.."/" --1.02# if not within toggle then add chapter to toggle category
+		end
 	else
-		prompt_msg('● Added to Auto-Skip\n  ➔ Chapter: '..chapter_title)
-		categories.toggle = categories.toggle.."^"..chapter_title.."/" --1.02# if not within toggle then add chapter to toggle category
-    end
+		if found_i > 0 or string.match(categories.toggle_idx, esc_string(chapter_title)) then --1.16# if it is index based then add it as index
+			prompt_msg('○ Removed from Auto-Skip\n  ▷ Chapter: '..chapter_title)
+			categories.toggle_idx = categories.toggle_idx:gsub(esc_string(chapter_title.."/"), "") --1.02# if category is within toggle then remove it --1.02# if category is within toggle then remove it
+			if g_autoskip_countdown_flag then kill_chapterskip_countdown() end --1.15# kill countdown if its on-going while disabling
+		else
+			prompt_msg('● Added to Auto-Skip\n  ➔ Chapter: '..chapter_title)
+			categories.toggle_idx = categories.toggle_idx..chapter_title.."/" --1.02# if not within toggle then add chapter to toggle category
+		end
+	end
 end
 
 -- HOOKS --------------------------------------------------------------------
