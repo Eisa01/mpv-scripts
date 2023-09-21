@@ -2,7 +2,7 @@
 -- License: BSD 2-Clause License
 -- Creator: Eisa AlAwadhi
 -- Project: SmartSkip
--- Version: 1.18
+-- Version: 1.19
 -- Date: 21-09-2023
 
 -- Related forked projects: 
@@ -25,7 +25,7 @@ local o = {
 	--SmartSkip user config--
 	last_chapter_skip_behavior=[[ [ ["no-chapters", "silence-skip"], ["internal-chapters", "playlist-next"], ["external-chapters", "silence-skip"] ] ]],--1.09# Available options [[ [ ["no-chapters", "silence-skip"], ["internal-chapters", "playlist-next"], ["external-chapters", "chapter-next"] ] ]] -- it defaults to silence-skip so if dont define external-chapters it will be silence-skip
 	smart_next_proceed_countdown = true, --1.18# if autoskip countdown is active, proceeds to autoskip as the next action
-	smart_prev_cancel_countdown = false, --1.18# if autoskip countdown is active, smart_prev will cancel autoskip countdown without going backwards
+	smart_prev_cancel_countdown = true, --1.18# if autoskip countdown is active, smart_prev will cancel autoskip countdown without going backwards
 	--chapters user config--
     external_chapters_autoload = true, --0.15# rename
     modified_chapters_autosave=[[ ["no-chapters", "external-chapters"] ]], --1.06# add the following options --- (yes/no) or specify types ["no-chapters", "internal-chapters", "external-chapters"])
@@ -1296,7 +1296,6 @@ function chapterskip(_, current, countdown)
 					end)
 				end
 			end
-			if o.autoskip_countdown_graceful then return end
 			function proceed_autoskip(force) --1.18# convert it into function so we may bind it to keybind, and also use it for smartNext
 				if not g_autoskip_countdown_flag then kill_chapterskip_countdown() return end
 				if g_autoskip_countdown > 1 and not force then return end --1.18# add option to force it by passing it as true
@@ -1325,8 +1324,9 @@ function chapterskip(_, current, countdown)
 				skipped[skip] = true
 				kill_chapterskip_countdown()
 			end
+			bind_keys(o.proceed_autoskip_countdown_keybind, "proceed-autoskip-countdown", function() proceed_autoskip(true) return end) --1.19# reposition to before graceful so binding works
+			if o.autoskip_countdown_graceful then return end --1.19# reposition to before timeout to fix graceful
 			mp.add_timeout(countdown, proceed_autoskip) --1.18# bind the function instead
-			bind_keys(o.proceed_autoskip_countdown_keybind, "proceed-autoskip-countdown", function() proceed_autoskip(true) return end) --1.18# bind proceed with force and return
             return
         end
     end
@@ -1362,7 +1362,6 @@ function chapterskip(_, current, countdown)
 				end)
 			end
 		end
-		if o.autoskip_countdown_graceful then return end
 		function proceed_autoskip(force) --1.18# convert it into function so we may bind it to keybind, and also use it for smartNext
 			if not g_autoskip_countdown_flag then return end
 			if g_autoskip_countdown > 1 and not force then return end --1.18# add option to force it by passing it as true
@@ -1391,8 +1390,9 @@ function chapterskip(_, current, countdown)
 			if o.autoskip_osd ~= 'no-osd' then autoskip_playlist_osd = true end
 			kill_chapterskip_countdown()
 		end
+		bind_keys(o.proceed_autoskip_countdown_keybind, "proceed-autoskip-countdown", function() proceed_autoskip(true) return end) --1.19# reposition to before graceful so binding works
+		if o.autoskip_countdown_graceful then return end --1.19# reposition to before timeout to fix graceful
 		mp.add_timeout(countdown, proceed_autoskip) --1.18# bind the function instead
-		bind_keys(o.proceed_autoskip_countdown_keybind, "proceed-autoskip-countdown", function() proceed_autoskip(true) return end) --1.18# bind proceed with force and return
     end
 end
 
