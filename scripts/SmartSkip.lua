@@ -2,8 +2,8 @@
 -- License: BSD 2-Clause License
 -- Creator: Eisa AlAwadhi
 -- Project: SmartSkip
--- Version: 1.17
--- Date: 20-09-2023
+-- Version: 1.18
+-- Date: 21-09-2023
 
 -- Related forked projects: 
 --  https://github.com/detuur/mpv-scripts/blob/master/skiptosilence.lua
@@ -24,6 +24,8 @@ local o = {
 	force_mute_on_skip = false,
 	--SmartSkip user config--
 	last_chapter_skip_behavior=[[ [ ["no-chapters", "silence-skip"], ["internal-chapters", "playlist-next"], ["external-chapters", "silence-skip"] ] ]],--1.09# Available options [[ [ ["no-chapters", "silence-skip"], ["internal-chapters", "playlist-next"], ["external-chapters", "chapter-next"] ] ]] -- it defaults to silence-skip so if dont define external-chapters it will be silence-skip
+	smart_next_proceed_countdown = true, --1.18# if autoskip countdown is active, proceeds to autoskip as the next action
+	smart_prev_cancel_countdown = false, --1.18# if autoskip countdown is active, smart_prev will cancel autoskip countdown without going backwards
 	--chapters user config--
     external_chapters_autoload = true, --0.15# rename
     modified_chapters_autosave=[[ ["no-chapters", "external-chapters"] ]], --1.06# add the following options --- (yes/no) or specify types ["no-chapters", "internal-chapters", "external-chapters"])
@@ -281,6 +283,7 @@ end
 
 -- smart-skip main code --
 function smartNext()
+	if g_autoskip_countdown_flag and o.smart_next_proceed_countdown then proceed_autoskip(true) return end --1.18# proceed_autoskip using smartNext if countdown started
 	local next_action = "silence-skip"
 	local chapters_count = (mp.get_property_number('chapters') or 0)
     local chapter  = (mp.get_property_number('chapter') or 0)
@@ -320,6 +323,7 @@ end
 
 function smartPrev()
 	if skip_flag then restoreProp(initial_skip_time) return end
+	if g_autoskip_countdown_flag and o.smart_prev_cancel_countdown then kill_chapterskip_countdown('osd') return end --1.18# kill auto-skip if its on-going when using smartPrev
 	local chapters_count = (mp.get_property_number('chapters') or 0)
     local chapter  = (mp.get_property_number('chapter') or 0)
 	local timepos = (mp.get_property_native("time-pos") or 0)
@@ -1269,18 +1273,6 @@ function chapterskip(_, current, countdown)
         elseif skip and countdown > 0 then
 			g_autoskip_countdown_flag = true
 			bind_keys(o.cancel_autoskip_countdown_keybind, "cancel-autoskip-countdown", function() kill_chapterskip_countdown('osd') return end)
-			bind_keys(o.proceed_autoskip_countdown_keybind, "proceed-autoskip-countdown", function()
-				kill_chapterskip_countdown()
-				if consecutive_i > 1 and o.autoskip_countdown_bulk then
-					chapterskip(_,current,0)
-					return
-				else
-					prompt_msg('➤ Auto-Skip: Chapter '.. mp.command_native({'expand-text', '${chapter}'}))
-					mp.set_property("time-pos", chapters[i-consecutive_i+1].time)
-					skipped[skip] = true
-					return
-				end
-			end)
 			
 			local autoskip_osd_string = ''
 			local autoskip_graceful_osd = ''
@@ -1305,9 +1297,9 @@ function chapterskip(_, current, countdown)
 				end
 			end
 			if o.autoskip_countdown_graceful then return end
-			mp.add_timeout(countdown, function()
+			function proceed_autoskip(force) --1.18# convert it into function so we may bind it to keybind, and also use it for smartNext
 				if not g_autoskip_countdown_flag then kill_chapterskip_countdown() return end
-				if g_autoskip_countdown > 1 then return end
+				if g_autoskip_countdown > 1 and not force then return end --1.18# add option to force it by passing it as true
 				
 				mp.set_property('osd-duration', o.osd_duration)
 				mp.commandv(autoskip_osd, "show-progress")
@@ -1332,7 +1324,9 @@ function chapterskip(_, current, countdown)
 				end
 				skipped[skip] = true
 				kill_chapterskip_countdown()
-			end)
+			end
+			mp.add_timeout(countdown, proceed_autoskip) --1.18# bind the function instead
+			bind_keys(o.proceed_autoskip_countdown_keybind, "proceed-autoskip-countdown", function() proceed_autoskip(true) return end) --1.18# bind proceed with force and return
             return
         end
     end
@@ -1345,11 +1339,7 @@ function chapterskip(_, current, countdown)
     elseif skip and countdown > 0 then
 		g_autoskip_countdown_flag = true
 		bind_keys(o.cancel_autoskip_countdown_keybind, "cancel-autoskip-countdown", function() kill_chapterskip_countdown('osd') return end)
-		bind_keys(o.proceed_autoskip_countdown_keybind, "proceed-autoskip-countdown", function()
-			kill_chapterskip_countdown()
-			chapterskip(_,current,0)
-			return
-		end)
+		
 		if o.autoskip_osd == 'osd-msg-bar' or o.autoskip_osd == 'osd-msg' then 
 			local autoskip_graceful_osd = ''
 			if o.autoskip_countdown_graceful then autoskip_graceful_osd = 'Press Keybind to:\n' end
@@ -1373,10 +1363,10 @@ function chapterskip(_, current, countdown)
 			end
 		end
 		if o.autoskip_countdown_graceful then return end
-		mp.add_timeout(countdown, function()
+		function proceed_autoskip(force) --1.18# convert it into function so we may bind it to keybind, and also use it for smartNext
 			if not g_autoskip_countdown_flag then return end
-			if g_autoskip_countdown > 1 then return end
-			
+			if g_autoskip_countdown > 1 and not force then return end --1.18# add option to force it by passing it as true
+
 			mp.set_property('osd-duration', o.osd_duration) --1.17# show osd-bar as per defined duration
 			mp.commandv(autoskip_osd, "show-progress")
 			mp.add_timeout(0.07, function () mp.set_property('osd-duration', osd_duration_default) end)
@@ -1400,7 +1390,9 @@ function chapterskip(_, current, countdown)
 			end
 			if o.autoskip_osd ~= 'no-osd' then autoskip_playlist_osd = true end
 			kill_chapterskip_countdown()
-		end)
+		end
+		mp.add_timeout(countdown, proceed_autoskip) --1.18# bind the function instead
+		bind_keys(o.proceed_autoskip_countdown_keybind, "proceed-autoskip-countdown", function() proceed_autoskip(true) return end) --1.18# bind proceed with force and return
     end
 end
 
