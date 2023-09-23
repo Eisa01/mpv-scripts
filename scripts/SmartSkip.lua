@@ -2,80 +2,82 @@
 -- License: BSD 2-Clause License
 -- Creator: Eisa AlAwadhi
 -- Project: SmartSkip
--- Version: 1.19
--- Date: 21-09-2023
+-- Version: 1.2
+-- Date: 23-09-2023
 
--- Related forked projects: 
+-- Related forked projects:
 --  https://github.com/detuur/mpv-scripts/blob/master/skiptosilence.lua
 --  https://raw.githubusercontent.com/mpv-player/mpv/master/TOOLS/lua/autoload.lua
 --  https://github.com/mar04/chapters_for_mpv
 --  https://github.com/po5/chapterskip/blob/master/chapterskip.lua
 
 local o = {
-	--skip-silence script user config--
+	-----Silence Skip Settings-----
 	silence_audio_level = -40,
 	silence_duration = 0.65,
-	ignore_silence_duration=1,
+	ignore_silence_duration=5,
 	min_skip_duration = 0,
 	max_skip_duration = 130,
-	keybind_twice_cancel_skip = true, --1.02# (yes/no) press keybind again silence-skip is active to cancel
+	keybind_twice_cancel_skip = true,
 	silence_skip_to_end = "playlist-next",
-	add_chapter_on_skip = true, --1.07# add the following options --- (yes/no) or specify types ["no-chapters", "internal-chapters", "external-chapters"]. e.g.: [[ ["no-chapters", "external-chapters"] ]])
+	add_chapter_on_skip = true,
 	force_mute_on_skip = false,
-	--SmartSkip user config--
-	last_chapter_skip_behavior=[[ [ ["no-chapters", "silence-skip"], ["internal-chapters", "playlist-next"], ["external-chapters", "silence-skip"] ] ]],--1.09# Available options [[ [ ["no-chapters", "silence-skip"], ["internal-chapters", "playlist-next"], ["external-chapters", "chapter-next"] ] ]] -- it defaults to silence-skip so if dont define external-chapters it will be silence-skip
-	smart_next_proceed_countdown = true, --1.18# if autoskip countdown is active, proceeds to autoskip as the next action
-	smart_prev_cancel_countdown = true, --1.18# if autoskip countdown is active, smart_prev will cancel autoskip countdown without going backwards
-	--chapters user config--
-    external_chapters_autoload = true, --0.15# rename
-    modified_chapters_autosave=[[ ["no-chapters", "external-chapters"] ]], --1.06# add the following options --- (yes/no) or specify types ["no-chapters", "internal-chapters", "external-chapters"])
-    global_chapters = true, -- save all chapter files in a single global directory or next to the playback file
-    chapters_dir = mp.command_native({"expand-path", "~~home/chapters"}),
-    hash = true, -- hash works only with global_chapters enabled
-    add_chapter_ask_title = false, -- ask for title or leave it empty
-	add_chapter_pause_for_input = false, -- pause the playback when asking for chapter title
-    add_chapter_placeholder_title = "Chapter ", -- placeholder when asking for title of a new chapter
-	--chapters auto skip user config--
-    autoskip_chapter = true, --(yes/no) -- removed option for based on chapters
-	autoskip_countdown = 3, --(number) in seconds, countdown before initiating autoskip
-	autoskip_countdown_bulk = true, --(yes/no) coundown seperately for each consecutive chapter or bulk them together in 1 countdown
-	autoskip_countdown_graceful = false, --(yes/no) only sends the notification without forcing autoskip
-    skip_once = false, --(yes/no) or specify types e.g.: [[ ["internal-chapters", "external-chapters"] ]])
-	categories=[[ [ ["internal-chapters", "prologue>Prologue/^Intro; opening>^OP/ OP$/^Opening; ending>^ED/ ED$/^Ending; preview>Preview$"], ["external-chapters", "idx->0/1"] ] ]], --0.16# write the string for any chapter type, e.g.: categories = "prologue>Prologue/^Intro; opening>OP/ OP$/^Opening; ending>^ED/ ED$/^Ending; preview>Preview$; idx->0/2", or specify categories for each chapter.
-	skip=[[ [ ["internal-chapters", "toggle;toggle_idx;opening;ending;preview"], ["external-chapters", "toggle;toggle_idx;idx-;opening;ending;preview"] ] ]], -- write the string .e.g: skip = "opening;ending", OR define the skip category for each chapter type: [[ [ ["internal-chapters", "prologue;ending"], ["external-chapters", "idx-"] ] ]]. idx- followed by the chapter index to autoskip based on index. toggle is for categories toggled during playback.
-	--autoload user config--
+	-----Smart Skip Settings-----
+	last_chapter_skip_behavior=[[ [ ["no-chapters", "silence-skip"], ["internal-chapters", "playlist-next"], ["external-chapters", "silence-skip"] ] ]],
+	smart_next_proceed_countdown = true,
+	smart_prev_cancel_countdown = true,
+	-----Chapters Settings-----
+    external_chapters_autoload = true,
+    modified_chapters_autosave=[[ ["no-chapters", "external-chapters"] ]],
+    global_chapters = true,
+    global_chapters_path = "/:dir%mpvconf%/chapters",
+    hash_global_chapters = true,
+    add_chapter_ask_title = false,
+	add_chapter_pause_for_input = false,
+    add_chapter_placeholder_title = "Chapter ",
+	-----Auto-Skip Settings-----
+    autoskip_chapter = true,
+	autoskip_countdown = 3,
+	autoskip_countdown_bulk = false,
+	autoskip_countdown_graceful = false,
+    skip_once = false,
+	categories=[[ [ ["internal-chapters", "prologue>Prologue/^Intro; opening>^OP/ OP$/^Opening; ending>^ED/ ED$/^Ending; preview>Preview$"], ["external-chapters", "idx->0/2"] ] ]],
+	skip=[[ [ ["internal-chapters", "toggle;toggle_idx;opening;ending;preview"], ["external-chapters", "toggle;toggle_idx"] ] ]],
+	-----Autoload Settings-----
 	autoload_playlist = true,
     autoload_max_entries = 5000,
+	autoload_max_dir_stack = 20,
     ignore_hidden = true,
     same_type = false,
+	directory_mode = "auto",
     images = true,
     videos = true,
     audio = true,
     additional_image_exts = "",
     additional_video_exts = "",
     additional_audio_exts = "",
-	--osd messages--
-	seek_osd = "osd-msg-bar", --1.06# added option to display bar if needed for smart skip - Choose between (no-osd/osd-bar/osd-msg/osd-msg-bar) as per mpv.io
-	chapter_osd = "osd-msg-bar", --0.19# seperate chapter_osd. Choose between (no-osd/osd-bar/osd-msg/osd-msg-bar) as per mpv.io
-	autoskip_osd = "osd-msg-bar", --Choose between (no-osd/osd-bar/osd-msg/osd-msg-bar)
-	playlist_osd = true, --1.07# true false to show osd when playlist entry changes --0.19# made it universal
-	osd_msg = true, -- all other osd messages
-	osd_duration = 2500, --duration for the osd message in milliseconds, applies to all osd_messages, -1 reverts to --osd-duration
-	--keybinds--
+	-----OSD Messages Settings-----
+	osd_duration = 2500,
+	seek_osd = "osd-msg-bar",
+	chapter_osd = "osd-msg-bar",
+	autoskip_osd = "osd-msg-bar",
+	playlist_osd = true,
+	osd_msg = true,
+	-----Keybind Settings-----
 	toggle_autoload_keybind=[[ [""] ]],
 	toggle_autoskip_keybind=[[ ["ctrl+."] ]],
+	toggle_category_autoskip_keybind=[[ ["alt+."] ]],
 	cancel_autoskip_countdown_keybind=[[ ["esc", "n"] ]],
 	proceed_autoskip_countdown_keybind=[[ ["enter", "y"] ]],
-	toggle_category_autoskip_keybind=[[ ["alt+."] ]],
 	add_chapter_keybind=[[ ["n"] ]],
 	remove_chapter_keybind=[[ ["alt+n"] ]],
-	write_chapters_keybind=[[ ["ctrl+n"] ]],
 	edit_chapter_keybind=[[ [""] ]],
+	write_chapters_keybind=[[ ["ctrl+n"] ]],
 	bake_chapters_keybind=[[ [""] ]],
-	chapter_prev_keybind=[[ ["ctrl+left"] ]],
 	chapter_next_keybind=[[ ["ctrl+right"] ]],
-	smart_prev_keybind=[[ ["<"] ]],
+	chapter_prev_keybind=[[ ["ctrl+left"] ]],
 	smart_next_keybind=[[ [">"] ]],
+	smart_prev_keybind=[[ ["<"] ]],
 	silence_skip_keybind=[[ ["?"] ]],
 }
 
@@ -90,6 +92,9 @@ options.read_options(o, nil, function(list)
         list.images or list.additional_image_exts then
         create_extensions()
     end
+    if list.directory_mode then
+        validate_directory_mode()
+    end
 end)
 
 if o.add_chapter_on_skip ~= false and o.add_chapter_on_skip ~= true then o.add_chapter_on_skip = utils.parse_json(o.add_chapter_on_skip) end
@@ -98,6 +103,15 @@ o.last_chapter_skip_behavior = utils.parse_json(o.last_chapter_skip_behavior)
 if utils.parse_json(o.skip) ~= nil then o.skip = utils.parse_json(o.skip) end
 if utils.parse_json(o.categories) ~= nil then o.categories = utils.parse_json(o.categories) end
 if o.skip_once ~= false and o.skip_once ~= true then o.skip_once = utils.parse_json(o.skip_once) end
+
+if o.global_chapters_path:match('/:dir%%mpvconf%%') then --1.2# add variables for specifying path via user-config
+	o.global_chapters_path = o.global_chapters_path:gsub('/:dir%%mpvconf%%', mp.find_config_file('.'))
+elseif o.global_chapters_path:match('/:dir%%script%%') then
+	o.global_chapters_path = o.global_chapters_path:gsub('/:dir%%script%%', debug.getinfo(1).source:match('@?(.*/)'))
+elseif o.global_chapters_path:match('/:var%%(.*)%%') then
+	local os_variable = o.global_chapters_path:match('/:var%%(.*)%%')
+	o.global_chapters_path = o.global_chapters_path:gsub('/:var%%(.*)%%', os.getenv(os_variable))
+end
 
 o.toggle_autoload_keybind = utils.parse_json(o.toggle_autoload_keybind)
 o.toggle_autoskip_keybind = utils.parse_json(o.toggle_autoskip_keybind)
@@ -149,7 +163,7 @@ local categories = {
 	toggle = "",
 	toggle_idx = "",
 }
-local autoskip_osd = o.autoskip_osd --1.17# change autoskip_osd to global variable
+local autoskip_osd = o.autoskip_osd
 if o.autoskip_osd == 'osd-msg-bar' then autoskip_osd = 'osd-bar' end
 if o.autoskip_osd == 'osd-msg' then autoskip_osd = 'no-osd' end
 
@@ -283,7 +297,7 @@ end
 
 -- smart-skip main code --
 function smartNext()
-	if g_autoskip_countdown_flag and o.smart_next_proceed_countdown then proceed_autoskip(true) return end --1.18# proceed_autoskip using smartNext if countdown started
+	if g_autoskip_countdown_flag and o.smart_next_proceed_countdown then proceed_autoskip(true) return end
 	local next_action = "silence-skip"
 	local chapters_count = (mp.get_property_number('chapters') or 0)
     local chapter  = (mp.get_property_number('chapter') or 0)
@@ -323,7 +337,7 @@ end
 
 function smartPrev()
 	if skip_flag then restoreProp(initial_skip_time) return end
-	if g_autoskip_countdown_flag and o.smart_prev_cancel_countdown then kill_chapterskip_countdown('osd') return end --1.18# kill auto-skip if its on-going when using smartPrev
+	if g_autoskip_countdown_flag and o.smart_prev_cancel_countdown then kill_chapterskip_countdown('osd') return end
 	local chapters_count = (mp.get_property_number('chapters') or 0)
     local chapter  = (mp.get_property_number('chapter') or 0)
 	local timepos = (mp.get_property_native("time-pos") or 0)
@@ -516,11 +530,11 @@ end
 
 
 function add_chapter(timepos)
-	if not timepos then timepos = mp.get_property_number("time-pos") end --1.07# ability to add timepos
+	if not timepos then timepos = mp.get_property_number("time-pos") end
     local chapter_list = mp.get_property_native("chapter-list")
 	
-	if #chapter_list > 0 then --0.14# only if there are chapters then do the loop
-		for i = 1, #chapter_list do --0.14# check if any chapter is the same time as this to ignore it
+	if #chapter_list > 0 then
+		for i = 1, #chapter_list do
 			if math.floor(chapter_list[i].time) == math.floor(timepos) then
 				msg.debug("failed to add chapter, chapter exists in same position")
 				return
@@ -569,7 +583,6 @@ function remove_chapter()
     end
 
     local chapter_list = mp.get_property_native("chapter-list")
-    -- +1 because mpv indexes from 0, lua from 1
     local current_chapter = mp.get_property_number("chapter") + 1
 
     table.remove(chapter_list, current_chapter)
@@ -739,19 +752,19 @@ function write_chapters(...)
     -- figure out the directory
     local chapters_dir
     if o.global_chapters then
-        local dir = utils.file_info(o.chapters_dir)
+        local dir = utils.file_info(o.global_chapters_path)
         if dir then
             if dir.is_dir then
-                msg.debug("o.chapters_dir exists:", o.chapters_dir)
-                chapters_dir = o.chapters_dir
+                msg.debug("o.global_chapters_path exists:", o.global_chapters_path)
+                chapters_dir = o.global_chapters_path
             else
-                msg.error("o.chapters_dir is not a directory")
+                msg.error("o.global_chapters_path is not a directory")
                 return
             end
         else
-            msg.verbose("o.chapters_dir doesn't exists:", o.chapters_dir)
-            if mkdir(o.chapters_dir) then
-                chapters_dir = o.chapters_dir
+            msg.verbose("o.global_chapters_path doesn't exists:", o.global_chapters_path)
+            if mkdir(o.global_chapters_path) then
+                chapters_dir = o.global_chapters_path
             else
                 return
             end
@@ -762,7 +775,7 @@ function write_chapters(...)
 
     -- and the name
     local name = mp.get_property("filename")
-    if o.hash and o.global_chapters then
+    if o.hash_global_chapters and o.global_chapters then
         name = hash()
         if name == nil then
             msg.warn("hash function failed, fallback to filename")
@@ -793,11 +806,6 @@ function write_chapters(...)
     end
 end
 
-
--- priority:
--- 1. chapters file in the same directory as the playing file
--- 2. hashed version of the chapters file in the global directory
--- 3. path based version of the chapters file in the global directory
 function load_chapters()
     local path = mp.get_property("path")
     local expected_chapters_file = utils.join_path(utils.split_path(path), mp.get_property("filename") .. ".ffmetadata")
@@ -820,16 +828,16 @@ function load_chapters()
 
     msg.debug("looking in the global directory")
 
-    if o.hash then
+    if o.hash_global_chapters then
         local hashed_path = hash()
         if hashed_path then
-            expected_chapters_file = utils.join_path(o.chapters_dir, hashed_path .. ".ffmetadata")
+            expected_chapters_file = utils.join_path(o.global_chapters_path, hashed_path .. ".ffmetadata")
         else
             msg.debug("hash function failed, fallback to path")
-            expected_chapters_file = utils.join_path(o.chapters_dir, mp.get_property("filename") .. ".ffmetadata")
+            expected_chapters_file = utils.join_path(o.global_chapters_path, mp.get_property("filename") .. ".ffmetadata")
         end
     else
-        expected_chapters_file = utils.join_path(o.chapters_dir, mp.get_property("filename") .. ".ffmetadata")
+        expected_chapters_file = utils.join_path(o.global_chapters_path, mp.get_property("filename") .. ".ffmetadata")
     end
 
     msg.debug("looking for:", expected_chapters_file)
@@ -901,6 +909,17 @@ function bake_chapters()
 end
 
 --modified fork of autoload script--
+function toggle_autoload()
+	if autoload_playlist == true then
+		prompt_msg('○ Auto-Load Disabled')
+		autoload_playlist = false
+	elseif autoload_playlist == false then 
+		prompt_msg('● Auto-Load Enabled')
+		autoload_playlist = true
+	end
+	if autoload_playlist then find_and_add_entries() end
+end
+
 function Set (t)
     local set = {}
     for _, v in pairs(t) do set[v] = true end
@@ -948,6 +967,13 @@ function create_extensions()
 end
 create_extensions()
 
+function validate_directory_mode()
+    if o.directory_mode ~= "recursive" and o.directory_mode ~= "lazy" and o.directory_mode ~= "ignore" then
+        o.directory_mode = nil
+    end
+end
+validate_directory_mode()
+
 function add_files(files)
     local oldcount = mp.get_property_number("playlist-count", 1)
     for i = 1, #files do
@@ -973,6 +999,16 @@ table.filter = function(t, iter)
     end
 end
 
+table.append = function(t1, t2)
+    local t1_size = #t1
+    for i = 1, #t2 do
+        t1[t1_size + i] = t2[i]
+    end
+end
+
+-- alphanum sorting for humans in Lua
+-- http://notebook.kulchenko.com/algorithms/alphanumeric-natural-sorting-for-humans-in-lua
+
 function alphanumsort(filenames)
     local function padnum(n, d)
         return #d > 0 and ("%03d%s%.12f"):format(#n, n, tonumber(d) / (10 ^ #d))
@@ -991,25 +1027,51 @@ function alphanumsort(filenames)
 end
 
 local autoloaded = nil
+local added_entries = {}
+local autoloaded_dir = nil
 
-function get_playlist_filenames(playlist)
-    local filenames = {}
-    for i = 1, #playlist do
-        local _, file = utils.split_path(playlist[i].filename)
-        filenames[file] = true
+function scan_dir(path, current_file, dir_mode, separator, dir_depth, total_files, extensions)
+    if dir_depth == o.autoload_max_dir_stack then
+        return
     end
-    return filenames
-end
+    msg.trace("scanning: " .. path)
+    local files = utils.readdir(path, "files") or {}
+    local dirs = dir_mode ~= "ignore" and utils.readdir(path, "dirs") or {}
+    local prefix = path == "." and "" or path
+    table.filter(files, function (v)
+        -- The current file could be a hidden file, ignoring it doesn't load other
+        -- files from the current directory.
+        if (o.ignore_hidden and not (prefix .. v == current_file) and string.match(v, "^%.")) then
+            return false
+        end
+        local ext = get_extension(v)
+        if ext == nil then
+            return false
+        end
+        return extensions[string.lower(ext)]
+    end)
+    table.filter(dirs, function(d)
+        return not ((o.ignore_hidden and string.match(d, "^%.")))
+    end)
+    alphanumsort(files)
+    alphanumsort(dirs)
 
-function toggle_autoload()
-	if autoload_playlist == true then
-		prompt_msg('○ Auto-Load Disabled')
-		autoload_playlist = false
-	elseif autoload_playlist == false then 
-		prompt_msg('● Auto-Load Enabled')
-		autoload_playlist = true
-	end
-	if autoload_playlist then find_and_add_entries() end
+    for i, file in ipairs(files) do
+        files[i] = prefix .. file
+    end
+
+    table.append(total_files, files)
+    if dir_mode == "recursive" then
+        for _, dir in ipairs(dirs) do
+            scan_dir(prefix .. dir .. separator, current_file, dir_mode,
+                     separator, dir_depth + 1, total_files, extensions)
+        end
+    else
+        for i, dir in ipairs(dirs) do
+            dirs[i] = prefix .. dir
+        end
+        table.append(total_files, dirs)
+    end
 end
 
 function find_and_add_entries()
@@ -1024,7 +1086,7 @@ function find_and_add_entries()
         return
     end
 
-    pl_count = mp.get_property_number("playlist-count", 1)
+    local pl_count = mp.get_property_number("playlist-count", 1)
     this_ext = get_extension(filename)
     -- check if this is a manually made playlist
     if (pl_count > 1 and autoloaded == nil) or
@@ -1032,19 +1094,24 @@ function find_and_add_entries()
         msg.verbose("stopping: manually made playlist")
         return
     else
-        autoloaded = true
+        if pl_count == 1 then
+            autoloaded = true
+            autoloaded_dir = dir
+            added_entries = {}
+        end
     end
 
+    local extensions = {}
     if o.same_type then
         if EXTENSIONS_VIDEO[string.lower(this_ext)] ~= nil then
-            EXTENSIONS_TARGET = EXTENSIONS_VIDEO
+            extensions = EXTENSIONS_VIDEO
         elseif EXTENSIONS_AUDIO[string.lower(this_ext)] ~= nil then
-            EXTENSIONS_TARGET = EXTENSIONS_AUDIO
+            extensions = EXTENSIONS_AUDIO
         else
-            EXTENSIONS_TARGET = EXTENSIONS_IMAGES
+            extensions = EXTENSIONS_IMAGES
         end
     else
-        EXTENSIONS_TARGET = EXTENSIONS
+        extensions = EXTENSIONS
     end
 
     local pl = mp.get_property_native("playlist", {})
@@ -1052,33 +1119,22 @@ function find_and_add_entries()
     msg.trace(("playlist-pos-1: %s, playlist: %s"):format(pl_current,
         utils.to_string(pl)))
 
-    local files = utils.readdir(dir, "files")
-    if files == nil then
-        msg.verbose("no other files in directory")
-        return
+    local files = {}
+    do
+        local dir_mode = o.directory_mode or mp.get_property("directory-mode", "lazy")
+        local separator = mp.get_property_native("platform") == "windows" and "\\" or "/"
+        scan_dir(autoloaded_dir, path, dir_mode, separator, 0, files, extensions)
     end
-    table.filter(files, function (v, k)
-        -- The current file could be a hidden file, ignoring it doesn't load other
-        -- files from the current directory.
-        if (o.ignore_hidden and not (v == filename) and string.match(v, "^%.")) then
-            return false
-        end
-        local ext = get_extension(v)
-        if ext == nil then
-            return false
-        end
-        return EXTENSIONS_TARGET[string.lower(ext)]
-    end)
-    alphanumsort(files)
 
-    if dir == "." then
-        dir = ""
+    if next(files) == nil then
+        msg.verbose("no other files or directories in directory")
+        return
     end
 
     -- Find the current pl entry (dir+"/"+filename) in the sorted dir list
     local current
     for i = 1, #files do
-        if files[i] == filename then
+        if files[i] == path then
             current = i
             break
         end
@@ -1088,8 +1144,13 @@ function find_and_add_entries()
     end
     msg.trace("current file position in files: "..current)
 
+    -- treat already existing playlist entries, independent of how they got added
+    -- as if they got added by autoload
+    for _, entry in ipairs(pl) do
+        added_entries[entry.filename] = true
+    end
+
     local append = {[-1] = {}, [1] = {}}
-    local filenames = get_playlist_filenames(pl)
     for direction = -1, 1, 2 do -- 2 iterations, with direction = -1 and +1
         for i = 1, o.autoload_max_entries do
             local pos = current + i * direction
@@ -1098,21 +1159,21 @@ function find_and_add_entries()
                 break
             end
 
-            local filepath = dir .. file
-            -- skip files already in playlist
-            if not filenames[file] then
+            -- skip files that are/were already in the playlist
+            if not added_entries[file] then
                 if direction == -1 then
                     msg.info("Prepending " .. file)
-                    table.insert(append[-1], 1, {filepath, pos - 1})
+                    table.insert(append[-1], 1, {file, pl_current + i * direction + 1})
                 else
                     msg.info("Adding " .. file)
                     if pl_count > 1 then
-                        table.insert(append[1], {filepath, pos - 1})
+                        table.insert(append[1], {file, pl_current + i * direction - 1})
                     else
-                        mp.commandv("loadfile", filepath, "append")
+                        mp.commandv("loadfile", file, "append")
                     end
                 end
             end
+            added_entries[file] = true
         end
         if pl_count == 1 and direction == -1 and #append[-1] > 0 then
             for i = 1, #append[-1] do
@@ -1296,9 +1357,9 @@ function chapterskip(_, current, countdown)
 					end)
 				end
 			end
-			function proceed_autoskip(force) --1.18# convert it into function so we may bind it to keybind, and also use it for smartNext
+			function proceed_autoskip(force)
 				if not g_autoskip_countdown_flag then kill_chapterskip_countdown() return end
-				if g_autoskip_countdown > 1 and not force then return end --1.18# add option to force it by passing it as true
+				if g_autoskip_countdown > 1 and not force then return end
 				
 				mp.set_property('osd-duration', o.osd_duration)
 				mp.commandv(autoskip_osd, "show-progress")
@@ -1319,14 +1380,14 @@ function chapterskip(_, current, countdown)
 				if consecutive_i > 1 and o.autoskip_countdown_bulk then
 					mp.set_property("time-pos", chapters[i].time)
 				else
-					mp.commandv('no-osd', 'add', 'chapter', 1) --1.17# using this instead,, otherwise simply skip this chapter
+					mp.commandv('no-osd', 'add', 'chapter', 1)
 				end
 				skipped[skip] = true
 				kill_chapterskip_countdown()
 			end
-			bind_keys(o.proceed_autoskip_countdown_keybind, "proceed-autoskip-countdown", function() proceed_autoskip(true) return end) --1.19# reposition to before graceful so binding works
-			if o.autoskip_countdown_graceful then return end --1.19# reposition to before timeout to fix graceful
-			mp.add_timeout(countdown, proceed_autoskip) --1.18# bind the function instead
+			bind_keys(o.proceed_autoskip_countdown_keybind, "proceed-autoskip-countdown", function() proceed_autoskip(true) return end)
+			if o.autoskip_countdown_graceful then return end
+			mp.add_timeout(countdown, proceed_autoskip)
             return
         end
     end
@@ -1362,37 +1423,37 @@ function chapterskip(_, current, countdown)
 				end)
 			end
 		end
-		function proceed_autoskip(force) --1.18# convert it into function so we may bind it to keybind, and also use it for smartNext
+		function proceed_autoskip(force)
 			if not g_autoskip_countdown_flag then return end
-			if g_autoskip_countdown > 1 and not force then return end --1.18# add option to force it by passing it as true
+			if g_autoskip_countdown > 1 and not force then return end
 
-			mp.set_property('osd-duration', o.osd_duration) --1.17# show osd-bar as per defined duration
+			mp.set_property('osd-duration', o.osd_duration)
 			mp.commandv(autoskip_osd, "show-progress")
 			mp.add_timeout(0.07, function () mp.set_property('osd-duration', osd_duration_default) end)
-			if consecutive_i > 1 and o.autoskip_countdown_bulk then --1.17# fix bulk skip disabled when playlist-next is detected
+			if consecutive_i > 1 and o.autoskip_countdown_bulk then
 				if mp.get_property_native("playlist-count") == mp.get_property_native("playlist-pos-1") then
 					return mp.set_property("time-pos", mp.get_property_native("duration"))
 				end
 				mp.commandv("playlist-next")
 			else
-				local current_chapter = (mp.get_property_number("chapter") + 1 or 0) --1.17# get current_chapter since i variable is not available here
-				local chapters_count = (mp.get_property_number('chapters') or 0) --1.17# get the total chapters count so we go to next playlist if in last chapter
+				local current_chapter = (mp.get_property_number("chapter") + 1 or 0)
+				local chapters_count = (mp.get_property_number('chapters') or 0)
 				
-				if current_chapter == chapters_count then --1.17# if last chapter, then do the same action as bulk
+				if current_chapter == chapters_count then
 					if mp.get_property_native("playlist-count") == mp.get_property_native("playlist-pos-1") then
 						return mp.set_property("time-pos", mp.get_property_native("duration"))
 					end
 					mp.commandv("playlist-next")
 				else
-					mp.commandv('no-osd', 'add', 'chapter', 1) --1.17# otherwise simply skip this chapter
+					mp.commandv('no-osd', 'add', 'chapter', 1)
 				end
 			end
 			if o.autoskip_osd ~= 'no-osd' then autoskip_playlist_osd = true end
 			kill_chapterskip_countdown()
 		end
-		bind_keys(o.proceed_autoskip_countdown_keybind, "proceed-autoskip-countdown", function() proceed_autoskip(true) return end) --1.19# reposition to before graceful so binding works
-		if o.autoskip_countdown_graceful then return end --1.19# reposition to before timeout to fix graceful
-		mp.add_timeout(countdown, proceed_autoskip) --1.18# bind the function instead
+		bind_keys(o.proceed_autoskip_countdown_keybind, "proceed-autoskip-countdown", function() proceed_autoskip(true) return end)
+		if o.autoskip_countdown_graceful then return end
+		mp.add_timeout(countdown, proceed_autoskip)
     end
 end
 
@@ -1486,7 +1547,7 @@ mp.register_event('file-loaded', function()
 	if playlist_osd and not autoskip_playlist_osd then
 		prompt_msg('['..mp.command_native({'expand-text', '${playlist-pos-1}'})..'/'..mp.command_native({'expand-text', '${playlist-count}'})..'] '..mp.command_native({'expand-text', '${filename}'}))
 	end
-	if autoskip_playlist_osd then --1.05# utilize prompt_msg
+	if autoskip_playlist_osd then
 		prompt_msg('➤ Auto-Skip\n['..mp.command_native({'expand-text', '${playlist-pos-1}'})..'/'..mp.command_native({'expand-text', '${playlist-count}'})..'] '..mp.command_native({'expand-text', '${filename}'}))
 	end
 	playlist_osd = false
