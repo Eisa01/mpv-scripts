@@ -3,7 +3,50 @@ This repository contain scripts I have made for [mpv media player](https://githu
 To add scripts from this repository, download the desired script in your `mpv/scripts/` directory, for user customizable settings download the related conf file in your `mpv/script-opts/` directory.
 
 **Scripts available in this repository:**
- [SmartCopyPaste Script 3.1](https://github.com/Eisa01/mpv-scripts#smartcopypaste), [SmartCopyPaste_II Script 3.1](https://github.com/Eisa01/mpv-scripts#smartcopypaste_ii), [SimpleHistory Script 1.1](https://github.com/Eisa01/mpv-scripts#simplehistory), [SimpleBookmark Script 1.1](https://github.com/Eisa01/mpv-scripts#simplebookmark), [SimpleUndo Script 3.2](https://github.com/Eisa01/mpv-scripts#simpleundo), [UndoRedo Script 2.2](https://github.com/Eisa01/mpv-scripts#undoredo)
+[SmartSkip](https://github.com/Eisa01/mpv-scripts#smartskip), [SmartCopyPaste](https://github.com/Eisa01/mpv-scripts#smartcopypaste), [SmartCopyPaste_II](https://github.com/Eisa01/mpv-scripts#smartcopypaste_ii), [SimpleHistory](https://github.com/Eisa01/mpv-scripts#simplehistory), [SimpleBookmark](https://github.com/Eisa01/mpv-scripts#simplebookmark), [SimpleUndo](https://github.com/Eisa01/mpv-scripts#simpleundo), [UndoRedo](https://github.com/Eisa01/mpv-scripts#undoredo)
+
+# SmartSkip
+You think Netflix is good at binge-watching? Yes, it is.. :) But give SmartSkip a try!
+Automatically or manually skip opening, intro, outro, and preview, like never before. Jump to next file, previous file, and save your chapter changes!
+
+![SmartSkip Demo](https://raw.githubusercontent.com/Eisa01/mpv-scripts/master/.misc/smartskip_demo1.webp)
+<details>
+<Summary>Click for more details!</Summary>
+
+### Default Keybinds
+The following are the default keybinds, they can be changed in the conf file of the script or using script-opts by referring to the name.
+
+| Keybind                        | Name                             | Description                                                       |
+|-------------------------------------|----------------------------------|-------------------------------------------------------------------|
+| `>`                             | smart-next                       | Skips using silence-skip > chapter-next > playlist-next, based on configurable variables     |
+| `<`                             | smart-prev                       | Jumps to beginning > previous chapter > previous playlist, based on configurable variables   |
+| `?`                             | silence-skip                     | Skips until a silence is detected based on configurable variables                                    |
+| `ctrl+right`                     | chapter-next                     | Jumps to next chapter > to next playlist                            |
+| `ctrl+left`                      | chapter-prev                     | Jumps to previous chapter > to beginning > to previous playlist     |
+| `smart-next`, `enter`, `y`          | *NA*                               | Proceeds Auto-Skip when countdown is started             |
+| `smart-prev`, `pause`, `esc`, `n`    | *NA*                                | Cancels Auto-Skip when countdown is started              |
+| `ctrl+.`                        | toggle-autoskip                  | Enables or disables Auto-Skip during playback for the current mpv session                            |
+| `alt+.`                         | toggle-category-autoskip         | Enables or disables a chapter for Auto-Skip during playback for the current mpv session              |
+| ` `                            | toggle-autoload                   | Enables or disables autoload during playback for the current mpv session                             |
+| `n`                            | add-chapter                       | Add a chapter for the reached position                                   |
+| `alt+n`                         | remove-chapter                    | Removes the current chapter                                              |
+| `ctrl+n`                        | write-chapters                    | jumps to the previous available filter based on configured filters       |
+| `alt+s` / `alt+S`                  | edit-chapter                     | Renames the current chapter (requires [user-input-module](https://github.com/CogentRedTester/mpv-user-input) )     |
+| ` `                              | bake-chapters                   | Merge the changes of chapters for the file inside mkv file                |
+
+### Main Features
+* **Smart Next / Prev:** Automatically triggers Skip to Silence, Chapter Next/ Prev, or Playlist Next/ Prev based on configurable parameters.
+- **Skip to Silence:** If the file you are watching is not chaptered, skipping to silence will attempt to skip the intro and outro by finding the silence in the file (optionally: chapter automatically created).
+- **Auto Skip**: If the file you are watching has organized chapters, any opening, ending sound can be automatically skipped after your **preferred countdown** time.
+- **Chapters Modification:** Create, remove, edit chapters,  and then save changes into an external file or bake them into the mkv file.
+- **Chapter Next / Prev:** Go to next chapter, if no chapters available go to next playlist, and vise-versa (like the good times with MPC-HC).
+- **Autoload**: Basically, if you are not using mpv's autoload script, this is bundled along for convenience and for the possibility to add more features in the future.
+- **Customization:** Tons of user customizable settings that can even change the behavior and priority of smart-next, smart-prev, auto-skip, and more!
+- **OSD** (On Screen Display): Displays a proper OSD for the actions preformed through SmartSkip.
+- **More:** This is not all! Explore the conf file to learn more about the possibilities you are missing out...
+### Compatibility
+- Works on all of mpv supported platforms.
+</details>
 
 # SmartCopyPaste
 Gives mpv the capability to copy and paste while being smart and customizable... 
@@ -219,7 +262,8 @@ The following are the default keybinds, they can be changed in the conf file of 
 [MPV.net](https://github.com/stax76/mpv.net) users must change the option `input-default-bindings = no` to `input-default-bindings = yes` located in `MPV.net/mpv.conf` 
 
 ### Special Thanks
-Below is list of contributors/ honorable mentions.
-- **SmartCopyPaste Script:** For the handlers that are used inside the script, which added compatibility for newer mpv versions, the method was originally forked and edited from [@jonniek](https://github.com/jonniek) appendURL script. Specical thanks for his work.
+Below is list of contributors/ honorable mentions. Without the below contributions these scripts would not exist today.
+- **SmartCopyPaste Script:** For the handlers that are used inside the script, which added compatibility for newer mpv versions, the method was originally forked and edited from [@jonniek](https://github.com/jonniek) appendURL script. Special thanks for his work.
 - **LogManager**: [@jonniek](https://github.com/jonniek) mpv-playlistmanager script and [@hacel](https://github.com/hacel) recents script, both scripts were forked and modified to help me in developing the LogManager which is used inside the script. Specials thanks for their work.
-- **UndoRedo Script:** Credits and special thanks to [@Banz99](https://github.com/Banz99) for forking SimpleUndo script and enhance it by a table to store undo and redo values.
+- **UndoRedo Script:** Credits and special thanks to my friend [@Banz99](https://github.com/Banz99) for forking SimpleUndo script and enhance it by a table to store undo and redo values.
+- **SmartSkip Script:** [skiptosilence.lua](https://github.com/detuur/mpv-scripts) by [@detuur](https://github.com/detuur/), [chapters.lua](https://github.com/mar04/chapters_for_mpv) by @[mar04](https://github.com/mar04), [chapterskip.lua](https://github.com/po5/chapterskip) by [@po5](https://github.com/po5/), and [autoload.lua](https://github.com/mpv-player/mpv/blob/master/TOOLS/lua/autoload.lua) by [@mpv](https://github.com/mpv-player/mpv/) team. The following scripts were forked and modified in order to develop SmartSkip. Specials thanks for their work.
