@@ -14,7 +14,7 @@ Automatically or manually skip opening, intro, outro, and preview, like never be
 <Summary>Click for more details!</Summary>
 
 ### Default Keybinds
-The following are the default keybinds, they can be changed in the conf file of the script or using script-opts by referring to the name.
+Below default keybinds can be changed using the script conf file, or through script-opts by referring to the names that do not contain spaces.
 
 | Keybind                        | Name                             | Description                                                       |
 |-------------------------------------|----------------------------------|-------------------------------------------------------------------|
@@ -23,8 +23,8 @@ The following are the default keybinds, they can be changed in the conf file of 
 | `?`                             | silence-skip                     | Skips until a silence is detected based on configurable variables                                    |
 | `ctrl+right`                     | chapter-next                     | Jumps to next chapter > to next playlist                            |
 | `ctrl+left`                      | chapter-prev                     | Jumps to previous chapter > to beginning > to previous playlist     |
-| `smart-next`, `enter`, `y`          | *NA*                               | Proceeds Auto-Skip when countdown is started             |
-| `smart-prev`, `pause`, `esc`, `n`    | *NA*                                | Cancels Auto-Skip when countdown is started              |
+| `smart-next`, `enter`, `y`          | Proceed Auto-Skip             | Proceeds Auto-Skip when countdown is started             |
+| `smart-prev`, `pause`, `esc`, `n`    | Cancel Auto-Skip             | Cancels Auto-Skip when countdown is started              |
 | `ctrl+.`                        | toggle-autoskip                  | Enables or disables Auto-Skip during playback for the current mpv session                            |
 | `alt+.`                         | toggle-category-autoskip         | Enables or disables a chapter for Auto-Skip during playback for the current mpv session              |
 | ` `                            | toggle-autoload                   | Enables or disables autoload during playback for the current mpv session                             |
