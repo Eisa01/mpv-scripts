@@ -2116,6 +2116,11 @@ function history_resume_option()
 		local logged_time = 0
 		local percentage = 0
 		local video_duration = mp.get_property_number('duration')
+		if video_duration and video_duration ~= nil then
+			video_duration = tonumber(video_duration)
+		else
+			video_duration = 0
+		end	
 		list_contents = read_log_table()
 		if not list_contents or not list_contents[1] then return end
 		for i = #list_contents, 1, -1 do
