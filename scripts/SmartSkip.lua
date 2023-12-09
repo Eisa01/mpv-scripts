@@ -943,7 +943,7 @@ EXTENSIONS_VIDEO = Set {
 }
 
 EXTENSIONS_AUDIO = Set {
-    'aiff', 'ape', 'au', 'flac', 'm4a', 'mka', 'mp3', 'oga', 'ogg',
+    'aac', 'ac3', 'aiff', 'ape', 'au', 'flac', 'm4a', 'mka', 'mp3', 'oga', 'ogg',
     'ogm', 'opus', 'wav', 'wma'
 }
 
@@ -1325,7 +1325,7 @@ function chapterskip(_, current, countdown)
 					end
 					prompt_msg('● Auto-Skip'..autoskip_osd_string)
 				else
-					prompt_msg('➤ Auto-Skip: Chapter '.. mp.command_native({'expand-text', '${chapter}'}))
+					prompt_msg('➤ Auto-Skipped: Chapter '.. mp.command_native({'expand-text', '${chapter}'}))
 				end
 			end
 			mp.set_property("time-pos", chapters[i].time)
@@ -1351,9 +1351,9 @@ function chapterskip(_, current, countdown)
 						start_chapterskip_countdown(autoskip_graceful_osd..'○ Auto-Skip'..' in "%countdown%"'..autoskip_osd_string, 2000)
 					end)
 				else
-					prompt_msg(autoskip_graceful_osd..'▷ Auto-Skip in "'..o.autoskip_countdown..'": Chapter '.. mp.command_native({'expand-text', '${chapter}'}), 2000)
+					prompt_msg(autoskip_graceful_osd..'▷ Auto-Skip: Chapter '.. mp.command_native({'expand-text', '${chapter}'})..' in "'..o.autoskip_countdown..'"', 2000)
 					g_autoskip_timer = mp.add_periodic_timer(1, function () 
-						start_chapterskip_countdown(autoskip_graceful_osd..'▷ Auto-Skip in "%countdown%": Chapter '.. mp.command_native({'expand-text', '${chapter}'}), 2000)
+						start_chapterskip_countdown(autoskip_graceful_osd..'▷ Auto-Skip: Chapter '.. mp.command_native({'expand-text', '${chapter}'})..' in "%countdown%"', 2000)
 					end)
 				end
 			end
@@ -1374,7 +1374,7 @@ function chapterskip(_, current, countdown)
 						end
 						prompt_msg('● Auto-Skip'..autoskip_osd_string)
 					else
-						prompt_msg('➤ Auto-Skip: Chapter '.. mp.command_native({'expand-text', '${chapter}'}))
+						prompt_msg('➤ Auto-Skipped: Chapter '.. mp.command_native({'expand-text', '${chapter}'}))
 					end
 				end
 				if consecutive_i > 1 and o.autoskip_countdown_bulk then
@@ -1417,9 +1417,9 @@ function chapterskip(_, current, countdown)
 					start_chapterskip_countdown(autoskip_graceful_osd..'○ Auto-Skip'..' in "%countdown%"'..autoskip_osd_string, 2000)
 				end)
 			else
-				prompt_msg(autoskip_graceful_osd..'▷ Auto-Skip in "'..o.autoskip_countdown..'": Chapter '.. mp.command_native({'expand-text', '${chapter}'}), 2000)
+				prompt_msg(autoskip_graceful_osd..'▷ Auto-Skip: Chapter '.. mp.command_native({'expand-text', '${chapter}'})..' in "'..o.autoskip_countdown..'"', 2000)
 				g_autoskip_timer = mp.add_periodic_timer(1, function () 
-					start_chapterskip_countdown(autoskip_graceful_osd..'▷ Auto-Skip in "%countdown%": Chapter '.. mp.command_native({'expand-text', '${chapter}'}), 2000)
+					start_chapterskip_countdown(autoskip_graceful_osd..'▷ Auto-Skip: Chapter '.. mp.command_native({'expand-text', '${chapter}'})..' in "%countdown%"', 2000)
 				end)
 			end
 		end
@@ -1547,8 +1547,11 @@ mp.register_event('file-loaded', function()
 	if playlist_osd and not autoskip_playlist_osd then
 		prompt_msg('['..mp.command_native({'expand-text', '${playlist-pos-1}'})..'/'..mp.command_native({'expand-text', '${playlist-count}'})..'] '..mp.command_native({'expand-text', '${filename}'}))
 	end
-	if autoskip_playlist_osd then
-		prompt_msg('➤ Auto-Skip\n['..mp.command_native({'expand-text', '${playlist-pos-1}'})..'/'..mp.command_native({'expand-text', '${playlist-count}'})..'] '..mp.command_native({'expand-text', '${filename}'}))
+	if playlist_osd and autoskip_playlist_osd then
+		prompt_msg('➤ Auto-Skipped to\n['..mp.command_native({'expand-text', '${playlist-pos-1}'})..'/'..mp.command_native({'expand-text', '${playlist-count}'})..'] '..mp.command_native({'expand-text', '${filename}'}))
+	end
+	if not playlist_osd and autoskip_playlist_osd then
+		prompt_msg('')
 	end
 	playlist_osd = false
 	autoskip_playlist_osd = false
