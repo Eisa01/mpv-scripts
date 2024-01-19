@@ -11,8 +11,9 @@ local o = {
 
 	-----Script Settings----
 	device = 'auto', --'auto' is for automatic device detection, or manually change to: 'windows' or 'mac' or 'linux'
-	linux_copy = 'xclip -silent -selection clipboard -in', --copy command that will be used in Linux. OR write a different command
+	linux_copy = 'xclip -silent -selection clipboard -i', --copy command that will be used in Linux. OR write a different command
 	linux_paste = 'xclip -selection clipboard -o', --paste command that will be used in Linux. OR write a different command
+	linux_paste_primary = 'xclip -selection primary -o', --paste command that will be used in Linux on middle click
 	mac_copy = 'pbcopy', --copy command that will be used in MAC. OR write a different command
 	mac_paste = 'pbpaste', --paste command that will be used in MAC. OR write a different command
 	windows_copy = 'powershell', --'powershell' is for using windows powershell to copy. OR write the copy command, e.g: ' clip'
@@ -45,6 +46,9 @@ local o = {
 	paste_specific_keybind=[[
 	["ctrl+alt+v", "ctrl+alt+V", "meta+alt+v", "meta+alt+V"]
 	]], --Keybind that will be used to paste based on the paste behavior specified
+	paste_primary_keybind=[[
+	["MBTN_MID"]
+	]], --Keybind that will be used to paste from primary buffer on Linux
 	paste_protocols=[[
 	["https?://", "magnet:", "rtmp:", "file:"]
 	]], --add above (after a comma) any protocol you want paste to work with; e.g: ,'ftp://'. Or set it as "" by deleting all defined protocols to make paste works with any protocol.
@@ -79,6 +83,7 @@ o.copy_keybind = utils.parse_json(o.copy_keybind)
 o.paste_keybind = utils.parse_json(o.paste_keybind)
 o.copy_specific_keybind = utils.parse_json(o.copy_specific_keybind)
 o.paste_specific_keybind = utils.parse_json(o.paste_specific_keybind)
+o.paste_primary_keybind = utils.parse_json(o.paste_primary_keybind)
 o.paste_protocols = utils.parse_json(o.paste_protocols)
 o.paste_extensions = utils.parse_json(o.paste_extensions)
 o.paste_subtitles = utils.parse_json(o.paste_subtitles)
@@ -287,11 +292,14 @@ function get_time_attribute(target_path)
 end
 
 
-function get_clipboard()
+function get_clipboard(use_primary)
 	local clipboard
 	if o.device == 'linux' then
-		clipboard = os.capture(o.linux_paste)
-		return clipboard
+		if use_primary then
+			return os.capture(o.linux_paste_primary)
+		else
+			return os.capture(o.linux_paste)
+		end
 	elseif o.device == 'windows' then
 		if o.windows_paste == 'powershell' then
 			local args = {
@@ -686,13 +694,13 @@ function multipaste()
 end
 
 
-function paste()
+function paste(use_primary)
 	if o.osd_messages == true then
 		mp.osd_message("Pasting...")
 	end
 	msg.info("Pasting...")
 
-	clip = get_clipboard(clip)
+	clip = get_clipboard(use_primary)
 	if not clip then msg.error('Error: clip is null' .. clip) return end
 	clip, clip_file, clip_time, clip_table = parse_clipboard(clip)
 	
@@ -766,7 +774,7 @@ function paste()
 end
 
 
-function paste_specific(action)
+function paste_specific(action, use_primary)
 	if not action then return end
 	
 	if o.osd_messages == true then
@@ -774,7 +782,7 @@ function paste_specific(action)
 	end
 	msg.info("Pasting...")
 	
-	clip = get_clipboard(clip)
+	clip = get_clipboard(use_primary)
 	if not clip then msg.error('Error: clip is null' .. clip) return end
 	clip, clip_file, clip_time, clip_table = parse_clipboard(clip)
 	
@@ -832,7 +840,7 @@ end
 mp.register_event('file-loaded', function()
 	filePath, fileTitle = get_path()
 	if clipboard_pasted == true then
-		clip = get_clipboard(clip)
+		clip = get_clipboard()
 		if not clip then msg.error('Error: clip is null' .. clip) return end
 		clip, clip_file, clip_time, clip_table = parse_clipboard(clip)
 		
@@ -870,6 +878,9 @@ mp.register_event('file-loaded', function()
 end)
 
 bind_keys(o.copy_keybind, 'copy', copy)
-bind_keys(o.copy_specific_keybind, 'copy-specific', function()copy_specific(o.copy_specific_behavior)end)
+bind_keys(o.copy_specific_keybind, 'copy-specific', function() copy_specific(o.copy_specific_behavior) end)
 bind_keys(o.paste_keybind, 'paste', paste)
-bind_keys(o.paste_specific_keybind, 'paste-specific', function()paste_specific(o.paste_specific_behavior)end)
+bind_keys(o.paste_specific_keybind, 'paste-specific', function() paste_specific(o.paste_specific_behavior) end)
+if o.device == 'linux' then
+	bind_keys(o.paste_primary_keybind, 'paste-primary', function() paste(true) end)
+end
