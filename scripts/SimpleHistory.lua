@@ -2264,8 +2264,8 @@ mp.observe_property("idle-active", "bool", function(_, v)
 end)
 
 local playlist_dir=mp.get_property("playlist/0/playlist-path");
-if(playlist_dir~=nil) then
-	--filter list to only include items in the same folder as first item. 
+if playlist_dir~=nil and o.resume_startup_playlist then
+	--filter list to only include items in the same folder as the playlist. 
 	search_string=playlist_dir
 	search_active=true
 	get_list_contents()
@@ -2274,7 +2274,7 @@ if(playlist_dir~=nil) then
 	--go through each item in history from most recent to least recent and see if it's in the playlist. 
 	for l=1,#list_contents do
 		local last=list_contents[#list_contents+1-l]
-		if last~=nil and o.resume_startup_playlist then
+		if last~=nil  then
 			local lastfile=last.found_path:gsub("\\", "/")
 			print(lastfile)
 			for i=0,mp.get_property_number("playlist/count")-1 do
