@@ -2263,6 +2263,17 @@ mp.observe_property("idle-active", "bool", function(_, v)
 	end
 end)
 
+--for some reason calling "playlist-play-index" does not work on startup so instead we use a timeout to call it immediately afterwords
+local playlist_index=nil
+function resume_from_playlist()
+	if playlist_index~=nil then
+		print("switching to "..playlist_index)
+		mp.commandv("playlist-play-index",""..playlist_index)
+		playlist_index=nil
+	
+	end
+end
+
 local playlist_dir=mp.get_property("playlist/0/playlist-path");
 if playlist_dir~=nil and o.resume_startup_playlist then
 	--filter list to only include items in the same folder as the playlist. 
@@ -2275,13 +2286,16 @@ if playlist_dir~=nil and o.resume_startup_playlist then
 	for l=1,#list_contents do
 		local last=list_contents[#list_contents+1-l]
 		if last~=nil  then
-			local lastfile=last.found_path:gsub("\\", "/")
-			print(lastfile)
+			--slashes are not always consistant so we flip all of the \ into / for comparision
+			local lastfile=last.found_path
+			local lastfiledeslashed=lastfile:gsub("\\", "/")
 			for i=0,mp.get_property_number("playlist/count")-1 do
-				local filename=mp.get_property("playlist/"..i.."/filename"):gsub("\\", "/")			
-				if(filename==lastfile) then
+				local filename=mp.get_property("playlist/"..i.."/filename")
+				local filenamedeslashed=filename:gsub("\\", "/")					
+				if(filenamedeslashed==lastfiledeslashed) then					
 					print("resuming playlist "..lastfile)
-					mp.commandv("loadfile",lastfile)
+					playlist_index=i
+					mp.add_timeout(.01,resume_from_playlist)
 					return
 				end
 			end
