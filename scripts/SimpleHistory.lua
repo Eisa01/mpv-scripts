@@ -12,6 +12,7 @@ local o = {
 	-----Script Settings----
 	auto_run_list_idle = 'recents', --Auto run the list when opening mpv and there is no video / file loaded. 'none' for disabled. Or choose between: 'all', 'recents', 'distinct', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'keywords'.
 	startup_idle_behavior = 'none', --The behavior when mpv launches and nothing is loaded. 'none' for disabled. 'resume' to automatically resume your last played item. 'resume-notime' to resume your last played item but starts from the beginning.
+	resume_startup_playlist = true, --If mpv is launched with a playlist go to the most recently played item
 	toggle_idlescreen = false, --hides OSC idle screen message when opening and closing menu (could cause unexpected behavior if multiple scripts are triggering osc-idlescreen off)
 	resume_offset = -0.65, --change to 0 so item resumes from the exact position, or decrease the value so that it gives you a little preview before loading the resume point
 	osd_messages = true, --true is for displaying osd messages when actions occur. Change to false will disable all osd messages generated from this script
@@ -2261,6 +2262,32 @@ mp.observe_property("idle-active", "bool", function(_, v)
 		incognito_auto_run_triggered = true
 	end
 end)
+
+local playlist_dir=mp.get_property("playlist/0/playlist-path");
+if(playlist_dir~=nil) then
+	--filter list to only include items in the same folder as first item. 
+	search_string=playlist_dir
+	search_active=true
+	get_list_contents()
+	search_active=false
+	search_string=''
+	--go through each item in history from most recent to least recent and see if it's in the playlist. 
+	for l=1,#list_contents do
+		local last=list_contents[#list_contents+1-l]
+		if last~=nil and o.resume_startup_playlist then
+			local lastfile=last.found_path:gsub("\\", "/")
+			print(lastfile)
+			for i=0,mp.get_property_number("playlist/count")-1 do
+				local filename=mp.get_property("playlist/"..i.."/filename"):gsub("\\", "/")			
+				if(filename==lastfile) then
+					print("resuming playlist "..lastfile)
+					mp.commandv("loadfile",lastfile)
+					return
+				end
+			end
+		end
+	end
+end
 
 bind_keys(o.history_resume_keybind, 'history-resume', history_resume)
 bind_keys(o.history_load_last_keybind, 'history-load-last', history_load_last)
