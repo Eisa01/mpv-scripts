@@ -13,6 +13,8 @@ local o = {
 	device = 'auto', --'auto' is for automatic device detection, or manually change to: 'windows' or 'mac' or 'linux'
 	linux_copy = 'xclip -silent -selection clipboard -in', --copy command that will be used in Linux. OR write a different command
 	linux_paste = 'xclip -selection clipboard -o', --paste command that will be used in Linux. OR write a different command
+	wayland_copy = 'wl-copy', --copy command that will be used in Linux Wayland. OR write a different command
+	wayland_paste = 'wl-paste', --paste command that will be used in Linux Wayland. OR write a different command
 	mac_copy = 'pbcopy', --copy command that will be used in MAC. OR write a different command
 	mac_paste = 'pbpaste', --paste command that will be used in MAC. OR write a different command
 	windows_copy = 'powershell', --'powershell' is for using windows powershell to copy. OR write the copy command, e.g: ' clip'
@@ -110,15 +112,35 @@ for i = 1, #o.specific_time_attributes do
 	end
 end
 
-if not o.device or o.device == 'auto' then
-	if os.getenv('windir') ~= nil then
-		o.device = 'windows'
-	elseif os.execute '[ -d "/Applications" ]' == 0 and os.execute '[ -d "/Library" ]' == 0 or os.execute '[ -d "/Applications" ]' == true and os.execute '[ -d "/Library" ]' == true then
-		o.device = 'mac'
-	else
-		o.device = 'linux'
-  end
+function detect_device()
+    local gpu_context = mp.get_property_native("current-gpu-context")
+    
+--    	msg.info("GPU Context: " .. tostring(gpu_context))
+
+    if not o.device or o.device == 'auto' then
+        if os.getenv('windir') ~= nil then
+            o.device = 'windows'
+	elseif gpu_context == "wayland" or gpu_context == "waylandvk" then
+            o.device = 'wayland'
+        elseif (os.execute '[ -d "/Applications" ]' == 0 and os.execute '[ -d "/Library" ]' == 0) or 
+               (os.execute '[ -d "/Applications" ]' == true and os.execute '[ -d "/Library" ]' == true) then
+            o.device = 'mac'
+        else
+            o.device = 'linux'
+        end
+    end
+--    	msg.info("Detected Device: " .. tostring(o.device))
 end
+
+function check_gpu_context()
+    local gpu_context = mp.get_property_native("current-gpu-context")
+    if gpu_context then
+        detect_device()
+    end
+end
+-- Observe changes to the "current-gpu-context" property
+mp.observe_property("current-gpu-context", "string", check_gpu_context)
+
 
 function starts_protocol(tab, val)
 	for index, value in ipairs(tab) do
@@ -292,6 +314,9 @@ function get_clipboard()
 	if o.device == 'linux' then
 		clipboard = os.capture(o.linux_paste)
 		return clipboard
+	elseif o.device == 'wayland' then
+		clipboard = os.capture(o.wayland_paste)
+		return clipboard
 	elseif o.device == 'windows' then
 		if o.windows_paste == 'powershell' then
 			local args = {
@@ -325,6 +350,10 @@ function set_clipboard(text)
 	local pipe
 	if o.device == 'linux' then
 		pipe = io.popen(o.linux_copy, 'w')
+		pipe:write(text)
+		pipe:close()
+	elseif o.device == 'wayland' then
+		pipe = io.popen(o.wayland_copy, 'w')
 		pipe:write(text)
 		pipe:close()
 	elseif o.device == 'windows' then
