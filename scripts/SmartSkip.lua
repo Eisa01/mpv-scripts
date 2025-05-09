@@ -2,8 +2,8 @@
 -- License: BSD 2-Clause License
 -- Creator: Eisa AlAwadhi
 -- Project: SmartSkip
--- Version: 1.3
--- Date: 08-May-2025
+-- Version: 1.3.1
+-- Date: 09-May-2025
 
 -- Related forked projects:
 --  https://github.com/detuur/mpv-scripts/blob/master/skiptosilence.lua
@@ -16,7 +16,7 @@ local o = {
 	silence_duration = 0.65,
 	ignore_silence_duration=5,
 	min_skip_duration = 0,
-	max_skip_duration = 130,
+	max_skip_duration = 180,
 	keybind_twice_cancel_skip = true,
 	silence_skip_to_end = "playlist-next",
 	add_chapter_on_skip = true,
@@ -127,6 +127,7 @@ local file_length = 0
 local keep_open_state = "yes"
 if mp.get_property("config") ~= "no" then keep_open_state = mp.get_property("keep-open") end
 local osd_duration_default = (mp.get_property_number('osd-duration') or 1000)
+local geometry_default = mp.get_property_native("geometry") --1.3.1# get the current geometry value
 local autoskip_chapter = o.autoskip_chapter
 local playlist_osd = false
 local autoskip_playlist_osd = false
@@ -380,8 +381,9 @@ function silenceSkip(action)
 	secondary_sub_state = mp.get_property("secondary-sub-visibility")
 	pause_state = mp.get_property_native("pause")
 	speed_state = mp.get_property_native("speed")
-
+	
     if not window_maximized then mp.set_property_native("geometry", ("%dx%d"):format(width, height)) end --1.3# fix for maximized window position
+	
 	mp.commandv(o.seek_osd, "show-progress")
 	
 	mp.command(
@@ -1275,6 +1277,7 @@ mp.observe_property('pause', 'bool', function(name, value)
 end)
 
 mp.add_hook('on_unload', 9, function()
+	if geometry_default == "" then mp.set_property("geometry","") end --1.3.1# reset geometry state (this should handle both cases whether it was added in mpv.conf or it was empty so that video automatically resizes as I am only setting it as empty if it was not set). Otherwise we should not reset it and out changes to geometry wont affect how mpv behaves.
 	if o.modified_chapters_autosave == true or has_value(o.modified_chapters_autosave, chapter_state) then write_chapters(false) end
 	mp.set_property("keep-open", keep_open_state)
 	chapter_state = 'no-chapters'
