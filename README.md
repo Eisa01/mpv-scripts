@@ -27,7 +27,6 @@ Below default keybinds can be changed using the script conf file, or through scr
 | `smart-prev`, `pause`, `esc`, `n`    | Cancel Auto-Skip             | Cancels Auto-Skip when countdown is started              |
 | `ctrl+.`                        | toggle-autoskip                  | Enables or disables Auto-Skip during playback for the current mpv session                            |
 | `alt+.`                         | toggle-category-autoskip         | Enables or disables a chapter for Auto-Skip during playback for the current mpv session              |
-| ` `                            | toggle-autoload                   | Enables or disables autoload during playback for the current mpv session                             |
 | `n`                            | add-chapter                       | Add a chapter for the reached position                                   |
 | `alt+n`                         | remove-chapter                    | Removes the current chapter                                              |
 | `ctrl+n`                        | write-chapters                    | jumps to the previous available filter based on configured filters       |
@@ -40,7 +39,6 @@ Below default keybinds can be changed using the script conf file, or through scr
 - **Auto Skip**: If the file you are watching has organized chapters, any opening, ending sound can be automatically skipped after your **preferred countdown** time.
 - **Chapters Modification:** Create, remove, edit chapters,  and then save changes into an external file or bake them into the mkv file.
 - **Chapter Next / Prev:** Go to next chapter, if no chapters available go to next playlist, and vise-versa (like the good times with MPC-HC).
-- **Autoload**: Basically, if you are not using mpv's autoload script, this is bundled along for convenience and for the possibility to add more features in the future.
 - **Customization:** Tons of user customizable settings that can even change the behavior and priority of smart-next, smart-prev, auto-skip, and more!
 - **OSD** (On Screen Display): Displays a proper OSD for the actions preformed through SmartSkip.
 - **More:** This is not all! Explore the conf file to learn more about the possibilities you are missing out...
@@ -266,4 +264,4 @@ Below is list of contributors/ honorable mentions. Without the below contributio
 - **SmartCopyPaste Script:** For the handlers that are used inside the script, which added compatibility for newer mpv versions, the method was originally forked and edited from [@jonniek](https://github.com/jonniek) appendURL script. Special thanks for his work.
 - **LogManager**: [@jonniek](https://github.com/jonniek) mpv-playlistmanager script and [@hacel](https://github.com/hacel) recents script, both scripts were forked and modified to help me in developing the LogManager which is used inside the script. Specials thanks for their work.
 - **UndoRedo Script:** Credits and special thanks to my friend [@Banz99](https://github.com/Banz99) for forking SimpleUndo script and enhance it by a table to store undo and redo values.
-- **SmartSkip Script:** [skiptosilence.lua](https://github.com/detuur/mpv-scripts) by [@detuur](https://github.com/detuur/), [chapters.lua](https://github.com/mar04/chapters_for_mpv) by @[mar04](https://github.com/mar04), [chapterskip.lua](https://github.com/po5/chapterskip) by [@po5](https://github.com/po5/), and [autoload.lua](https://github.com/mpv-player/mpv/blob/master/TOOLS/lua/autoload.lua) by [@mpv](https://github.com/mpv-player/mpv/) team. The following scripts were forked and modified in order to develop SmartSkip. Specials thanks for their work.
+- **SmartSkip Script:** [skiptosilence.lua](https://github.com/detuur/mpv-scripts) by [@detuur](https://github.com/detuur/), [chapters.lua](https://github.com/mar04/chapters_for_mpv) by @[mar04](https://github.com/mar04), and [chapterskip.lua](https://github.com/po5/chapterskip) by [@po5](https://github.com/po5/). The following scripts were forked and modified in order to develop SmartSkip. Specials thanks for their work.
