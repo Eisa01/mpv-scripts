@@ -1,8 +1,8 @@
--- Copyright (c) 2022, Eisa AlAwadhi
+-- Copyright (c) 2025, Eisa AlAwadhi
 -- License: BSD 2-Clause License
 -- Creator: Eisa AlAwadhi
 -- Project: SimpleHistory
--- Version: 1.1.6
+-- Version: 1.1.7
 
 local o = {
 ---------------------------USER CUSTOMIZATION SETTINGS---------------------------
@@ -433,6 +433,10 @@ end
 
 function esc_string(str)
 	return str:gsub("([%p])", "%%%1")
+end
+
+function esc_lua_pattern(str) --1.1.7# helper function to escape pattern
+    return str:gsub("([%^%$%(%)%%%.%[%]%+%-%?])", "%%%1")
 end
 
 ---------Start of LogManager---------
@@ -1958,6 +1962,7 @@ end
 ---------End of LogManager---------
 
 function history_blacklist_check()
+	if o.history_blacklist == nil then msg.warn('ignoring history_blacklist option due to an inappropriate value') return false end --1.1.7# fix crash of history_blacklist if given
 	if not o.history_blacklist[1] or #o.history_blacklist == 1 and o.history_blacklist[1] == "" then return false end
 	local invertable_return = {true, false}
 	local blacklist_msg = 'File was not added to history because of blacklist'
@@ -1978,9 +1983,10 @@ function history_blacklist_check()
 		has_value(o.history_blacklist, "."..filePath:match('%.([^%.]+)$'), nil) then
 			msg.info(blacklist_msg)
 			return invertable_return[1]
-		else --1.1.2# check to add any subfolder after /* to blacklist. issue #70
-			for i=1, #o.history_blacklist do --1.1.2# loop through blacklisted items, if the blacklist ends with * and it is a match after subbing of the current filePath then log it. #and additionally if it is the exact same path then ignore it.
-				if string.lower(filePath):match(string.lower(o.history_blacklist[i])) and o.history_blacklist[i]:sub(-1,#o.history_blacklist[i]) == '*' and string.lower(o.history_blacklist[i]:sub(1,-2)) ~= string.lower(filePath):match("(.*[\\/])") then
+		else
+			for i=1, #o.history_blacklist do
+				local esc_history_blacklist = esc_lua_pattern(o.history_blacklist[i]) --1.1.7# add to fix not matching when special characters are found
+				if string.lower(filePath):match(string.lower(esc_history_blacklist)) and o.history_blacklist[i]:sub(-2) == '\\*' and string.lower(o.history_blacklist[i]:sub(1, -2)) ~= string.lower(filePath):match("(.*[\\/])") then
 					msg.info(blacklist_msg)
 					return invertable_return[1]
 				end
