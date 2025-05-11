@@ -2,8 +2,8 @@
 -- License: BSD 2-Clause License
 -- Creator: Eisa AlAwadhi
 -- Project: SmartSkip
--- Version: 1.3.1
--- Date: 09-May-2025
+-- Version: 1.3.2
+-- Date: 11-May-2025
 
 -- Related forked projects:
 --  https://github.com/detuur/mpv-scripts/blob/master/skiptosilence.lua
@@ -44,7 +44,7 @@ local o = {
 	skip=[[ [ ["internal-chapters", "toggle;toggle_idx;opening;ending;preview"], ["external-chapters", "toggle;toggle_idx"] ] ]],
 	-----OSD Messages Settings-----
 	osd_duration = 2500,
-	seek_osd = "osd-msg-bar",
+	silence_skip_osd = "osd-msg-bar",
 	chapter_osd = "osd-msg-bar",
 	autoskip_osd = "osd-msg-bar",
 	playlist_osd = true,
@@ -141,10 +141,6 @@ local categories = {
 	toggle = "",
 	toggle_idx = "",
 }
-local autoskip_osd = o.autoskip_osd
-if o.autoskip_osd == 'osd-msg-bar' then autoskip_osd = 'osd-bar' end
-if o.autoskip_osd == 'osd-msg' then autoskip_osd = 'no-osd' end
-
 
 -- utility functions --
 function has_value(tab, val, array2d)
@@ -172,11 +168,25 @@ function esc_string(str)
 	return str:gsub("([%p])", "%%%1")
 end
 
-function prompt_msg(text, duration)
-	if not text then return end
-	if not duration then duration = o.osd_duration end
-    if o.osd_msg then mp.commandv("show-text", text, duration) end
+function prompt_msg(text, duration, osd)
+	if not text then return end --1.32# slight changes to function
 	msg.info(text)
+
+	if not o.osd_msg then return end
+	if osd == "no-osd" or osd == "osd-bar" then return end --1.32# return if there is no osd msg specified
+	
+	if not duration then duration = o.osd_duration end
+	mp.commandv("show-text", text, duration) 
+end
+
+function prompt_progress(osd, duration) --1.32# function to handle progress osd
+	if not o.osd_msg or not osd then return end
+	if osd == "no-osd" then return end
+
+	if not duration then duration = o.osd_duration end
+	mp.set_property("osd-duration", o.osd_duration)
+	mp.commandv(osd, "show-progress")
+	mp.add_timeout(0.07, function () mp.set_property('osd-duration', osd_duration_default) end)
 end
 
 function bind_keys(keys, name, func, opts)
@@ -237,12 +247,12 @@ function handleMinMaxDuration(timepos)
 		skip_duration = timepos - initial_skip_time
 		if o.min_skip_duration > 0 and skip_duration <= o.min_skip_duration then
 			restoreProp(initial_skip_time)
-			prompt_msg('Skipping Cancelled\nSilence less than minimum')
+			prompt_msg('Skipping Cancelled\nSilence less than minimum', o.osd_duration, o.silence_skip_osd) --1.3.2# reflect updated prompt_msg
 			return true
 		end
 		if o.max_skip_duration > 0 and skip_duration >= o.max_skip_duration then
 			restoreProp(initial_skip_time)
-			prompt_msg('Skipping Cancelled\nSilence is more than configured maximum')
+			prompt_msg('Skipping Cancelled\nSilence is more than configured maximum', o.osd_duration, o.silence_skip_osd) --1.3.2# reflect updated prompt_msg
 			return true
 		end
 		return false
@@ -261,15 +271,15 @@ function eofHandler(name, val)
 		if o.silence_skip_to_end == 'playlist-next' then
 			restoreProp((mp.get_property_native('duration') or 0))
 			if mp.get_property_native('playlist-playing-pos')+1 == mp.get_property_native('playlist-count') then
-				prompt_msg('Skipped to end at ' .. mp.get_property_osd('duration'))
+				prompt_msg('Skipped to end at ' .. mp.get_property_osd('duration'), o.osd_duration, o.silence_skip_osd) --1.3.2# reflect updated prompt_msg
 			else
 				mp.commandv("playlist-next")
 			end
 		elseif o.silence_skip_to_end == 'cancel' then	
-			prompt_msg('Skipping Cancelled\nSilence not detected')
+			prompt_msg('Skipping Cancelled\nSilence not detected', o.osd_duration, o.silence_skip_osd) --1.3.2# reflect updated prompt_msg
 			restoreProp(initial_skip_time)
 		elseif o.silence_skip_to_end == 'pause' then
-			prompt_msg('Skipped to end at ' .. mp.get_property_osd('duration'))
+			prompt_msg('Skipped to end at ' .. mp.get_property_osd('duration'), o.osd_duration, o.silence_skip_osd) --1.3.2# reflect updated prompt_msg
 			restoreProp((mp.get_property_native('duration') or 0), true)
 		end
 	end
@@ -324,10 +334,7 @@ function smartPrev()
 
 	if chapter-1 < 0 and timepos > 1 and chapters_count == 0 then
 		mp.commandv('seek', 0, 'absolute', 'exact')
-		
-		mp.set_property('osd-duration', o.osd_duration)
-		mp.commandv(o.seek_osd, "show-progress")
-		mp.add_timeout(0.07, function () mp.set_property('osd-duration', osd_duration_default) end)
+		prompt_progress(o.chapter_osd, o.osd_duration) --1.3.2# use prompt_msg and use chapter_osd instead of seek_osd
 	elseif chapter-1 < 0 and timepos < 1 then
         mp.command('playlist_prev')
     elseif chapter-1 <= chapters_count then
@@ -347,10 +354,7 @@ function chapterSeek(direction)
 
     if chapter+direction < 0 and timepos > 1 and chapters_count == 0 then
 		mp.commandv('seek', 0, 'absolute', 'exact')
-		
-		mp.set_property('osd-duration', o.osd_duration)
-		mp.commandv(o.seek_osd, "show-progress")
-		mp.add_timeout(0.07, function () mp.set_property('osd-duration', osd_duration_default) end)
+		prompt_progress(o.chapter_osd, o.osd_duration) --1.3.2# use prompt_msg and use chapter_osd instead of seek_osd
 	elseif chapter+direction < 0 and timepos < 1 then
 	    mp.command('playlist_prev')
     elseif chapter+direction >= chapters_count then
@@ -384,7 +388,7 @@ function silenceSkip(action)
 	
     if not window_maximized then mp.set_property_native("geometry", ("%dx%d"):format(width, height)) end --1.3# fix for maximized window position
 	
-	mp.commandv(o.seek_osd, "show-progress")
+	if o.silence_skip_osd ~= 'no-osd' then mp.commandv(o.silence_skip_osd, "show-progress") end --1.3.2# handle no-osd
 	
 	mp.command(
 		"no-osd af add @skiptosilence:lavfi=[silencedetect=noise=" ..
@@ -408,7 +412,7 @@ function silenceSkip(action)
 	timer = mp.add_periodic_timer(0.5, function()
 		local video_time = (mp.get_property_native("time-pos") or 0)
 		handleMinMaxDuration(video_time)
-		if skip_flag then mp.commandv(o.seek_osd, "show-progress") end
+		if skip_flag and o.silence_skip_osd ~= 'no-osd' then mp.commandv(o.silence_skip_osd, "show-progress") end --1.3.2# handle no-osd
 	end)
 end
 
@@ -426,7 +430,7 @@ function foundSilence(name, value)
 	
 	restoreProp(timecode)
 
-	mp.add_timeout(0.05, function() prompt_msg('Skipped to silence 🕒 ' .. mp.get_property_osd("time-pos")) end)
+	mp.add_timeout(0.05, function() prompt_msg('Skipped to silence 🕒 ' .. mp.get_property_osd("time-pos"), o.osd_duration, o.silence_skip_osd) end)
 	if o.add_chapter_on_skip == true or has_value(o.add_chapter_on_skip, chapter_state) then
 		mp.add_timeout(0.05, add_chapter)
 	end
@@ -963,7 +967,7 @@ function prep_chapterskip_var()
     end
 end
 
-function start_chapterskip_countdown(text, duration)
+function start_chapterskip_countdown(text, duration, osd)
 	g_autoskip_countdown_flag = true
     g_autoskip_countdown = g_autoskip_countdown - 1
 	
@@ -972,13 +976,13 @@ function start_chapterskip_countdown(text, duration)
 	if (g_autoskip_countdown < 0) then kill_chapterskip_countdown(); mp.osd_message('',0) return end
 	
 	text = text:gsub("%%countdown%%", g_autoskip_countdown)
-	prompt_msg(text, 2000)
+	prompt_msg(text, duration, osd) --1.3.2# fix since duration was not used by mistake
 end
 
-function kill_chapterskip_countdown(action)
+function kill_chapterskip_countdown(action) --1.3.2# update function to utilize updated prompt_msg
 	if not g_autoskip_countdown_flag then return end
-	if action == 'osd' and o.autoskip_osd ~= 'no-osd' then
-		prompt_msg('○ Auto-Skip Cancelled')
+	if action == 'osd' then
+		prompt_msg('○ Auto-Skip Cancelled', o.osd_duration, o.autoskip_osd)
 	end
 	if g_autoskip_timer ~= nil then
 		g_autoskip_timer:kill()
@@ -1018,23 +1022,20 @@ function chapterskip(_, current, countdown)
 				consecutive_i = consecutive_i+1
             end
         elseif skip and countdown <= 0 then
-			mp.set_property('osd-duration', o.osd_duration)
-			mp.commandv(autoskip_osd, "show-progress")
-			mp.add_timeout(0.07, function () mp.set_property('osd-duration', osd_duration_default) end)
+			if o.autoskip_osd == 'osd-bar' or o.autoskip_osd == 'osd-msg-bar' then prompt_progress('osd-bar', o.osd_duration) end --1.3.2# only use the bar in progress, msg will be shown from below prompt_msg
 			
-			if o.autoskip_osd == 'osd-msg-bar' or o.autoskip_osd == 'osd-msg' then
-				if consecutive_i > 1 then
-					local autoskip_osd_string = ''
-					for j=consecutive_i, 1, -1  do
-						local chapter_title = ''
-						if chapters[i-j] then chapter_title = chapters[i-j].title end
-						autoskip_osd_string=(autoskip_osd_string..'\n  ➤ Chapter ('..i-j..') '..chapter_title)
-					end
-					prompt_msg('● Auto-Skip'..autoskip_osd_string)
-				else
-					prompt_msg('➤ Auto-Skip: Chapter '.. mp.command_native({'expand-text', '${chapter}'}))
+			if consecutive_i > 1 then
+				local autoskip_osd_string = ''
+				for j=consecutive_i, 1, -1  do
+					local chapter_title = ''
+					if chapters[i-j] then chapter_title = chapters[i-j].title end
+					autoskip_osd_string=(autoskip_osd_string..'\n  ➤ Chapter ('..i-j..') '..chapter_title)
 				end
+				prompt_msg('● Auto-Skip'..autoskip_osd_string, o.osd_duration, o.autoskip_osd) --1.3.2# use updated prompt_msg
+			else
+				prompt_msg('➤ Auto-Skip: Chapter '.. mp.command_native({'expand-text', '${chapter}'}), o.osd_duration, o.autoskip_osd) --1.3.2# use updated prompt_msg
 			end
+
 			mp.set_property("time-pos", chapters[i].time)
             skipped[skip] = true
             return
@@ -1045,45 +1046,43 @@ function chapterskip(_, current, countdown)
 			local autoskip_osd_string = ''
 			local autoskip_graceful_osd = ''
 			if o.autoskip_countdown_graceful then autoskip_graceful_osd = 'Press Keybind to:\n' end
-			if o.autoskip_osd == 'osd-msg-bar' or o.autoskip_osd == 'osd-msg' then
+			
+			if consecutive_i > 1 and o.autoskip_countdown_bulk then
+				local autoskip_osd_string = ''
+				for j=consecutive_i, 1, -1  do
+					local chapter_title = ''
+					if chapters[i-j] then chapter_title = chapters[i-j].title end
+					autoskip_osd_string=(autoskip_osd_string..'\n  ▷ Chapter ('..i-j..') '..chapter_title)
+				end
+				prompt_msg(autoskip_graceful_osd..'○ Auto-Skip'..' in "'..o.autoskip_countdown..'"'..autoskip_osd_string, 2000, o.autoskip_osd)
+				g_autoskip_timer = mp.add_periodic_timer(1, function () 
+					start_chapterskip_countdown(autoskip_graceful_osd..'○ Auto-Skip'..' in "%countdown%"'..autoskip_osd_string, 2000, o.autoskip_osd)
+				end)
+			else
+				prompt_msg(autoskip_graceful_osd..'▷ Auto-Skip in "'..o.autoskip_countdown..'": Chapter '.. mp.command_native({'expand-text', '${chapter}'}), 2000, o.autoskip_osd)
+				g_autoskip_timer = mp.add_periodic_timer(1, function () 
+					start_chapterskip_countdown(autoskip_graceful_osd..'▷ Auto-Skip in "%countdown%": Chapter '.. mp.command_native({'expand-text', '${chapter}'}), 2000, o.autoskip_osd)
+				end)
+			end
+
+			function proceed_autoskip(force)
+				if not g_autoskip_countdown_flag then kill_chapterskip_countdown() return end
+				if g_autoskip_countdown > 1 and not force then return end
+				
+				if o.autoskip_osd == 'osd-bar' or o.autoskip_osd == 'osd-msg-bar' then prompt_progress('osd-bar', o.osd_duration) end --1.3.2# only use the bar in progress, msg will be shown from below prompt_msg
+
 				if consecutive_i > 1 and o.autoskip_countdown_bulk then
 					local autoskip_osd_string = ''
 					for j=consecutive_i, 1, -1  do
 						local chapter_title = ''
 						if chapters[i-j] then chapter_title = chapters[i-j].title end
-						autoskip_osd_string=(autoskip_osd_string..'\n  ▷ Chapter ('..i-j..') '..chapter_title)
+						autoskip_osd_string=(autoskip_osd_string..'\n  ➤ Chapter ('..i-j..') '..chapter_title)
 					end
-					prompt_msg(autoskip_graceful_osd..'○ Auto-Skip'..' in "'..o.autoskip_countdown..'"'..autoskip_osd_string, 2000)
-					g_autoskip_timer = mp.add_periodic_timer(1, function () 
-						start_chapterskip_countdown(autoskip_graceful_osd..'○ Auto-Skip'..' in "%countdown%"'..autoskip_osd_string, 2000)
-					end)
+					prompt_msg('● Auto-Skip'..autoskip_osd_string, o.osd_duration, o.autoskip_osd) --1.3.2# use updated prompt_msg
 				else
-					prompt_msg(autoskip_graceful_osd..'▷ Auto-Skip in "'..o.autoskip_countdown..'": Chapter '.. mp.command_native({'expand-text', '${chapter}'}), 2000)
-					g_autoskip_timer = mp.add_periodic_timer(1, function () 
-						start_chapterskip_countdown(autoskip_graceful_osd..'▷ Auto-Skip in "%countdown%": Chapter '.. mp.command_native({'expand-text', '${chapter}'}), 2000)
-					end)
+					prompt_msg('➤ Auto-Skip: Chapter '.. mp.command_native({'expand-text', '${chapter}'}), o.osd_duration, o.autoskip_osd) --1.3.2# use updated prompt_msg
 				end
-			end
-			function proceed_autoskip(force)
-				if not g_autoskip_countdown_flag then kill_chapterskip_countdown() return end
-				if g_autoskip_countdown > 1 and not force then return end
-				
-				mp.set_property('osd-duration', o.osd_duration)
-				mp.commandv(autoskip_osd, "show-progress")
-				mp.add_timeout(0.07, function () mp.set_property('osd-duration', osd_duration_default) end)
-				if o.autoskip_osd == 'osd-msg-bar' or o.autoskip_osd == 'osd-msg' then
-					if consecutive_i > 1 and o.autoskip_countdown_bulk then
-						local autoskip_osd_string = ''
-						for j=consecutive_i, 1, -1  do
-							local chapter_title = ''
-							if chapters[i-j] then chapter_title = chapters[i-j].title end
-							autoskip_osd_string=(autoskip_osd_string..'\n  ➤ Chapter ('..i-j..') '..chapter_title)
-						end
-						prompt_msg('● Auto-Skip'..autoskip_osd_string)
-					else
-						prompt_msg('➤ Auto-Skip: Chapter '.. mp.command_native({'expand-text', '${chapter}'}))
-					end
-				end
+
 				if consecutive_i > 1 and o.autoskip_countdown_bulk then
 					mp.set_property("time-pos", chapters[i].time)
 				else
@@ -1103,40 +1102,36 @@ function chapterskip(_, current, countdown)
             return mp.set_property("time-pos", mp.get_property_native("duration"))
         end
         mp.commandv("playlist-next")
-		if o.autoskip_osd ~= 'no-osd' then autoskip_playlist_osd = true end
+		if o.autoskip_osd ~= 'no-osd' or o.autoskip_osd ~= 'osd-bar' then autoskip_playlist_osd = true end --1.3.2# handle osd-bar as well since it doesnt contain msg
     elseif skip and countdown > 0 then
 		g_autoskip_countdown_flag = true
 		bind_keys(o.cancel_autoskip_countdown_keybind, "cancel-autoskip-countdown", function() kill_chapterskip_countdown('osd') return end)
-		
-		if o.autoskip_osd == 'osd-msg-bar' or o.autoskip_osd == 'osd-msg' then 
-			local autoskip_graceful_osd = ''
-			if o.autoskip_countdown_graceful then autoskip_graceful_osd = 'Press Keybind to:\n' end
-			if consecutive_i > 1 and o.autoskip_countdown_bulk then
-				local i = (mp.get_property_number('chapters')+1 or 0)
-				local autoskip_osd_string = ''
-				for j=consecutive_i, 1, -1  do
-					local chapter_title = ''
-					if chapters[i-j] then chapter_title = chapters[i-j].title end
-					autoskip_osd_string=(autoskip_osd_string..'\n  ▷ Chapter ('..i-j..') '..chapter_title)
-				end
-				prompt_msg(autoskip_graceful_osd..'○ Auto-Skip'..' in "'..o.autoskip_countdown..'"'..autoskip_osd_string, 2000)
-				g_autoskip_timer = mp.add_periodic_timer(1, function ()
-					start_chapterskip_countdown(autoskip_graceful_osd..'○ Auto-Skip'..' in "%countdown%"'..autoskip_osd_string, 2000)
-				end)
-			else
-				prompt_msg(autoskip_graceful_osd..'▷ Auto-Skip in "'..o.autoskip_countdown..'": Chapter '.. mp.command_native({'expand-text', '${chapter}'}), 2000)
-				g_autoskip_timer = mp.add_periodic_timer(1, function () 
-					start_chapterskip_countdown(autoskip_graceful_osd..'▷ Auto-Skip in "%countdown%": Chapter '.. mp.command_native({'expand-text', '${chapter}'}), 2000)
-				end)
+		local autoskip_graceful_osd = ''
+		if o.autoskip_countdown_graceful then autoskip_graceful_osd = 'Press Keybind to:\n' end
+		if consecutive_i > 1 and o.autoskip_countdown_bulk then
+			local i = (mp.get_property_number('chapters')+1 or 0)
+			local autoskip_osd_string = ''
+			for j=consecutive_i, 1, -1  do
+				local chapter_title = ''
+				if chapters[i-j] then chapter_title = chapters[i-j].title end
+				autoskip_osd_string=(autoskip_osd_string..'\n  ▷ Chapter ('..i-j..') '..chapter_title)
 			end
+			prompt_msg(autoskip_graceful_osd..'○ Auto-Skip'..' in "'..o.autoskip_countdown..'"'..autoskip_osd_string, 2000, o.autoskip_osd) --1.3.2# use updated prompt_msg
+			g_autoskip_timer = mp.add_periodic_timer(1, function ()
+				start_chapterskip_countdown(autoskip_graceful_osd..'○ Auto-Skip'..' in "%countdown%"'..autoskip_osd_string, 2000, o.autoskip_osd) --1.3.2# use updated prompt_msg
+			end)
+		else
+			prompt_msg(autoskip_graceful_osd..'▷ Auto-Skip in "'..o.autoskip_countdown..'": Chapter '.. mp.command_native({'expand-text', '${chapter}'}), 2000, o.autoskip_osd) --1.3.2# use updated prompt_msg
+			g_autoskip_timer = mp.add_periodic_timer(1, function () 
+				start_chapterskip_countdown(autoskip_graceful_osd..'▷ Auto-Skip in "%countdown%": Chapter '.. mp.command_native({'expand-text', '${chapter}'}), 2000, o.autoskip_osd) --1.3.2# use updated prompt_msg
+			end)
 		end
 		function proceed_autoskip(force)
 			if not g_autoskip_countdown_flag then return end
 			if g_autoskip_countdown > 1 and not force then return end
 
-			mp.set_property('osd-duration', o.osd_duration)
-			mp.commandv(autoskip_osd, "show-progress")
-			mp.add_timeout(0.07, function () mp.set_property('osd-duration', osd_duration_default) end)
+			if o.autoskip_osd == 'osd-bar' or o.autoskip_osd == 'osd-msg-bar' then prompt_progress('osd-bar', o.osd_duration) end --1.3.2# only use the bar in progress, msg will be shown from below prompt_msg
+
 			if consecutive_i > 1 and o.autoskip_countdown_bulk then
 				if mp.get_property_native("playlist-count") == mp.get_property_native("playlist-pos-1") then
 					return mp.set_property("time-pos", mp.get_property_native("duration"))
@@ -1155,7 +1150,7 @@ function chapterskip(_, current, countdown)
 					mp.commandv('no-osd', 'add', 'chapter', 1)
 				end
 			end
-			if o.autoskip_osd ~= 'no-osd' then autoskip_playlist_osd = true end
+			if o.autoskip_osd ~= 'no-osd' or o.autoskip_osd ~= 'osd-bar' then autoskip_playlist_osd = true end --1.3.2# handle osd-bar as well
 			kill_chapterskip_countdown()
 		end
 		bind_keys(o.proceed_autoskip_countdown_keybind, "proceed-autoskip-countdown", function() proceed_autoskip(true) return end)
@@ -1166,11 +1161,11 @@ end
 
 function toggle_autoskip()
 	if autoskip_chapter == true then
-		prompt_msg('○ Auto-Skip Disabled')
+		prompt_msg('○ Auto-Skip Disabled', o.osd_duration, o.autoskip_osd) --1.3.2# use updated prompt_msg
 		autoskip_chapter = false
 		if g_autoskip_countdown_flag then kill_chapterskip_countdown() end
 	elseif autoskip_chapter == false then
-		prompt_msg('● Auto-Skip Enabled')
+		prompt_msg('● Auto-Skip Enabled', o.osd_duration, o.autoskip_osd) --1.3.2# use updated prompt_msg
 		autoskip_chapter = true
 	end
 end
@@ -1222,20 +1217,20 @@ function toggle_category_autoskip()
 	end
 	if current_chapter > 0 and chapters[current_chapter].title and chapters[current_chapter].title ~= '' then
 		if found_i > 0 or string.match(categories.toggle, esc_string(chapter_title)) then
-			prompt_msg('○ Removed from Auto-Skip\n  ▷ Chapter: '..chapter_title)
+			prompt_msg('○ Removed from Auto-Skip\n  ▷ Chapter: '..chapter_title, o.osd_duration, o.autoskip_osd) --1.3.2# use updated prompt_msg
 			categories.toggle = categories.toggle:gsub(esc_string("^"..chapter_title.."/"), "")
 			if g_autoskip_countdown_flag then kill_chapterskip_countdown() end
 		else
-			prompt_msg('● Added to Auto-Skip\n  ➔ Chapter: '..chapter_title)
+			prompt_msg('● Added to Auto-Skip\n  ➔ Chapter: '..chapter_title, o.osd_duration, o.autoskip_osd) --1.3.2# use updated prompt_msg
 			categories.toggle = categories.toggle.."^"..chapter_title.."/"
 		end
 	else
 		if found_i > 0 or string.match(categories.toggle_idx, esc_string(chapter_title)) then
-			prompt_msg('○ Removed from Auto-Skip\n  ▷ Chapter: '..chapter_title)
+			prompt_msg('○ Removed from Auto-Skip\n  ▷ Chapter: '..chapter_title, o.osd_duration, o.autoskip_osd) --1.3.2# use updated prompt_msg
 			categories.toggle_idx = categories.toggle_idx:gsub(esc_string(chapter_title.."/"), "")
 			if g_autoskip_countdown_flag then kill_chapterskip_countdown() end
 		else
-			prompt_msg('● Added to Auto-Skip\n  ➔ Chapter: '..chapter_title)
+			prompt_msg('● Added to Auto-Skip\n  ➔ Chapter: '..chapter_title, o.osd_duration, o.autoskip_osd) --1.3.2# use updated prompt_msg
 			categories.toggle_idx = categories.toggle_idx..chapter_title.."/"
 		end
 	end
@@ -1254,7 +1249,7 @@ mp.register_event('file-loaded', function()
 		prompt_msg('['..mp.command_native({'expand-text', '${playlist-pos-1}'})..'/'..mp.command_native({'expand-text', '${playlist-count}'})..'] '..mp.command_native({'expand-text', '${filename}'}))
 	end
 	if autoskip_playlist_osd then
-		prompt_msg('➤ Auto-Skip\n['..mp.command_native({'expand-text', '${playlist-pos-1}'})..'/'..mp.command_native({'expand-text', '${playlist-count}'})..'] '..mp.command_native({'expand-text', '${filename}'}))
+		prompt_msg('➤ Auto-Skip\n['..mp.command_native({'expand-text', '${playlist-pos-1}'})..'/'..mp.command_native({'expand-text', '${playlist-count}'})..'] '..mp.command_native({'expand-text', '${filename}'}), o.osd_duration, o.autoskip_osd) --1.3.2# use updated prompt_msg
 	end
 	playlist_osd = false
 	autoskip_playlist_osd = false
