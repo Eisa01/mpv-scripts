@@ -2,8 +2,8 @@
 -- License: BSD 2-Clause License
 -- Creator: Eisa AlAwadhi
 -- Project: SmartSkip
--- Version: 1.3.3
--- Date: 11-May-2025
+-- Version: 1.3.4
+-- Date: 14-May-2025
 
 -- Related forked projects:
 --  https://github.com/detuur/mpv-scripts/blob/master/skiptosilence.lua
@@ -42,6 +42,10 @@ local o = {
     skip_once = false,
 	categories=[[ [ ["internal-chapters", "prologue>Prologue/^Intro; opening>^OP/ OP$/^Opening; ending>^ED/ ED$/^Ending/Credits Start; preview>PV/ PV$/^Preview/Preview Start"], ["external-chapters", "idx->0/2"] ] ]],
 	skip=[[ [ ["internal-chapters", "toggle;toggle_idx;opening;ending;preview"], ["external-chapters", "toggle;toggle_idx"] ] ]],
+	invert_autoskip_exclusion = false,
+	autoskip_exclusion=[[
+	[""]
+	]],
 	-----OSD Messages Settings-----
 	osd_duration = 2500,
 	silence_skip_osd = "osd-msg-bar",
@@ -104,6 +108,7 @@ o.smart_prev_keybind = utils.parse_json(o.smart_prev_keybind)
 o.smart_next_keybind = utils.parse_json(o.smart_next_keybind)
 o.silence_skip_keybind = utils.parse_json(o.silence_skip_keybind)
 o.cancel_silence_skip_keybind = utils.parse_json(o.cancel_silence_skip_keybind)
+o.autoskip_exclusion = utils.parse_json(o.autoskip_exclusion) --1.3.4# option autoskip_exclusion parsing
 
 package.path = mp.command_native({"expand-path", "~~/script-modules/?.lua;"}) .. package.path
 local user_input_module, input = pcall(require, "user-input-module")
@@ -137,6 +142,9 @@ local g_opt_skip_once = false
 o.autoskip_countdown = math.floor(o.autoskip_countdown)
 local g_autoskip_countdown = o.autoskip_countdown
 local g_autoskip_countdown_flag = false
+local g_protocols = {'https?:', 'magnet:', 'rtmps?:', 'smb:', 'ftps?:', 'sftp:'} --1.3.4# default global protocols needed to check for protocols / website exclusion
+local g_filepath = '' --1.3.4# define initial global variable for filepath
+local g_autoskip_disabled = false --1.3.4# set global variable for autoskip disabled to be used for autoskip exclusion_check function
 local categories = {
 	toggle = "",
 	toggle_idx = "",
@@ -166,6 +174,19 @@ end
 
 function esc_string(str)
 	return str:gsub("([%p])", "%%%1")
+end
+
+function esc_lua_pattern(str) --1.3.4# helper function to escape pattern needed for exclusion_check function
+    return str:gsub("([%^%$%(%)%%%.%[%]%+%-%?])", "%%%1")
+end
+
+function starts_protocol(tab, val) --1.3.4# helper function to check if file is protocol needed for exclusion_check function
+	for index, value in ipairs(tab) do
+		if (val:find(value) == 1) then
+			return true
+		end
+	end
+	return false
 end
 
 function prompt_msg(text, duration, osd)
@@ -217,6 +238,62 @@ function unbind_keys(keys, name)
 			mp.remove_key_binding(name .. i)
 		end
 	end
+end
+
+function exclusion_check()
+	if g_filepath == "" then return false end
+	if o.autoskip_exclusion == nil then msg.warn('ignoring autoskip_exclusion option due to an inappropriate value') return false end
+	if not o.autoskip_exclusion[1] or #o.autoskip_exclusion == 1 and o.autoskip_exclusion[1] == "" then return false end
+
+	local invertable_return = {true, false}
+	local exclusion_msg = 'Auto-Skip disabled because of exclusion'
+	if o.invert_autoskip_exclusion then 
+		invertable_return = {false, true} 
+		exclusion_msg = 'Auto-Skip enabled because of inclusion'
+	end
+
+	if has_value(o.autoskip_exclusion, g_filepath, nil) then
+		msg.info(exclusion_msg)
+		return invertable_return[1]
+	elseif not starts_protocol(g_protocols, g_filepath) then
+		if has_value(o.autoskip_exclusion, g_filepath:match('^(.-)([^\\/]-)%.([^\\/%.]-)%.?$'), nil) or 
+		has_value(o.autoskip_exclusion, g_filepath:match('^(.-)([^\\/]-)%.([^\\/%.]-)%.?$'):gsub('\\$', ''), nil) then
+			msg.info(exclusion_msg)
+			return invertable_return[1]
+		elseif has_value(o.autoskip_exclusion, g_filepath:match('%.([^%.]+)$'), nil) or
+		has_value(o.autoskip_exclusion, "."..g_filepath:match('%.([^%.]+)$'), nil) then
+			msg.info(exclusion_msg)
+			return invertable_return[1]
+		else
+			for i=1, #o.autoskip_exclusion do
+				local esc_autoskip_exclusion = esc_lua_pattern(o.autoskip_exclusion[i])
+				if string.lower(g_filepath):match(string.lower(esc_autoskip_exclusion)) and o.autoskip_exclusion[i]:sub(-2) == '\\*' and string.lower(o.autoskip_exclusion[i]:sub(1, -2)) ~= string.lower(g_filepath):match("(.*[\\/])") then
+					msg.info(exclusion_msg)
+					return invertable_return[1]
+				end
+			end
+		end
+	elseif starts_protocol(g_protocols, g_filepath) then
+		if has_value(o.autoskip_exclusion, g_filepath:match('(.-)(:)'), nil) or
+		has_value(o.autoskip_exclusion, g_filepath:match('(.-:)'), nil) or
+		has_value(o.autoskip_exclusion, g_filepath:match('(.-:/?/?)'), nil) then
+			msg.info(exclusion_msg)
+			return invertable_return[1]
+		elseif g_filepath:find('https?://') == 1 then
+			local difchk_1, difchk_2 = g_filepath:match("(https?://)w?w?w?%.?([%w%.%:]*)")
+			local different_check_temp = difchk_1..difchk_2
+			local different_checks = {different_check_temp, g_filepath:match("https?://w?w?w?%.?([%w%.%:]*)"), g_filepath:match("https?://([%w%.%:]*)"), g_filepath:match("(https?://[%w%.%:]*)") }
+			for i = 1, #different_checks do
+				if different_checks[i] and has_value(o.autoskip_exclusion, different_checks[i], nil)
+				or different_checks[i]..'/' and has_value(o.autoskip_exclusion, different_checks[i]..'/', nil) then
+					msg.info(exclusion_msg)
+					return invertable_return[1]
+				end
+			end
+		end
+	end
+	
+	return invertable_return[2]
 end
 
 -- skip-silence utility functions --
@@ -994,10 +1071,11 @@ function kill_chapterskip_countdown(action)
 end
 
 function chapterskip(_, current, countdown)
+	if g_autoskip_disabled then return end --1.3.4# do not autoskip if g_autoskip_disabled is in disabled state
     if skip_flag then return end
 	if chapter_state == 'no-chapters' then return end
     if not autoskip_chapter then return end
-	if not current then return end --1.3.3# fix possible crash when forcing seeking back to an autoskip chapter
+	if not current then return end
 	if g_autoskip_countdown_flag then kill_chapterskip_countdown('osd') end
 	if not countdown then countdown = o.autoskip_countdown end
 
@@ -1036,8 +1114,7 @@ function chapterskip(_, current, countdown)
 			else
 				prompt_msg('➤ Auto-Skip: Chapter '.. mp.command_native({'expand-text', '${chapter}'}), o.osd_duration, o.autoskip_osd)
 			end
-			--mp.set_property("time-pos", chapters[i].time+0.01)--1.3.3# fix staying in same chapter causing infinite loop in pause state by adding 1ms (backup in case new method cause any issues)
-			mp.commandv('no-osd', 'set', 'chapter', i-1)--1.3.3# fix staying in chapter causing infinite loop in pause state by instead setting chapter instead of setting time-pos
+			mp.commandv('no-osd', 'set', 'chapter', i-1)
             skipped[skip] = true
             return
         elseif skip and countdown > 0 then
@@ -1085,8 +1162,7 @@ function chapterskip(_, current, countdown)
 				end
 
 				if consecutive_i > 1 and o.autoskip_countdown_bulk then
-				  --mp.set_property("time-pos", chapters[i].time+0.01)--1.3.3# fix staying in same chapter causing infinite loop in pause state by adding 1ms (backup in case new method cause any issues)
-					mp.commandv('no-osd', 'set', 'chapter', i-1)--1.3.3# fix staying in chapter causing infinite loop in pause state by instead setting chapter instead of setting time-pos
+					mp.commandv('no-osd', 'set', 'chapter', i-1)
 				else
 					mp.commandv('no-osd', 'add', 'chapter', 1)
 				end
@@ -1246,6 +1322,9 @@ mp.observe_property("chapter", "number", chapterskip) -- chapterskip.lua
 
 mp.register_event('file-loaded', function()
 	file_length = (mp.get_property_native('duration') or 0)
+	g_filepath = (mp.get_property('path') or '') --1.3.4# get filepath needed for exclusion_check function
+	if exclusion_check() then g_autoskip_disabled = true end --1.3.4# disable / enable autoskip based on exclusion_check
+
 	if o.playlist_osd and g_playlist_pos > 0 then playlist_osd = true end
 	if playlist_osd and not autoskip_playlist_osd then
 		prompt_msg('['..mp.command_native({'expand-text', '${playlist-pos-1}'})..'/'..mp.command_native({'expand-text', '${playlist-count}'})..'] '..mp.command_native({'expand-text', '${filename}'}))
