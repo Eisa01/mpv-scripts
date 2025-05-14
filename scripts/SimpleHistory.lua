@@ -384,6 +384,8 @@ end
 function get_file()
 	local path = mp.get_property('path')
 	if not path then return end
+	-- ignoring protocols that do not support playback recovery
+	if path:match("bd://") or path:match("dvd://")  or path:match("dvb://") or path:match("cdda://") then return end
 	
 	local length = (mp.get_property_number('duration') or 0)
 	
@@ -486,9 +488,9 @@ function list_sort(tab, sort)
 		local function padnum(d) local dec, n = string.match(d, "(%.?)0*(.+)")
 			return #dec > 0 and ("%.12f"):format(d) or ("%s%03d%s"):format(dec, #n, n) end
 		if sort == 'alphanum-asc' then
-			table.sort(tab, function(a, b) return tostring(a['found_path']):gsub("%.?%d+", padnum) .. ("%3d"):format(#b) > tostring(b['found_path']):gsub("%.?%d+", padnum) .. ("%3d"):format(#a) end)
+			table.sort(tab, function(a, b) return tostring(a['found_path']):lower():gsub("%.?%d+", padnum) .. ("%3d"):format(#b) > tostring(b['found_path']):lower():gsub("%.?%d+", padnum) .. ("%3d"):format(#a) end)
 		elseif sort == 'alphanum-desc' then
-			table.sort(tab, function(a, b) return tostring(a['found_path']):gsub("%.?%d+", padnum) .. ("%3d"):format(#b) < tostring(b['found_path']):gsub("%.?%d+", padnum) .. ("%3d"):format(#a) end)
+			table.sort(tab, function(a, b) return tostring(a['found_path']):lower():gsub("%.?%d+", padnum) .. ("%3d"):format(#b) < tostring(b['found_path']):lower():gsub("%.?%d+", padnum) .. ("%3d"):format(#a) end)
 		end
 	end
 	
