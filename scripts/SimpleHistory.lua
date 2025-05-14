@@ -12,6 +12,7 @@ local o = {
 	-----Script Settings----
 	auto_run_list_idle = 'recents', --Auto run the list when opening mpv and there is no video / file loaded. 'none' for disabled. Or choose between: 'all', 'recents', 'distinct', 'protocols', 'fileonly', 'titleonly', 'timeonly', 'keywords'.
 	startup_idle_behavior = 'none', --The behavior when mpv launches and nothing is loaded. 'none' for disabled. 'resume' to automatically resume your last played item. 'resume-notime' to resume your last played item but starts from the beginning.
+	resume_startup_playlist = true, --If mpv is launched with a playlist go to the most recently played item
 	toggle_idlescreen = false, --hides OSC idle screen message when opening and closing menu (could cause unexpected behavior if multiple scripts are triggering osc-idlescreen off)
 	resume_offset = -0.65, --change to 0 so item resumes from the exact position, or decrease the value so that it gives you a little preview before loading the resume point
 	osd_messages = true, --true is for displaying osd messages when actions occur. Change to false will disable all osd messages generated from this script
@@ -2267,6 +2268,46 @@ mp.observe_property("idle-active", "bool", function(_, v)
 		incognito_auto_run_triggered = true
 	end
 end)
+
+--for some reason calling "playlist-play-index" does not work on startup so instead we use a timeout to call it immediately afterwords
+local playlist_index=nil
+function resume_from_playlist()
+	if playlist_index~=nil then
+		print("switching to "..playlist_index)
+		mp.commandv("playlist-play-index",""..playlist_index)
+		playlist_index=nil
+	
+	end
+end
+
+local playlist_dir=mp.get_property("playlist/0/playlist-path");
+if playlist_dir~=nil and o.resume_startup_playlist then
+	--filter list to only include items in the same folder as the playlist. 
+	search_string=playlist_dir
+	search_active=true
+	get_list_contents()
+	search_active=false
+	search_string=''
+	--go through each item in history from most recent to least recent and see if it's in the playlist. 
+	for l=1,#list_contents do
+		local last=list_contents[#list_contents+1-l]
+		if last~=nil  then
+			--slashes are not always consistant so we flip all of the \ into / for comparision
+			local lastfile=last.found_path
+			local lastfiledeslashed=lastfile:gsub("\\", "/")
+			for i=0,mp.get_property_number("playlist/count")-1 do
+				local filename=mp.get_property("playlist/"..i.."/filename")
+				local filenamedeslashed=filename:gsub("\\", "/")					
+				if(filenamedeslashed==lastfiledeslashed) then					
+					print("resuming playlist "..lastfile)
+					playlist_index=i
+					mp.add_timeout(.01,resume_from_playlist)
+					return
+				end
+			end
+		end
+	end
+end
 
 bind_keys(o.history_resume_keybind, 'history-resume', history_resume)
 bind_keys(o.history_load_last_keybind, 'history-load-last', history_load_last)
