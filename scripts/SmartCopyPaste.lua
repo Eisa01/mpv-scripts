@@ -23,7 +23,7 @@ local o = {
 	prefer_filename_over_title = 'local', --Prefers to copy filename over filetitle. Select between 'local', 'protocols', 'all', and 'none'. 'local' prefer filenames for videos that are not protocols. 'protocols' will prefer filenames for protocols only. 'all' will prefer filename over filetitle for both protocols and not protocols videos. 'none' will always use filetitle instead of filename
 	copy_time_method = 'all', --Option to copy time with video, 'none' for disabled, 'all' to copy time for all videos, 'protocols' for copying time only for protocols, 'specifics' to copy time only for websites defined below, 'local' to copy time for videos that are not protocols
 	specific_time_attributes=[[
-	[ ["twitter", "?t=", ""], ["twitch", "?t=", "s"], ["youtube", "&t=", "s"] ]
+	[ ["twitch", "?t=", "s"], ["twitter", "?t=", ""], ["x", "?t=", ""], ["youtube", "&t=", "s"] ]
 	]], --The time attributes which will be added when copying protocols of specific websites from this list. Additional attributes can be added following the same format.
 	protocols_time_attribute = '&t=', --The text that will be copied before the seek time when copying a protocol video from mpv 
 	local_time_attribute = '&time=', --The text that will be copied before the seek time when copying a local video from mpv

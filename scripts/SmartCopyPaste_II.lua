@@ -26,7 +26,7 @@ local o = {
 	log_paste_idle_behavior = 'force-noresume', --Behavior of paste when nothing valid is copied, and no video is running. select between 'force', 'force-noresume'
 	log_paste_running_behavior = 'timestamp>playlist', --Behavior of paste when nothing valid is copied, and a video is running. select between 'timestamp>playlist', 'timestamp>force', 'timestamp', 'playlist', 'force', 'force-noresume'
 	specific_time_attributes=[[
-	[ ["twitter", "?t=", ""], ["twitch", "?t=", "s"], ["youtube", "&t=", "s"] ]
+	[ ["twitch", "?t=", "s"], ["twitter", "?t=", ""], ["x", "?t=", ""], ["youtube", "&t=", "s"] ]
 	]], --The time attributes which will be added when copying protocols of specific websites from this list. Additional attributes can be added following the same format.
 	protocols_time_attribute = '&t=', --The default text that will be copied before the seek time when copying a protocol video from mpv, specific_time_attributes takes priority
 	local_time_attribute = '&time=', --The text that will be copied before the seek time when copying a local video from mpv
