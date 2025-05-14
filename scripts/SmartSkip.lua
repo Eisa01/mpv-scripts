@@ -10,6 +10,9 @@
 --  https://github.com/mar04/chapters_for_mpv
 --  https://github.com/po5/chapterskip/blob/master/chapterskip.lua
 
+package.path = package.path .. ";" .. mp.command_native({ "expand-path", "~~/script-modules/?.lua" })
+local sha = require("sha2")
+
 local o = {
 	-----Silence Skip Settings-----
 	silence_audio_level = -40,
@@ -722,9 +725,23 @@ function mkdir(path)
     end
 end
 
-
--- returns md5 hash of the full path of the current media file
+-- returns sha256 hash of the full path of the current media file
+-- Pure lua hash function takes only 1-ms on Intel i3-6100, while powershell takes several
+-- seconds (can be up to 1x secs) on the first run, and an average of 300-ms on subsequent runs
 function hash()
+    local path = mp.get_property("path")
+    if path == nil then
+        msg.debug("something is wrong with the path, can't get full_path, can't hash it")
+        return
+    end
+    local clock = os.clock()
+    local hash = sha.sha256(path):upper()
+    msg.debug("sha256 input: ", path, '\nsha256 result:', hash, '\nelapsed sha256 time:', (os.clock() - clock)*1000, 'ms')
+    return hash
+end
+
+-- Keeping for reference on how to run a shell-command using mpv-subprocess-command
+function subprocess_hash()
     local path = mp.get_property("path")
     if path == nil then
         msg.debug("something is wrong with the path, can't get full_path, can't hash it")
@@ -740,6 +757,7 @@ function hash()
     }
     local args = nil
 
+    local clock = os.clock()
     if detect_os() == "unix" then
         local md5 = command_exists("md5sum") or command_exists("md5") or command_exists("openssl", "md5 | cut -d ' ' -f 2")
         if md5 == nil then
@@ -760,7 +778,7 @@ function hash()
 
     if process.status == 0 then
         local hash = process.stdout:gsub("%s+", "")
-        msg.debug("hash:", hash)
+        msg.debug("md5 input: ", path, '\nmd5 result:', hash, '\nelapsed md5 time:', (os.clock() - clock)*1000, 'ms')
         return hash
     else
         msg.warn("hash function failed")
